@@ -1,0 +1,557 @@
+import { Router } from 'express';
+import { db } from '../db/database.js';
+import { canUserViewBug, getSecurityFilterSQL } from '../middleware/security.js';
+import { defaultWorkflowConfig, validateTransition, getAvailableTransitions, deriveFlowMetrics, parseSearchQuery, validateRelationship } from '@triarc/engine';
+import { indexBugEmbedding, findDuplicates } from '../services/duplicate-radar.js';
+import { sseService } from '../services/sse.js';
+export const bugsRouter = Router();
+// GET /api/bugs - List and search bugs
+bugsRouter.get('/bugs', (req, res) => {
+    const queryParam = req.query.query;
+    const statusParam = req.query.status;
+    const priorityParam = req.query.priority;
+    const severityParam = req.query.severity;
+    const componentParam = req.query.component;
+    const assigneeParam = req.query.assignee;
+    const security = getSecurityFilterSQL(req.user);
+    let whereClauses = [security.sql];
+    let params = [...security.params];
+    if (queryParam) {
+        const parsed = parseSearchQuery(queryParam);
+        if (parsed.statuses && parsed.statuses.length > 0) {
+            const placeholders = parsed.statuses.map(() => '?').join(',');
+            whereClauses.push(`bugs.status IN (${placeholders})`);
+            params.push(...parsed.statuses);
+        }
+        if (parsed.priorities && parsed.priorities.length > 0) {
+            const placeholders = parsed.priorities.map(() => '?').join(',');
+            whereClauses.push(`LOWER(bugs.priority) IN (${placeholders})`);
+            params.push(...parsed.priorities);
+        }
+        if (parsed.severities && parsed.severities.length > 0) {
+            const placeholders = parsed.severities.map(() => '?').join(',');
+            whereClauses.push(`LOWER(bugs.severity) IN (${placeholders})`);
+            params.push(...parsed.severities);
+        }
+        if (parsed.components && parsed.components.length > 0) {
+            const placeholders = parsed.components.map(() => '?').join(',');
+            whereClauses.push(`bugs.component_id IN (${placeholders})`);
+            params.push(...parsed.components);
+        }
+        if (parsed.assignees && parsed.assignees.length > 0) {
+            for (const a of parsed.assignees) {
+                if (a === 'me' && req.user) {
+                    whereClauses.push(`bugs.assignee_id = ?`);
+                    params.push(req.user.id);
+                }
+                else if (a === 'unassigned') {
+                    whereClauses.push(`bugs.assignee_id IS NULL`);
+                }
+                else {
+                    whereClauses.push(`(u_assignee.username LIKE ? OR u_assignee.name LIKE ?)`);
+                    params.push(`%${a}%`, `%${a}%`);
+                }
+            }
+        }
+        if (parsed.text && parsed.text.length > 0) {
+            for (const t of parsed.text) {
+                whereClauses.push(`(bugs.title LIKE ? OR bugs.description LIKE ?)`);
+                params.push(`%${t}%`, `%${t}%`);
+            }
+        }
+        if (parsed.changedTo) {
+            whereClauses.push(`bugs.id IN (
+        SELECT bug_id FROM activity WHERE field = 'status' AND new_value LIKE ?
+      )`);
+            params.push(`%${parsed.changedTo}%`);
+        }
+    }
+    if (statusParam) {
+        const statuses = statusParam.split(',');
+        const placeholders = statuses.map(() => '?').join(',');
+        whereClauses.push(`bugs.status IN (${placeholders})`);
+        params.push(...statuses);
+    }
+    if (priorityParam) {
+        whereClauses.push(`bugs.priority = ?`);
+        params.push(priorityParam);
+    }
+    if (severityParam) {
+        whereClauses.push(`bugs.severity = ?`);
+        params.push(severityParam);
+    }
+    if (componentParam) {
+        whereClauses.push(`bugs.component_id = ?`);
+        params.push(componentParam);
+    }
+    if (assigneeParam) {
+        if (assigneeParam === 'me' && req.user) {
+            whereClauses.push(`bugs.assignee_id = ?`);
+            params.push(req.user.id);
+        }
+        else if (assigneeParam === 'unassigned') {
+            whereClauses.push(`bugs.assignee_id IS NULL`);
+        }
+        else {
+            whereClauses.push(`bugs.assignee_id = ?`);
+            params.push(assigneeParam);
+        }
+    }
+    const sql = `
+    SELECT
+      bugs.*,
+      c.name as component_name,
+      u_reporter.id as rep_id, u_reporter.username as rep_username, u_reporter.name as rep_name, u_reporter.email as rep_email, u_reporter.role as rep_role, u_reporter.avatar_url as rep_avatar,
+      u_assignee.id as ass_id, u_assignee.username as ass_username, u_assignee.name as ass_name, u_assignee.email as ass_email, u_assignee.role as ass_role, u_assignee.avatar_url as ass_avatar,
+      (SELECT COUNT(*) FROM comments WHERE comments.bug_id = bugs.id) as comments_count
+    FROM bugs
+    LEFT JOIN components c ON bugs.component_id = c.id
+    LEFT JOIN users u_reporter ON bugs.reporter_id = u_reporter.id
+    LEFT JOIN users u_assignee ON bugs.assignee_id = u_assignee.id
+    WHERE ${whereClauses.join(' AND ')}
+    ORDER BY bugs.id DESC
+  `;
+    const rows = db.prepare(sql).all(...params);
+    const bugs = rows.map((r) => ({
+        id: r.id,
+        title: r.title,
+        description: r.description,
+        status: r.status,
+        severity: r.severity,
+        priority: r.priority,
+        component_id: r.component_id,
+        component_name: r.component_name,
+        reporter_id: r.reporter_id,
+        assignee_id: r.assignee_id,
+        resolution: r.resolution,
+        duplicate_of: r.duplicate_of,
+        security_group_id: r.security_group_id,
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+        comments_count: r.comments_count,
+        reporter: r.rep_id ? {
+            id: r.rep_id,
+            username: r.rep_username,
+            name: r.rep_name,
+            email: r.rep_email,
+            role: r.rep_role,
+            avatar_url: r.rep_avatar
+        } : undefined,
+        assignee: r.ass_id ? {
+            id: r.ass_id,
+            username: r.ass_username,
+            name: r.ass_name,
+            email: r.ass_email,
+            role: r.ass_role,
+            avatar_url: r.ass_avatar
+        } : null
+    }));
+    res.json({ bugs, count: bugs.length });
+});
+// POST /api/duplicates/check - Live debounced duplicate radar check before submit
+bugsRouter.post('/duplicates/check', (req, res) => {
+    const { title, description, excludeBugId } = req.body;
+    if (!title) {
+        return res.json({ duplicates: [] });
+    }
+    const duplicates = findDuplicates(title, description || '', excludeBugId, req.user);
+    res.json({ duplicates });
+});
+// POST /api/bugs - Create new bug
+bugsRouter.post('/bugs', (req, res) => {
+    const { title, description, severity = 'normal', priority = 'normal', component_id = 'core', assignee_id = null, security_group_id = null } = req.body;
+    if (!title || !description) {
+        return res.status(400).json({ error: 'Title and description are required' });
+    }
+    const reporterId = req.user ? req.user.id : 'user_dev1';
+    const nowIso = new Date().toISOString();
+    const initialStatus = defaultWorkflowConfig.initial || 'Unconfirmed';
+    const insertStmt = db.prepare(`
+    INSERT INTO bugs (
+      title, description, status, severity, priority,
+      component_id, reporter_id, assignee_id, security_group_id,
+      created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+    const result = insertStmt.run(title, description, initialStatus, severity, priority, component_id, reporterId, assignee_id, security_group_id, nowIso, nowIso);
+    const bugId = Number(result.lastInsertRowid);
+    // Write initial activity row
+    db.prepare(`
+    INSERT INTO activity (bug_id, actor_id, field, old_value, new_value, automated, created_at)
+    VALUES (?, ?, 'status', NULL, ?, 0, ?)
+  `).run(bugId, reporterId, initialStatus, nowIso);
+    // Index for duplicate radar
+    indexBugEmbedding(bugId, title, description);
+    // Check for duplicate warnings
+    const duplicates = findDuplicates(title, description, bugId, req.user);
+    // Broadcast SSE
+    sseService.broadcast('bug:created', { bug_id: bugId, title, status: initialStatus });
+    res.status(201).json({
+        id: bugId,
+        title,
+        status: initialStatus,
+        duplicates,
+        message: 'Bug filed successfully'
+    });
+});
+// GET /api/bugs/:id - Full details + relationships + flags + flow metrics + valid next transitions
+bugsRouter.get('/bugs/:id', (req, res) => {
+    const bugId = parseInt(String(req.params.id), 10);
+    if (isNaN(bugId))
+        return res.status(400).json({ error: 'Invalid bug ID' });
+    if (!canUserViewBug(req.user, bugId)) {
+        return res.status(404).json({ error: 'Bug not found or restricted' });
+    }
+    const bugRow = db.prepare(`
+    SELECT
+      bugs.*,
+      c.name as component_name,
+      u_reporter.id as rep_id, u_reporter.username as rep_username, u_reporter.name as rep_name, u_reporter.email as rep_email, u_reporter.role as rep_role, u_reporter.avatar_url as rep_avatar,
+      u_assignee.id as ass_id, u_assignee.username as ass_username, u_assignee.name as ass_name, u_assignee.email as ass_email, u_assignee.role as ass_role, u_assignee.avatar_url as ass_avatar
+    FROM bugs
+    LEFT JOIN components c ON bugs.component_id = c.id
+    LEFT JOIN users u_reporter ON bugs.reporter_id = u_reporter.id
+    LEFT JOIN users u_assignee ON bugs.assignee_id = u_assignee.id
+    WHERE bugs.id = ?
+  `).get(bugId);
+    if (!bugRow)
+        return res.status(404).json({ error: 'Bug not found' });
+    const bug = {
+        id: bugRow.id,
+        title: bugRow.title,
+        description: bugRow.description,
+        status: bugRow.status,
+        severity: bugRow.severity,
+        priority: bugRow.priority,
+        component_id: bugRow.component_id,
+        component_name: bugRow.component_name,
+        reporter_id: bugRow.reporter_id,
+        assignee_id: bugRow.assignee_id,
+        resolution: bugRow.resolution,
+        duplicate_of: bugRow.duplicate_of,
+        security_group_id: bugRow.security_group_id,
+        created_at: bugRow.created_at,
+        updated_at: bugRow.updated_at,
+        reporter: bugRow.rep_id ? {
+            id: bugRow.rep_id,
+            username: bugRow.rep_username,
+            name: bugRow.rep_name,
+            email: bugRow.rep_email,
+            role: bugRow.rep_role,
+            avatar_url: bugRow.rep_avatar
+        } : undefined,
+        assignee: bugRow.ass_id ? {
+            id: bugRow.ass_id,
+            username: bugRow.ass_username,
+            name: bugRow.ass_name,
+            email: bugRow.ass_email,
+            role: bugRow.ass_role,
+            avatar_url: bugRow.ass_avatar
+        } : null
+    };
+    // Fetch flags
+    const flags = db.prepare(`
+    SELECT
+      f.*,
+      ft.name as type_name, ft.target,
+      u_setter.name as setter_name, u_setter.username as setter_username, u_setter.role as setter_role,
+      u_req.name as req_name, u_req.username as req_username, u_req.role as req_role
+    FROM flags f
+    JOIN flag_types ft ON f.type_id = ft.id
+    JOIN users u_setter ON f.setter_id = u_setter.id
+    LEFT JOIN users u_req ON f.requestee_id = u_req.id
+    WHERE f.bug_id = ?
+    ORDER BY f.id DESC
+  `).all(bugId).map((f) => ({
+        id: f.id,
+        type_id: f.type_id,
+        type_name: f.type_name,
+        bug_id: f.bug_id,
+        attach_id: f.attach_id,
+        status: f.status,
+        setter_id: f.setter_id,
+        requestee_id: f.requestee_id,
+        created_at: f.created_at,
+        resolved_at: f.resolved_at,
+        setter: { id: f.setter_id, name: f.setter_name, username: f.setter_username, role: f.setter_role },
+        requestee: f.requestee_id ? { id: f.requestee_id, name: f.req_name, username: f.req_username, role: f.req_role } : null
+    }));
+    // Fetch relationships
+    const relationships = db.prepare(`
+    SELECT
+      r.*,
+      b.title as target_bug_title,
+      b.status as target_bug_status
+    FROM relationships r
+    JOIN bugs b ON r.to_bug_id = b.id
+    WHERE r.from_bug_id = ?
+    UNION ALL
+    SELECT
+      r.*,
+      b.title as target_bug_title,
+      b.status as target_bug_status
+    FROM relationships r
+    JOIN bugs b ON r.from_bug_id = b.id
+    WHERE r.to_bug_id = ?
+  `).all(bugId, bugId);
+    // Fetch git links
+    const git_links = db.prepare(`
+    SELECT * FROM git_links WHERE bug_id = ? ORDER BY id DESC
+  `).all(bugId);
+    // Fetch comments
+    const comments = db.prepare(`
+    SELECT
+      c.*,
+      u.name as author_name, u.username as author_username, u.role as author_role, u.avatar_url as author_avatar
+    FROM comments c
+    JOIN users u ON c.author_id = u.id
+    WHERE c.bug_id = ?
+    ORDER BY c.id ASC
+  `).all(bugId).map((c) => ({
+        id: c.id,
+        bug_id: c.bug_id,
+        author_id: c.author_id,
+        body: c.body,
+        is_private: !!c.is_private,
+        created_at: c.created_at,
+        author: { id: c.author_id, name: c.author_name, username: c.author_username, role: c.author_role, avatar_url: c.author_avatar }
+    }));
+    // Fetch activity log
+    const activity = db.prepare(`
+    SELECT
+      a.*,
+      u.name as actor_name
+    FROM activity a
+    LEFT JOIN users u ON a.actor_id = u.id
+    WHERE a.bug_id = ?
+    ORDER BY a.created_at DESC, a.id DESC
+  `).all(bugId);
+    // Compute flow metrics and stalled state
+    const flow_metrics = deriveFlowMetrics(bug, activity, flags, git_links);
+    // Compute available transitions based on current user role
+    const userRole = req.user?.role || 'developer';
+    const available_transitions = getAvailableTransitions(defaultWorkflowConfig, bug.status, userRole);
+    // Active viewers
+    const viewers = sseService.getViewers(bugId);
+    res.json({
+        bug,
+        flags,
+        relationships,
+        git_links,
+        comments,
+        activity,
+        flow_metrics,
+        available_transitions,
+        viewers
+    });
+});
+// PATCH /api/bugs/:id/transition - Validated by Engine
+bugsRouter.patch('/bugs/:id/transition', (req, res) => {
+    const bugId = parseInt(String(req.params.id), 10);
+    if (isNaN(bugId))
+        return res.status(400).json({ error: 'Invalid bug ID' });
+    const { toState, comment, fields, automated = false } = req.body;
+    if (!toState)
+        return res.status(400).json({ error: 'toState is required' });
+    const bug = db.prepare('SELECT * FROM bugs WHERE id = ?').get(bugId);
+    if (!bug)
+        return res.status(404).json({ error: 'Bug not found' });
+    const actorRole = req.user?.role || 'developer';
+    const actorId = req.user?.id || null;
+    // Validate with zero-I/O engine
+    const validation = validateTransition(defaultWorkflowConfig, bug.status, toState, actorRole, {
+        comment,
+        fields,
+        isAutomated: automated,
+        actorId
+    });
+    if (!validation.valid) {
+        return res.status(400).json({
+            error: validation.reason,
+            currentState: bug.status,
+            targetState: toState
+        });
+    }
+    const nowIso = new Date().toISOString();
+    const resolution = fields?.resolution || (toState === 'Resolved' ? 'FIXED' : bug.resolution);
+    const duplicateOf = fields?.duplicate_of ? Number(fields.duplicate_of) : bug.duplicate_of;
+    // Update bug state in DB
+    db.prepare(`
+    UPDATE bugs
+    SET status = ?, resolution = ?, duplicate_of = ?, updated_at = ?
+    WHERE id = ?
+  `).run(toState, resolution, duplicateOf, nowIso, bugId);
+    // Write audit activity row
+    const activityInsert = db.prepare(`
+    INSERT INTO activity (bug_id, actor_id, field, old_value, new_value, automated, created_at)
+    VALUES (?, ?, 'status', ?, ?, ?, ?)
+  `);
+    const actResult = activityInsert.run(bugId, actorId, bug.status, toState, automated ? 1 : 0, nowIso);
+    // If transition included comment, record it
+    if (comment && comment.trim()) {
+        db.prepare(`
+      INSERT INTO comments (bug_id, author_id, body, created_at)
+      VALUES (?, ?, ?, ?)
+    `).run(bugId, actorId || 'user_dev1', comment.trim(), nowIso);
+    }
+    // If transition to duplicate, record relationship
+    if (toState === 'Duplicate' && duplicateOf) {
+        try {
+            db.prepare(`
+        INSERT INTO relationships (from_bug_id, to_bug_id, type, created_at)
+        VALUES (?, ?, 'DUPLICATE_OF', ?)
+      `).run(bugId, duplicateOf, nowIso);
+        }
+        catch (e) {
+            // Ignored if duplicate already linked
+        }
+    }
+    // Broadcast live SSE update
+    sseService.broadcast('bug:updated', {
+        bug_id: bugId,
+        status: toState,
+        resolution,
+        actor_id: actorId,
+        automated
+    });
+    res.json({
+        success: true,
+        bug_id: bugId,
+        old_status: bug.status,
+        new_status: toState,
+        resolution,
+        activity_id: actResult.lastInsertRowid
+    });
+});
+// POST /api/bugs/:id/relate - Create relationship
+bugsRouter.post('/bugs/:id/relate', (req, res) => {
+    const bugId = parseInt(String(req.params.id), 10);
+    const { toBugId, type } = req.body;
+    if (isNaN(bugId) || !toBugId || !type) {
+        return res.status(400).json({ error: 'bugId, toBugId, and type are required' });
+    }
+    const existing = db.prepare(`
+    SELECT * FROM relationships WHERE from_bug_id = ? OR to_bug_id = ?
+  `).all(bugId, bugId);
+    const validation = validateRelationship(bugId, Number(toBugId), type, existing);
+    if (!validation.valid) {
+        return res.status(400).json({ error: validation.reason });
+    }
+    const nowIso = new Date().toISOString();
+    const insert = db.prepare(`
+    INSERT INTO relationships (from_bug_id, to_bug_id, type, created_at)
+    VALUES (?, ?, ?, ?)
+  `).run(bugId, toBugId, type, nowIso);
+    const actorId = req.user?.id || null;
+    db.prepare(`
+    INSERT INTO activity (bug_id, actor_id, field, old_value, new_value, automated, created_at)
+    VALUES (?, ?, 'relationship', NULL, ?, 0, ?)
+  `).run(bugId, actorId, `${type} #${toBugId}`, nowIso);
+    res.status(201).json({
+        id: insert.lastInsertRowid,
+        from_bug_id: bugId,
+        to_bug_id: toBugId,
+        type,
+        created_at: nowIso
+    });
+});
+// POST /api/bugs/:id/comments - Add comment
+bugsRouter.post('/bugs/:id/comments', (req, res) => {
+    const bugId = parseInt(String(req.params.id), 10);
+    const { body, is_private = false } = req.body;
+    if (isNaN(bugId) || !body || !body.trim()) {
+        return res.status(400).json({ error: 'Comment body is required' });
+    }
+    const authorId = req.user ? req.user.id : 'user_dev1';
+    const nowIso = new Date().toISOString();
+    const insert = db.prepare(`
+    INSERT INTO comments (bug_id, author_id, body, is_private, created_at)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(bugId, authorId, body.trim(), is_private ? 1 : 0, nowIso);
+    db.prepare(`
+    INSERT INTO activity (bug_id, actor_id, field, old_value, new_value, automated, created_at)
+    VALUES (?, ?, 'comment', NULL, 'New comment added', 0, ?)
+  `).run(bugId, authorId, nowIso);
+    sseService.broadcast('activity:created', { bug_id: bugId, field: 'comment' });
+    res.status(201).json({
+        id: insert.lastInsertRowid,
+        bug_id: bugId,
+        body: body.trim(),
+        created_at: nowIso
+    });
+});
+// GET /api/bugs/:id/duplicates - Live semantic similarity
+bugsRouter.get('/bugs/:id/duplicates', (req, res) => {
+    const bugId = parseInt(String(req.params.id), 10);
+    if (isNaN(bugId))
+        return res.status(400).json({ error: 'Invalid bug ID' });
+    const bug = db.prepare('SELECT title, description FROM bugs WHERE id = ?').get(bugId);
+    if (!bug)
+        return res.status(404).json({ error: 'Bug not found' });
+    const duplicates = findDuplicates(bug.title, bug.description, bugId, req.user);
+    res.json({ duplicates });
+});
+// GET /api/bugs/:id/timeline - Unified activity + git events sorted in one lane
+bugsRouter.get('/bugs/:id/timeline', (req, res) => {
+    const bugId = parseInt(String(req.params.id), 10);
+    if (isNaN(bugId))
+        return res.status(400).json({ error: 'Invalid bug ID' });
+    const activities = db.prepare(`
+    SELECT a.*, u.name as actor_name
+    FROM activity a
+    LEFT JOIN users u ON a.actor_id = u.id
+    WHERE a.bug_id = ?
+    ORDER BY a.created_at ASC
+  `).all(bugId);
+    const gitLinks = db.prepare(`
+    SELECT * FROM git_links WHERE bug_id = ? ORDER BY updated_at ASC
+  `).all(bugId);
+    const timelineItems = [];
+    for (const act of activities) {
+        let title = `Changed ${act.field}`;
+        if (act.field === 'status') {
+            title = act.old_value ? `Status changed from ${act.old_value} to ${act.new_value}` : `Created as ${act.new_value}`;
+        }
+        else if (act.field === 'comment') {
+            title = 'Comment added';
+        }
+        else if (act.field === 'flag_resolved') {
+            title = `Flag resolved to ${act.new_value}`;
+        }
+        timelineItems.push({
+            id: `act_${act.id}`,
+            timestamp: act.created_at,
+            type: 'activity',
+            title,
+            description: act.new_value || undefined,
+            actor_id: act.actor_id,
+            actor_name: act.actor_name,
+            automated: !!act.automated,
+            meta: {
+                field: act.field,
+                old_value: act.old_value,
+                new_value: act.new_value
+            }
+        });
+    }
+    for (const link of gitLinks) {
+        timelineItems.push({
+            id: `git_${link.id}`,
+            timestamp: link.updated_at,
+            type: 'git_event',
+            title: `${link.kind}: ${link.ref}`,
+            description: `State: ${link.state}`,
+            automated: true,
+            meta: {
+                git_kind: link.kind,
+                git_ref: link.ref,
+                git_url: link.url,
+                git_state: link.state
+            }
+        });
+    }
+    // Sort chronologically
+    timelineItems.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    res.json({ timeline: timelineItems });
+});
+//# sourceMappingURL=bugs.js.map
