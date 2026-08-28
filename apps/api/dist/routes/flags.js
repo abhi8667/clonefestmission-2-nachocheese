@@ -11,7 +11,8 @@ flagsRouter.get('/flag-types', (req, res) => {
 // GET /api/inbox - Personal Request Inbox (Incoming & Outgoing)
 flagsRouter.get('/inbox', (req, res) => {
     const userId = req.user ? req.user.id : 'user_dev1';
-    const queryFlags = (whereClause, params) => {
+    const queryFlags = (whereClause, params, limit) => {
+        const limitClause = limit ? `LIMIT ${limit}` : '';
         return db.prepare(`
       SELECT
         f.*,
@@ -26,6 +27,7 @@ flagsRouter.get('/inbox', (req, res) => {
       LEFT JOIN users u_req ON f.requestee_id = u_req.id
       WHERE ${whereClause}
       ORDER BY f.created_at DESC
+      ${limitClause}
     `).all(...params).map((r) => ({
             id: r.id,
             type_id: r.type_id,
@@ -57,7 +59,7 @@ flagsRouter.get('/inbox', (req, res) => {
     };
     const incoming = queryFlags('f.requestee_id = ? AND f.status = ?', [userId, '?']);
     const outgoing = queryFlags('f.setter_id = ? AND f.status = ?', [userId, '?']);
-    const resolved = queryFlags('(f.requestee_id = ? OR f.setter_id = ?) AND f.status != ? LIMIT 30', [userId, userId, '?']);
+    const resolved = queryFlags('(f.requestee_id = ? OR f.setter_id = ?) AND f.status != ?', [userId, userId, '?'], 30);
     res.json({
         incoming,
         outgoing,

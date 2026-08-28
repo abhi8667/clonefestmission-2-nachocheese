@@ -51,4 +51,35 @@ describe('Triarc API Integration & Performance (§9 & §13)', () => {
     assert.equal(activity.new_value, 'Resolved');
     assert.ok(Number(activity.automated) === 1);
   });
+
+  it('Queries Request Inbox (incoming, outgoing, resolved) without SQL errors', () => {
+    const userId = 'u_alex';
+    const queryFlags = (whereClause: string, params: any[], limit?: number) => {
+      const limitClause = limit ? `LIMIT ${limit}` : '';
+      return db.prepare(`
+        SELECT
+          f.*,
+          ft.name as type_name, ft.target,
+          b.title as bug_title, b.status as bug_status,
+          u_setter.id as setter_id, u_setter.name as setter_name, u_setter.username as setter_username, u_setter.role as setter_role, u_setter.avatar_url as setter_avatar,
+          u_req.id as req_id, u_req.name as req_name, u_req.username as req_username, u_req.role as req_role, u_req.avatar_url as req_avatar
+        FROM flags f
+        JOIN flag_types ft ON f.type_id = ft.id
+        JOIN bugs b ON f.bug_id = b.id
+        JOIN users u_setter ON f.setter_id = u_setter.id
+        LEFT JOIN users u_req ON f.requestee_id = u_req.id
+        WHERE ${whereClause}
+        ORDER BY f.created_at DESC
+        ${limitClause}
+      `).all(...params);
+    };
+
+    const incoming = queryFlags('f.requestee_id = ? AND f.status = ?', [userId, '?']);
+    const outgoing = queryFlags('f.setter_id = ? AND f.status = ?', [userId, '?']);
+    const resolved = queryFlags('(f.requestee_id = ? OR f.setter_id = ?) AND f.status != ?', [userId, userId, '?'], 30);
+
+    assert.ok(Array.isArray(incoming));
+    assert.ok(Array.isArray(outgoing));
+    assert.ok(Array.isArray(resolved));
+  });
 });
