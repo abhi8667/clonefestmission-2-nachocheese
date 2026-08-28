@@ -2,8 +2,8 @@ import { Router, Response } from 'express';
 import { db } from '../db/database.js';
 import { AuthenticatedRequest } from '../middleware/auth.js';
 import { canUserViewBug, getSecurityFilterSQL } from '../middleware/security.js';
-import { defaultWorkflowConfig, validateTransition, getAvailableTransitions, deriveFlowMetrics, parseSearchQuery, validateRelationship } from '@triarc/engine';
-import { Bug, Activity, Flag, Relationship, GitLink, Comment, TimelineItem } from '@triarc/shared-types';
+import { defaultWorkflowConfig, validateTransition, getAvailableTransitions, deriveFlowMetrics, parseSearchQuery, validateRelationship, computeActivitySparkline, computeSlaStatus } from '@triarc/engine';
+import { Bug, Activity, Flag, Relationship, GitLink, Comment, TimelineItem, BulkTransitionResult } from '@triarc/shared-types';
 import { indexBugEmbedding, findDuplicates } from '../services/duplicate-radar.js';
 import { sseService } from '../services/sse.js';
 

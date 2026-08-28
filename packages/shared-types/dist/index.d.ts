@@ -38,6 +38,8 @@ export interface Bug {
     relationships?: Relationship[];
     git_links?: GitLink[];
     comments_count?: number;
+    activity_sparkline?: number[];
+    sla_status?: SlaStatus;
 }
 export interface Activity {
     id: number;
@@ -215,6 +217,58 @@ export interface SSEMessage {
     data: any;
     timestamp: string;
 }
+export interface SlaTarget {
+    triage_hours: number;
+    dev_hours: number;
+    review_hours: number;
+}
+export interface SlaStatus {
+    severity: BugSeverity;
+    targets: SlaTarget;
+    is_breached: boolean;
+    breached_stage?: 'Triage' | 'Dev' | 'Review';
+    breach_hours?: number;
+    remaining_hours?: number;
+    compliance_percent?: number;
+}
+export interface DigestItem {
+    id: number;
+    bug_id: number;
+    bug_title: string;
+    field: string;
+    old_value: string | null;
+    new_value: string | null;
+    actor_name?: string;
+    created_at: string;
+}
+export interface DigestSummary {
+    since: string;
+    period_label: string;
+    status_changes_count: number;
+    new_flags_count: number;
+    comments_count: number;
+    total_events: number;
+    items: DigestItem[];
+}
+export interface BulkTransitionInput {
+    bug_ids: number[];
+    toState: string;
+    comment?: string;
+    fields?: Record<string, any>;
+}
+export interface BulkTransitionResult {
+    total: number;
+    success_count: number;
+    failed_count: number;
+    results: {
+        bug_id: number;
+        title?: string;
+        success: boolean;
+        old_status?: string;
+        new_status?: string;
+        reason?: string;
+    }[];
+}
 export interface CreateBugInput {
     title: string;
     description: string;
@@ -238,5 +292,13 @@ export interface CreateFlagInput {
 export interface ResolveFlagInput {
     status: '+' | '-';
     comment?: string;
+}
+export interface UpdateBugInput {
+    title?: string;
+    description?: string;
+    severity?: BugSeverity;
+    priority?: BugPriority;
+    component_id?: string;
+    assignee_id?: string | null;
 }
 //# sourceMappingURL=index.d.ts.map

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { defaultWorkflowConfig } from '../src/index.js';
 import { validateTransition, createTransitionActivity } from '../src/workflow.js';
 import { validateFlagCreation, validateFlagResolution } from '../src/flags.js';
-import { computeTimeInState, detectStalledState } from '../src/metrics.js';
+import { computeTimeInState, detectStalledState, computeSlaStatus, computeActivitySparkline } from '../src/metrics.js';
 import { parseSearchQuery } from '../src/query.js';
 import { validateRelationship } from '../src/relationships.js';
 describe('Workflow Engine (§8 Test Suite)', () => {
@@ -205,6 +205,51 @@ describe('Engine Relationship Validator', () => {
         const circular = validateRelationship(20, 10, 'BLOCKS', existing);
         assert.equal(circular.valid, false);
         assert.match(circular.reason || '', /circular dependency/i);
+    });
+});
+describe('Engine SLA Targets & Activity Sparkline', () => {
+    it('Calculates SLA status and detects review SLA breach for blocker/critical bugs', () => {
+        const bug = {
+            id: 412,
+            title: 'Crash on save when offline',
+            description: 'Reproduces offline',
+            status: 'In Review',
+            severity: 'critical', // critical SLA: review < 24h
+            priority: 'high',
+            component_id: 'core',
+            reporter_id: 'user1',
+            created_at: '2026-08-01T00:00:00Z',
+            updated_at: '2026-08-05T00:00:00Z'
+        };
+        const flowMetrics = {
+            bug_id: 412,
+            time_in_state: { 'In Review': 36 * 3600 * 1000 }, // 36 hours in review
+            stage_latencies: {
+                triage_time_ms: 2 * 3600 * 1000,
+                dev_time_ms: 10 * 3600 * 1000,
+                review_latency_ms: 36 * 3600 * 1000, // 36h (> 24h SLA)
+                verification_time_ms: 0
+            },
+            total_lead_time_ms: 48 * 3600 * 1000,
+            is_stalled: true
+        };
+        const sla = computeSlaStatus(bug, flowMetrics);
+        assert.equal(sla.is_breached, true);
+        assert.equal(sla.breached_stage, 'Review');
+        assert.equal(sla.breach_hours, 12); // 36 - 24 = 12h breach
+    });
+    it('Computes 14-day activity sparkline histogram correctly', () => {
+        const now = new Date('2026-08-15T12:00:00Z');
+        const activities = [
+            { id: 1, bug_id: 1, actor_id: 'u1', field: 'status', old_value: null, new_value: 'Unconfirmed', automated: false, created_at: '2026-08-15T10:00:00Z' }, // today (day 13)
+            { id: 2, bug_id: 1, actor_id: 'u1', field: 'status', old_value: 'Unconfirmed', new_value: 'In Progress', automated: false, created_at: '2026-08-15T11:00:00Z' }, // today (day 13)
+            { id: 3, bug_id: 1, actor_id: 'u1', field: 'comment', old_value: null, new_value: 'Testing', automated: false, created_at: '2026-08-14T08:00:00Z' }, // yesterday (day 12)
+        ];
+        const sparkline = computeActivitySparkline(activities, 14, now);
+        assert.equal(sparkline.length, 14);
+        assert.equal(sparkline[13], 2); // 2 events today
+        assert.equal(sparkline[12], 1); // 1 event yesterday
+        assert.equal(sparkline[0], 0); // 0 events 14 days ago
     });
 });
 //# sourceMappingURL=engine.test.js.map

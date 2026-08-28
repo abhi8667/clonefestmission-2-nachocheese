@@ -1,4 +1,4 @@
-import { Activity, Bug, Flag, FlowMetrics, GitLink } from '@triarc/shared-types';
+import { Activity, Bug, BugSeverity, Flag, FlowMetrics, GitLink, SlaStatus, SlaTarget } from '@triarc/shared-types';
 
 export function computeTimeInState(
   activities: Activity[],
@@ -195,6 +195,96 @@ export function deriveFlowMetrics(
   };
 }
 
+export const DEFAULT_SLA_TARGETS: Record<BugSeverity, SlaTarget> = {
+  blocker: { triage_hours: 4, dev_hours: 24, review_hours: 8 },
+  critical: { triage_hours: 24, dev_hours: 72, review_hours: 24 },
+  major: { triage_hours: 72, dev_hours: 168, review_hours: 48 },
+  normal: { triage_hours: 120, dev_hours: 336, review_hours: 72 },
+  minor: { triage_hours: 168, dev_hours: 504, review_hours: 96 },
+  trivial: { triage_hours: 240, dev_hours: 720, review_hours: 120 },
+  enhancement: { triage_hours: 240, dev_hours: 720, review_hours: 120 }
+};
+
+export function computeSlaStatus(
+  bug: Bug,
+  flowMetrics: FlowMetrics,
+  targets: Record<BugSeverity, SlaTarget> = DEFAULT_SLA_TARGETS
+): SlaStatus {
+  const sev = bug.severity || 'normal';
+  const target = targets[sev] || DEFAULT_SLA_TARGETS.normal;
+
+  const triageHours = (flowMetrics.stage_latencies.triage_time_ms || 0) / (3600 * 1000);
+  const devHours = (flowMetrics.stage_latencies.dev_time_ms || 0) / (3600 * 1000);
+  const reviewHours = (flowMetrics.stage_latencies.review_latency_ms || 0) / (3600 * 1000);
+
+  let isBreached = false;
+  let breachedStage: 'Triage' | 'Dev' | 'Review' | undefined;
+  let breachHours = 0;
+  let remainingHours = 0;
+
+  if (bug.status === 'In Review') {
+    if (reviewHours > target.review_hours) {
+      isBreached = true;
+      breachedStage = 'Review';
+      breachHours = Math.round((reviewHours - target.review_hours) * 10) / 10;
+    } else {
+      remainingHours = Math.max(0, Math.round((target.review_hours - reviewHours) * 10) / 10);
+    }
+  } else if (bug.status === 'In Progress') {
+    if (devHours > target.dev_hours) {
+      isBreached = true;
+      breachedStage = 'Dev';
+      breachHours = Math.round((devHours - target.dev_hours) * 10) / 10;
+    } else {
+      remainingHours = Math.max(0, Math.round((target.dev_hours - devHours) * 10) / 10);
+    }
+  } else if (bug.status === 'Unconfirmed' || bug.status === 'Confirmed') {
+    if (triageHours > target.triage_hours) {
+      isBreached = true;
+      breachedStage = 'Triage';
+      breachHours = Math.round((triageHours - target.triage_hours) * 10) / 10;
+    } else {
+      remainingHours = Math.max(0, Math.round((target.triage_hours - triageHours) * 10) / 10);
+    }
+  }
+
+  // Calculate compliance percentage
+  const totalTarget = target.triage_hours + target.dev_hours + target.review_hours;
+  const totalActual = triageHours + devHours + reviewHours;
+  const compliance = totalActual <= totalTarget ? 100 : Math.max(10, Math.round((totalTarget / totalActual) * 100));
+
+  return {
+    severity: sev,
+    targets: target,
+    is_breached: isBreached,
+    breached_stage: breachedStage,
+    breach_hours: breachHours,
+    remaining_hours: remainingHours,
+    compliance_percent: compliance
+  };
+}
+
+export function computeActivitySparkline(
+  activities: Activity[],
+  days: number = 14,
+  now: Date = new Date()
+): number[] {
+  const sparkline = new Array(days).fill(0);
+  const nowMs = now.getTime();
+  const oneDayMs = 24 * 60 * 60 * 1000;
+
+  for (const act of activities) {
+    const actMs = new Date(act.created_at).getTime();
+    const diffDays = Math.floor((nowMs - actMs) / oneDayMs);
+    if (diffDays >= 0 && diffDays < days) {
+      const idx = days - 1 - diffDays;
+      sparkline[idx]++;
+    }
+  }
+
+  return sparkline;
+}
+
 export function computeCumulativeFlow(
   bugs: Bug[],
   activities: Activity[],
@@ -248,3 +338,4 @@ export function computeCumulativeFlow(
 
   return timelinePoints;
 }
+
