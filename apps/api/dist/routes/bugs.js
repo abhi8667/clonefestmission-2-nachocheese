@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { db } from '../db/database.js';
 import { canUserViewBug, getSecurityFilterSQL } from '../middleware/security.js';
-import { defaultWorkflowConfig, validateTransition, getAvailableTransitions, deriveFlowMetrics, parseSearchQuery, validateRelationship } from '@triarc/engine';
+import { defaultWorkflowConfig, validateTransition, getAvailableTransitions, deriveFlowMetrics, parseSearchQuery, validateRelationship, computeActivitySparkline, computeSlaStatus } from '@triarc/engine';
 import { indexBugEmbedding, findDuplicates } from '../services/duplicate-radar.js';
 import { sseService } from '../services/sse.js';
 export const bugsRouter = Router();
@@ -112,40 +112,64 @@ bugsRouter.get('/bugs', (req, res) => {
     ORDER BY bugs.id DESC
   `;
     const rows = db.prepare(sql).all(...params);
-    const bugs = rows.map((r) => ({
-        id: r.id,
-        title: r.title,
-        description: r.description,
-        status: r.status,
-        severity: r.severity,
-        priority: r.priority,
-        component_id: r.component_id,
-        component_name: r.component_name,
-        reporter_id: r.reporter_id,
-        assignee_id: r.assignee_id,
-        resolution: r.resolution,
-        duplicate_of: r.duplicate_of,
-        security_group_id: r.security_group_id,
-        created_at: r.created_at,
-        updated_at: r.updated_at,
-        comments_count: r.comments_count,
-        reporter: r.rep_id ? {
-            id: r.rep_id,
-            username: r.rep_username,
-            name: r.rep_name,
-            email: r.rep_email,
-            role: r.rep_role,
-            avatar_url: r.rep_avatar
-        } : undefined,
-        assignee: r.ass_id ? {
-            id: r.ass_id,
-            username: r.ass_username,
-            name: r.ass_name,
-            email: r.ass_email,
-            role: r.ass_role,
-            avatar_url: r.ass_avatar
-        } : null
-    }));
+    const bugIds = rows.map((r) => r.id);
+    // Fetch activities for sparklines and SLA computation in batch
+    const activitiesByBug = {};
+    if (bugIds.length > 0) {
+        const placeholders = bugIds.map(() => '?').join(',');
+        const actRows = db.prepare(`
+      SELECT * FROM activity
+      WHERE bug_id IN (${placeholders})
+      ORDER BY created_at ASC
+    `).all(...bugIds);
+        for (const act of actRows) {
+            if (!activitiesByBug[act.bug_id])
+                activitiesByBug[act.bug_id] = [];
+            activitiesByBug[act.bug_id].push(act);
+        }
+    }
+    const bugs = rows.map((r) => {
+        const bugActs = activitiesByBug[r.id] || [];
+        const sparkline = computeActivitySparkline(bugActs, 14);
+        const bugObj = {
+            id: r.id,
+            title: r.title,
+            description: r.description,
+            status: r.status,
+            severity: r.severity,
+            priority: r.priority,
+            component_id: r.component_id,
+            component_name: r.component_name,
+            reporter_id: r.reporter_id,
+            assignee_id: r.assignee_id,
+            resolution: r.resolution,
+            duplicate_of: r.duplicate_of,
+            security_group_id: r.security_group_id,
+            created_at: r.created_at,
+            updated_at: r.updated_at,
+            comments_count: r.comments_count,
+            activity_sparkline: sparkline,
+            reporter: r.rep_id ? {
+                id: r.rep_id,
+                username: r.rep_username,
+                name: r.rep_name,
+                email: r.rep_email,
+                role: r.rep_role,
+                avatar_url: r.rep_avatar
+            } : undefined,
+            assignee: r.ass_id ? {
+                id: r.ass_id,
+                username: r.ass_username,
+                name: r.ass_name,
+                email: r.ass_email,
+                role: r.ass_role,
+                avatar_url: r.ass_avatar
+            } : null
+        };
+        const flowMetrics = deriveFlowMetrics(bugObj, bugActs, [], []);
+        bugObj.sla_status = computeSlaStatus(bugObj, flowMetrics);
+        return bugObj;
+    });
     res.json({ bugs, count: bugs.length });
 });
 // POST /api/duplicates/check - Live debounced duplicate radar check before submit
@@ -328,6 +352,7 @@ bugsRouter.get('/bugs/:id', (req, res) => {
   `).all(bugId);
     // Compute flow metrics and stalled state
     const flow_metrics = deriveFlowMetrics(bug, activity, flags, git_links);
+    const sla_status = computeSlaStatus(bug, flow_metrics);
     // Compute available transitions based on current user role
     const userRole = req.user?.role || 'developer';
     const available_transitions = getAvailableTransitions(defaultWorkflowConfig, bug.status, userRole);
@@ -341,8 +366,161 @@ bugsRouter.get('/bugs/:id', (req, res) => {
         comments,
         activity,
         flow_metrics,
+        sla_status,
         available_transitions,
         viewers
+    });
+});
+// PATCH /api/bugs/:id - Inline field update (Assignee, Priority, Severity, Component, Title, Description)
+bugsRouter.patch('/bugs/:id', (req, res) => {
+    const bugId = parseInt(String(req.params.id), 10);
+    if (isNaN(bugId))
+        return res.status(400).json({ error: 'Invalid bug ID' });
+    const bug = db.prepare('SELECT * FROM bugs WHERE id = ?').get(bugId);
+    if (!bug)
+        return res.status(404).json({ error: 'Bug not found' });
+    const { title, description, priority, severity, component_id, assignee_id } = req.body;
+    const actorId = req.user ? req.user.id : null;
+    const nowIso = new Date().toISOString();
+    const updates = [];
+    const params = [];
+    const activityLogs = [];
+    if (title !== undefined && title !== bug.title) {
+        updates.push('title = ?');
+        params.push(title);
+        activityLogs.push({ field: 'title', old_value: bug.title, new_value: title });
+    }
+    if (description !== undefined && description !== bug.description) {
+        updates.push('description = ?');
+        params.push(description);
+        activityLogs.push({ field: 'description', old_value: 'Previous description', new_value: 'Updated description' });
+    }
+    if (priority !== undefined && priority !== bug.priority) {
+        updates.push('priority = ?');
+        params.push(priority);
+        activityLogs.push({ field: 'priority', old_value: bug.priority, new_value: priority });
+    }
+    if (severity !== undefined && severity !== bug.severity) {
+        updates.push('severity = ?');
+        params.push(severity);
+        activityLogs.push({ field: 'severity', old_value: bug.severity, new_value: severity });
+    }
+    if (component_id !== undefined && component_id !== bug.component_id) {
+        updates.push('component_id = ?');
+        params.push(component_id);
+        activityLogs.push({ field: 'component', old_value: bug.component_id, new_value: component_id });
+    }
+    if (assignee_id !== undefined && assignee_id !== bug.assignee_id) {
+        updates.push('assignee_id = ?');
+        params.push(assignee_id);
+        const oldName = bug.assignee_id ? db.prepare('SELECT name FROM users WHERE id = ?').get(bug.assignee_id)?.name || bug.assignee_id : 'Unassigned';
+        const newName = assignee_id ? db.prepare('SELECT name FROM users WHERE id = ?').get(assignee_id)?.name || assignee_id : 'Unassigned';
+        activityLogs.push({ field: 'assignee', old_value: oldName, new_value: newName });
+    }
+    if (updates.length === 0) {
+        return res.json({ success: true, message: 'No changes provided' });
+    }
+    updates.push('updated_at = ?');
+    params.push(nowIso);
+    params.push(bugId);
+    db.prepare(`UPDATE bugs SET ${updates.join(', ')} WHERE id = ?`).run(...params);
+    // Record activity rows
+    const insertAct = db.prepare(`
+    INSERT INTO activity (bug_id, actor_id, field, old_value, new_value, automated, created_at)
+    VALUES (?, ?, ?, ?, ?, 0, ?)
+  `);
+    for (const act of activityLogs) {
+        insertAct.run(bugId, actorId, act.field, act.old_value, act.new_value, nowIso);
+    }
+    // Re-index embedding if title or description changed
+    if (title !== undefined || description !== undefined) {
+        indexBugEmbedding(bugId, title ?? bug.title, description ?? bug.description);
+    }
+    // Broadcast live SSE
+    sseService.broadcast('bug:updated', {
+        bug_id: bugId,
+        field: activityLogs.map((a) => a.field).join(', '),
+        actor_id: actorId
+    });
+    res.json({
+        success: true,
+        bug_id: bugId,
+        changes: activityLogs
+    });
+});
+// POST /api/bugs/bulk-transition - Bulk status transitions individually validated by engine
+bugsRouter.post('/bugs/bulk-transition', (req, res) => {
+    const { bug_ids, toState, comment, fields } = req.body;
+    if (!Array.isArray(bug_ids) || bug_ids.length === 0 || !toState) {
+        return res.status(400).json({ error: 'bug_ids array and toState are required' });
+    }
+    const actorRole = req.user?.role || 'developer';
+    const actorId = req.user?.id || null;
+    const nowIso = new Date().toISOString();
+    const results = [];
+    let successCount = 0;
+    let failedCount = 0;
+    for (const bugId of bug_ids) {
+        const bug = db.prepare('SELECT * FROM bugs WHERE id = ?').get(bugId);
+        if (!bug) {
+            results.push({ bug_id: bugId, success: false, reason: 'Bug not found' });
+            failedCount++;
+            continue;
+        }
+        const validation = validateTransition(defaultWorkflowConfig, bug.status, toState, actorRole, {
+            comment,
+            fields,
+            actorId
+        });
+        if (!validation.valid) {
+            results.push({
+                bug_id: bugId,
+                title: bug.title,
+                old_status: bug.status,
+                success: false,
+                reason: validation.reason
+            });
+            failedCount++;
+            continue;
+        }
+        const resolution = fields?.resolution || (toState === 'Resolved' ? 'FIXED' : bug.resolution);
+        const duplicateOf = fields?.duplicate_of ? Number(fields.duplicate_of) : bug.duplicate_of;
+        db.prepare(`
+      UPDATE bugs
+      SET status = ?, resolution = ?, duplicate_of = ?, updated_at = ?
+      WHERE id = ?
+    `).run(toState, resolution, duplicateOf, nowIso, bugId);
+        db.prepare(`
+      INSERT INTO activity (bug_id, actor_id, field, old_value, new_value, automated, created_at)
+      VALUES (?, ?, 'status', ?, ?, 0, ?)
+    `).run(bugId, actorId, bug.status, toState, nowIso);
+        if (comment && comment.trim()) {
+            db.prepare(`
+        INSERT INTO comments (bug_id, author_id, body, created_at)
+        VALUES (?, ?, ?, ?)
+      `).run(bugId, actorId || 'user_dev1', comment.trim(), nowIso);
+        }
+        results.push({
+            bug_id: bugId,
+            title: bug.title,
+            old_status: bug.status,
+            new_status: toState,
+            success: true
+        });
+        successCount++;
+        sseService.broadcast('bug:updated', {
+            bug_id: bugId,
+            status: toState,
+            resolution,
+            actor_id: actorId,
+            automated: false
+        });
+    }
+    res.json({
+        total: bug_ids.length,
+        success_count: successCount,
+        failed_count: failedCount,
+        results
     });
 });
 // PATCH /api/bugs/:id/transition - Validated by Engine

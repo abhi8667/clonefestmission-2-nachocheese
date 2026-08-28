@@ -11,7 +11,8 @@ import {
   User as UserIcon,
   ChevronDown,
   CheckCircle2,
-  Radio
+  Radio,
+  Keyboard
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useSSE } from '../context/SSEContext.tsx';
@@ -22,6 +23,7 @@ interface NavbarProps {
   openNewBugModal: () => void;
   openWebhookSimulator: () => void;
   openCommandPalette: () => void;
+  openKeyboardShortcuts?: () => void;
   inboxCount?: number;
 }
 
@@ -31,6 +33,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   openNewBugModal,
   openWebhookSimulator,
   openCommandPalette,
+  openKeyboardShortcuts,
   inboxCount = 0
 }) => {
   const { currentUser, users, switchUserById } = useAuth();
@@ -148,6 +151,17 @@ export const Navbar: React.FC<NavbarProps> = ({
             <GitPullRequest className="w-3.5 h-3.5 text-accent-cyan" />
             <span className="hidden sm:inline">Webhook Simulator</span>
           </button>
+
+          {/* Keyboard Shortcuts Reference trigger */}
+          {openKeyboardShortcuts && (
+            <button
+              onClick={openKeyboardShortcuts}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white bg-slate-800/70 hover:bg-slate-700/80 border border-slate-700/60 transition-all"
+              title="Keyboard shortcuts (?)"
+            >
+              <Keyboard className="w-4 h-4" />
+            </button>
+          )}
 
           {/* New Bug button */}
           <button

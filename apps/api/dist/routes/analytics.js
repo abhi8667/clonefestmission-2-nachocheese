@@ -1,8 +1,102 @@
 import { Router } from 'express';
 import { db } from '../db/database.js';
-import { computeCumulativeFlow, deriveFlowMetrics, defaultWorkflowConfig } from '@triarc/engine';
+import { computeCumulativeFlow, deriveFlowMetrics, computeSlaStatus, defaultWorkflowConfig } from '@triarc/engine';
 export const analyticsRouter = Router();
-// GET /api/analytics/flow - Cumulative flow & stage metrics & sleeper branches
+// GET /api/digest - "Since You Were Away" notifications digest
+analyticsRouter.get('/digest', (req, res) => {
+    const sinceParam = req.query.since;
+    // Default to 48 hours ago if not specified
+    const sinceDate = sinceParam ? new Date(sinceParam) : new Date(Date.now() - 48 * 60 * 60 * 1000);
+    const sinceIso = sinceDate.toISOString();
+    // Find status changes since timestamp
+    const statusChanges = db.prepare(`
+    SELECT a.id, a.bug_id, b.title as bug_title, a.field, a.old_value, a.new_value, u.name as actor_name, a.created_at
+    FROM activity a
+    JOIN bugs b ON a.bug_id = b.id
+    LEFT JOIN users u ON a.actor_id = u.id
+    WHERE a.created_at >= ? AND a.field = 'status'
+    ORDER BY a.created_at DESC
+  `).all(sinceIso);
+    // Find comments since timestamp
+    const comments = db.prepare(`
+    SELECT a.id, a.bug_id, b.title as bug_title, a.field, a.old_value, a.new_value, u.name as actor_name, a.created_at
+    FROM activity a
+    JOIN bugs b ON a.bug_id = b.id
+    LEFT JOIN users u ON a.actor_id = u.id
+    WHERE a.created_at >= ? AND a.field = 'comment'
+    ORDER BY a.created_at DESC
+  `).all(sinceIso);
+    // Find new flags since timestamp
+    const flags = db.prepare(`
+    SELECT f.id, f.bug_id, b.title as bug_title, ft.name as field, '?' as old_value, f.status as new_value, u.name as actor_name, f.created_at
+    FROM flags f
+    JOIN bugs b ON f.bug_id = b.id
+    JOIN flag_types ft ON f.type_id = ft.id
+    LEFT JOIN users u ON f.setter_id = u.id
+    WHERE f.created_at >= ?
+    ORDER BY f.created_at DESC
+  `).all(sinceIso);
+    const allItems = [
+        ...statusChanges.slice(0, 5),
+        ...flags.slice(0, 3),
+        ...comments.slice(0, 4)
+    ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    const daysAway = Math.max(1, Math.round((Date.now() - sinceDate.getTime()) / (24 * 60 * 60 * 1000)));
+    const digest = {
+        since: sinceIso,
+        period_label: `${daysAway} day${daysAway > 1 ? 's' : ''}`,
+        status_changes_count: statusChanges.length,
+        new_flags_count: flags.length,
+        comments_count: comments.length,
+        total_events: statusChanges.length + flags.length + comments.length,
+        items: allItems
+    };
+    res.json(digest);
+});
+// GET /api/analytics/activity-heatmap - Daily activity intensity across past 90 days
+analyticsRouter.get('/analytics/activity-heatmap', (req, res) => {
+    const days = parseInt(req.query.days || '90', 10);
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const rows = db.prepare(`
+    SELECT DATE(created_at) as date, COUNT(*) as count,
+           SUM(CASE WHEN field = 'status' THEN 1 ELSE 0 END) as status_count,
+           SUM(CASE WHEN field = 'comment' THEN 1 ELSE 0 END) as comment_count
+    FROM activity
+    WHERE DATE(created_at) >= ?
+    GROUP BY DATE(created_at)
+    ORDER BY date ASC
+  `).all(startDate);
+    const countsMap = new Map(rows.map((r) => [r.date, r]));
+    const heatmapData = [];
+    for (let i = days; i >= 0; i--) {
+        const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+        const dateStr = d.toISOString().split('T')[0];
+        const item = countsMap.get(dateStr);
+        const count = item ? item.count : 0;
+        let level = 0;
+        if (count > 0 && count <= 3)
+            level = 1;
+        else if (count > 3 && count <= 8)
+            level = 2;
+        else if (count > 8 && count <= 15)
+            level = 3;
+        else if (count > 15)
+            level = 4;
+        heatmapData.push({
+            date: dateStr,
+            count,
+            level,
+            status_count: item ? item.status_count : 0,
+            comment_count: item ? item.comment_count : 0
+        });
+    }
+    res.json({
+        days,
+        total_events: rows.reduce((sum, r) => sum + r.count, 0),
+        heatmap: heatmapData
+    });
+});
+// GET /api/analytics/flow - Cumulative flow & stage metrics & sleeper branches & SLA compliance
 analyticsRouter.get('/analytics/flow', (req, res) => {
     const days = parseInt(req.query.days || '30', 10);
     const endDate = new Date();
@@ -24,18 +118,34 @@ analyticsRouter.get('/analytics/flow', (req, res) => {
     let totalReviewMs = 0;
     let totalVerifyMs = 0;
     let countBugsWithMetrics = 0;
+    let slaCompliantCount = 0;
     const stalledBugs = [];
     const sleeperBranches = [];
+    const slaBreachedBugs = [];
     for (const bug of bugs) {
         const bugActs = activities.filter((a) => a.bug_id === bug.id);
         const bugFlags = flags.filter((f) => f.bug_id === bug.id);
         const bugGits = gitLinks.filter((g) => g.bug_id === bug.id);
         const metrics = deriveFlowMetrics(bug, bugActs, bugFlags, bugGits);
+        const sla = computeSlaStatus(bug, metrics);
         totalTriageMs += metrics.stage_latencies.triage_time_ms;
         totalDevMs += metrics.stage_latencies.dev_time_ms;
         totalReviewMs += metrics.stage_latencies.review_latency_ms;
         totalVerifyMs += metrics.stage_latencies.verification_time_ms;
         countBugsWithMetrics++;
+        if (!sla.is_breached) {
+            slaCompliantCount++;
+        }
+        else {
+            slaBreachedBugs.push({
+                bug_id: bug.id,
+                title: bug.title,
+                severity: bug.severity,
+                status: bug.status,
+                breached_stage: sla.breached_stage,
+                breach_hours: sla.breach_hours
+            });
+        }
         if (metrics.is_stalled) {
             stalledBugs.push({
                 bug_id: bug.id,
@@ -57,7 +167,7 @@ analyticsRouter.get('/analytics/flow', (req, res) => {
             });
         }
     }
-    // Count reopens (activity status changes from Resolved back to In Progress or Confirmed)
+    // Count reopens
     const reopenCount = db.prepare(`
     SELECT COUNT(*) as count FROM activity
     WHERE field = 'status' AND old_value = 'Resolved' AND (new_value = 'In Progress' OR new_value = 'Confirmed')
@@ -68,14 +178,18 @@ analyticsRouter.get('/analytics/flow', (req, res) => {
     const avgDevHours = countBugsWithMetrics > 0 ? Math.round((totalDevMs / countBugsWithMetrics) / (3600 * 1000) * 10) / 10 : 0;
     const avgReviewHours = countBugsWithMetrics > 0 ? Math.round((totalReviewMs / countBugsWithMetrics) / (3600 * 1000) * 10) / 10 : 0;
     const avgVerifyHours = countBugsWithMetrics > 0 ? Math.round((totalVerifyMs / countBugsWithMetrics) / (3600 * 1000) * 10) / 10 : 0;
+    const slaCompliancePercent = countBugsWithMetrics > 0 ? Math.round((slaCompliantCount / countBugsWithMetrics) * 100) : 100;
     res.json({
         cfd,
         states: defaultWorkflowConfig.states,
+        workflow: defaultWorkflowConfig,
         summary: {
             total_bugs: bugs.length,
             stalled_count: stalledBugs.length,
             sleeper_count: sleeperBranches.length,
             reopen_rate_percent: reopenRate,
+            sla_compliance_percent: slaCompliancePercent,
+            sla_breached_count: slaBreachedBugs.length,
             averages: {
                 triage_hours: avgTriageHours,
                 dev_hours: avgDevHours,
@@ -84,7 +198,8 @@ analyticsRouter.get('/analytics/flow', (req, res) => {
             }
         },
         stalled_bugs: stalledBugs,
-        sleeper_branches: sleeperBranches
+        sleeper_branches: sleeperBranches,
+        sla_breached_bugs: slaBreachedBugs
     });
 });
 //# sourceMappingURL=analytics.js.map

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { fetchFlowAnalytics } from '../../services/api.ts';
 import { useAuth } from '../../context/AuthContext.tsx';
+import { WorkflowGraph } from './WorkflowGraph.tsx';
 
 interface FlowAnalyticsViewProps {
   onSelectBug: (bugId: number) => void;
@@ -294,6 +295,13 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
               </div>
             </div>
           </div>
+
+          {/* Interactive Workflow State Machine Graph (§8 Engine) */}
+          {data?.workflow && (
+            <WorkflowGraph
+              workflow={data.workflow}
+            />
+          )}
         </>
       )}
     </div>

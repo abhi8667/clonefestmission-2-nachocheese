@@ -26,6 +26,9 @@ class SSEService {
     this.cleanupTimer = setInterval(() => {
       this.cleanupPresence();
     }, 10000);
+    if (this.cleanupTimer && typeof this.cleanupTimer.unref === 'function') {
+      this.cleanupTimer.unref();
+    }
   }
 
   public registerClient(id: string, res: Response, userId?: string) {

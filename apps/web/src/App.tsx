@@ -9,6 +9,8 @@ import { FlowAnalyticsView } from './components/Analytics/FlowAnalyticsView.tsx'
 import { NewBugModal } from './components/NewBug/NewBugModal.tsx';
 import { WebhookSimulatorModal } from './components/WebhookSimulator/WebhookSimulatorModal.tsx';
 import { CommandPalette } from './components/CommandPalette.tsx';
+import { DigestBanner } from './components/Digest/DigestBanner.tsx';
+import { KeyboardShortcutsModal } from './components/KeyboardShortcuts/KeyboardShortcutsModal.tsx';
 import { fetchBugs, fetchInbox } from './services/api.ts';
 import { useAuth } from './context/AuthContext.tsx';
 import { useSSE } from './context/SSEContext.tsx';
@@ -40,6 +42,7 @@ export const App: React.FC = () => {
   const [isNewBugOpen, setIsNewBugOpen] = useState(false);
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [isCmdOpen, setIsCmdOpen] = useState(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
 
   // Load bugs
   const loadBugs = () => {
@@ -89,16 +92,22 @@ export const App: React.FC = () => {
     }
   }, [lastEvent]);
 
-  // Global Keyboard Shortcuts (⌘K, ⌘N)
+  // Global Keyboard Shortcuts (⌘K, ⌘N, ?)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input
+      const targetTag = (e.target as HTMLElement)?.tagName;
+      const isInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(targetTag);
+
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setIsCmdOpen((prev) => !prev);
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+      } else if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
         e.preventDefault();
         setIsNewBugOpen(true);
+      } else if (e.key === '?' && !isInput) {
+        e.preventDefault();
+        setIsShortcutsOpen((prev) => !prev);
       }
     };
 
@@ -115,6 +124,7 @@ export const App: React.FC = () => {
         openNewBugModal={() => setIsNewBugOpen(true)}
         openWebhookSimulator={() => setIsSimulatorOpen(true)}
         openCommandPalette={() => setIsCmdOpen(true)}
+        openKeyboardShortcuts={() => setIsShortcutsOpen(true)}
         inboxCount={inboxCount}
       />
 
@@ -122,6 +132,9 @@ export const App: React.FC = () => {
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8">
         {activeTab === 'bugs' && (
           <div>
+            {/* Notifications Digest Banner (§6.H) */}
+            <DigestBanner onSelectBug={(id) => setSelectedBugId(id)} />
+
             <FilterBar
               viewMode={viewMode}
               setViewMode={setViewMode}
@@ -148,6 +161,7 @@ export const App: React.FC = () => {
                 bugs={bugs}
                 onSelectBug={(id) => setSelectedBugId(id)}
                 selectedBugId={selectedBugId}
+                onBugsUpdated={loadBugs}
               />
             ) : (
               <CardView
@@ -201,6 +215,11 @@ export const App: React.FC = () => {
         setActiveTab={setActiveTab}
         openNewBugModal={() => setIsNewBugOpen(true)}
         openWebhookSimulator={() => setIsSimulatorOpen(true)}
+      />
+
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
       />
     </div>
   );

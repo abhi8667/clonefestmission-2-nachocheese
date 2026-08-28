@@ -8,6 +8,9 @@ class SSEService {
         this.cleanupTimer = setInterval(() => {
             this.cleanupPresence();
         }, 10000);
+        if (this.cleanupTimer && typeof this.cleanupTimer.unref === 'function') {
+            this.cleanupTimer.unref();
+        }
     }
     registerClient(id, res, userId) {
         this.clients.set(id, { id, res, userId });

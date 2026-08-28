@@ -70,7 +70,7 @@ function toastForEvent(event: SSEMessage, currentUserId?: string) {
       };
     }
 
-    case 'presence:update':
+    case 'presence:changed':
       return null; // silent
 
     default:

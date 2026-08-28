@@ -13,9 +13,10 @@ import {
   Lock,
   ExternalLink,
   Flame,
-  AlertTriangle
+  AlertTriangle,
+  Download
 } from 'lucide-react';
-import { fetchBugDetail, addComment, sendPresenceHeartbeat } from '../../services/api.ts';
+import { fetchBugDetail, addComment, sendPresenceHeartbeat, exportFlowReportAsHtml } from '../../services/api.ts';
 import { FlowTimeline } from './FlowTimeline.tsx';
 import { StatusTransitionDropdown } from './StatusTransitionDropdown.tsx';
 import { FlagsPanel } from './FlagsPanel.tsx';
@@ -148,12 +149,25 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
             </h2>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 transition-all"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {data?.bug && (
+              <button
+                onClick={() => exportFlowReportAsHtml(data)}
+                className="px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700 border border-slate-700/80 flex items-center gap-1.5 transition-all shadow-sm"
+                title="Download Standalone Flow & Post-Mortem HTML Report"
+              >
+                <Download className="w-3.5 h-3.5 text-primary-400" />
+                <span className="hidden sm:inline">Export Report</span>
+              </button>
+            )}
+
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 transition-all"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Content Body */}
