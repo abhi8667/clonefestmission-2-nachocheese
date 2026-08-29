@@ -14,11 +14,13 @@ import { WebhookSimulatorModal } from './components/WebhookSimulator/WebhookSimu
 import { CommandPalette } from './components/CommandPalette.tsx';
 import { DigestBanner } from './components/Digest/DigestBanner.tsx';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcuts/KeyboardShortcutsModal.tsx';
+import { CyberBackground } from './components/Cyber/CyberBackground.tsx';
+import { SecurityTelemetryFeed } from './components/Cyber/SecurityTelemetryFeed.tsx';
 import { fetchBugs, fetchInbox } from './services/api.ts';
 import { useAuth } from './context/AuthContext.tsx';
 import { useSSE } from './context/SSEContext.tsx';
 import { Bug } from '@triarc/shared-types';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Terminal } from 'lucide-react';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 
 export const App: React.FC = () => {
@@ -48,6 +50,7 @@ export const App: React.FC = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isCmdOpen, setIsCmdOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
 
   // Load bugs
   const loadBugs = () => {
@@ -104,7 +107,7 @@ export const App: React.FC = () => {
     return () => document.removeEventListener('triarc:open-login-modal', handleOpenLogin);
   }, [setIsLoginModalOpen]);
 
-  // Global Keyboard Shortcuts (⌘K, ⌘N, ?)
+  // Global Keyboard Shortcuts (⌘K, ⌘N, ` / ~ for terminal, ?)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger if user is typing in an input
@@ -117,6 +120,9 @@ export const App: React.FC = () => {
       } else if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
         e.preventDefault();
         setIsNewBugOpen(true);
+      } else if (e.key === '`' && !isInput) {
+        e.preventDefault();
+        setIsTerminalOpen((prev) => !prev);
       } else if (e.key === '?' && !isInput) {
         e.preventDefault();
         setIsShortcutsOpen((prev) => !prev);
@@ -128,16 +134,19 @@ export const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-slate-100 font-sans">
+    <div className="min-h-screen flex flex-col bg-[#040711] text-slate-100 font-sans relative selection:bg-cyan-500/30 selection:text-cyan-200">
+      {/* Interactive Matrix Background Network */}
+      <CyberBackground />
+
       {/* Skip to Main Content Link (WCAG 2.2 AA) */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[250] focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:font-bold focus:rounded-lg focus:shadow-xl focus:ring-2 focus:ring-primary-400"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[250] focus:px-4 focus:py-2 focus:bg-cyan-600 focus:text-slate-950 focus:font-bold focus:rounded-lg focus:shadow-glow-cyan focus:ring-2 focus:ring-cyan-400"
       >
         Skip to main content
       </a>
 
-      {/* Top Navigation */}
+      {/* Top Navigation HUD */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -151,11 +160,11 @@ export const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8">
+      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 relative z-10">
         <ErrorBoundary fallbackTitle="Application View Error">
           {activeTab === 'bugs' && (
             <div>
-              {/* Notifications Digest Banner (§6.H) */}
+              {/* Notifications Digest Threat Briefing */}
               <DigestBanner onSelectBug={(id) => setSelectedBugId(id)} />
 
               <FilterBar
@@ -176,8 +185,8 @@ export const App: React.FC = () => {
 
               {isLoading ? (
                 <div className="p-20 flex flex-col items-center justify-center gap-3 text-slate-400">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
-                  <p className="text-xs font-mono">Loading structured bug reports...</p>
+                  <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
+                  <p className="text-xs font-mono">Synchronizing incident telemetry...</p>
                 </div>
               ) : viewMode === 'table' ? (
                 <TableView
@@ -208,6 +217,9 @@ export const App: React.FC = () => {
           )}
         </ErrorBoundary>
       </main>
+
+      {/* Live SOC Security Telemetry Terminal Feed */}
+      <SecurityTelemetryFeed onSelectBug={(id: number) => setSelectedBugId(id)} />
 
       {/* Modals */}
       <BugDetailModal

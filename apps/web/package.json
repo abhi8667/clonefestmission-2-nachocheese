@@ -13,6 +13,7 @@
     "@triarc/engine": "*",
     "@triarc/shared-types": "*",
     "clsx": "^2.1.1",
+    "framer-motion": "^13.1.1",
     "lucide-react": "^0.475.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

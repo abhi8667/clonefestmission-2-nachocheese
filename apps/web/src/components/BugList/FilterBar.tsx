@@ -1,7 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Table, LayoutGrid, Filter, X, HelpCircle, Bookmark, Plus, Trash2, Tag, Eye } from 'lucide-react';
+import {
+  Search,
+  Table,
+  LayoutGrid,
+  Filter,
+  X,
+  HelpCircle,
+  Bookmark,
+  Plus,
+  Trash2,
+  Tag,
+  Eye,
+  SlidersHorizontal,
+  Sparkles,
+  Shield,
+  Activity
+} from 'lucide-react';
 import { fetchSavedSearches, createSavedSearch, deleteSavedSearch, fetchMilestones } from '../../services/api.ts';
 import { useAuth } from '../../context/AuthContext.tsx';
+import { AnimatedCounter } from '../Cyber/AnimatedCounter.tsx';
 
 interface FilterBarProps {
   viewMode: 'table' | 'cards';
@@ -125,69 +142,81 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     }
   };
 
-  const hasActiveFilters = searchQuery || statusFilter || componentFilter || priorityFilter || assigneeFilter || selectedMilestone;
+  const hasActiveFilters =
+    searchQuery || statusFilter || componentFilter || priorityFilter || assigneeFilter || selectedMilestone;
 
   const quickKeywords = [
-    { name: 'regression', color: 'text-rose-400 border-rose-500/30 bg-rose-500/10' },
-    { name: 'perf', color: 'text-amber-400 border-amber-500/30 bg-amber-500/10' },
-    { name: 'crash', color: 'text-red-400 border-red-500/30 bg-red-500/10' },
-    { name: 'security', color: 'text-purple-400 border-purple-500/30 bg-purple-500/10' },
-    { name: 'ux', color: 'text-cyan-400 border-cyan-500/30 bg-cyan-500/10' },
-    { name: 'help-wanted', color: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' }
+    { name: 'security', color: 'text-purple-300 border-purple-500/50 bg-purple-950/60 shadow-glow-purple' },
+    { name: 'crash', color: 'text-red-300 border-red-500/50 bg-red-950/60 shadow-glow-red' },
+    { name: 'regression', color: 'text-orange-300 border-orange-500/50 bg-orange-950/60' },
+    { name: 'perf', color: 'text-amber-300 border-amber-500/50 bg-amber-950/60' },
+    { name: 'ux', color: 'text-cyan-300 border-cyan-500/50 bg-cyan-950/60' },
+    { name: 'help-wanted', color: 'text-emerald-300 border-emerald-500/50 bg-emerald-950/60' }
   ];
 
   return (
-    <div className="space-y-2.5 mb-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-surface-50/70 p-2.5 rounded-xl border border-slate-800/80 shadow-sm">
-        {/* Left: Search query input with helper & Saved Searches */}
-        <div className="flex-1 min-w-[260px] relative flex items-center">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3" />
+    <div className="space-y-3 mb-6">
+      {/* Main Command Console Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-950/90 p-3 rounded-2xl border border-cyan-500/20 shadow-cyber-card backdrop-blur-xl cyber-corners">
+        {/* Left: Tactical Radar Query Input */}
+        <div className="flex-1 min-w-[280px] relative flex items-center">
+          <div className="absolute left-3.5 flex items-center justify-center text-cyan-400">
+            <Search className="w-4 h-4" />
+          </div>
           <input
             type="text"
-            placeholder='Search (e.g. status:open milestone:v2.1 keyword:crash "save error")...'
+            placeholder='Query radar: e.g. status:open milestone:v2.1 keyword:security "auth memory"...'
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-16 py-1.5 bg-surface-100/90 border border-slate-700/60 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-primary-500 transition-all"
+            className="w-full pl-10 pr-20 py-2 bg-slate-900/90 border border-slate-700/80 rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/40 transition-all shadow-inner"
           />
-          <div className="absolute right-2.5 flex items-center gap-1.5">
+          <div className="absolute right-3 flex items-center gap-2">
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="text-slate-400 hover:text-white" title="Clear query">
+              <button
+                onClick={() => setSearchQuery('')}
+                className="text-slate-400 hover:text-white"
+                title="Clear query"
+              >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
             <button
               onClick={() => setShowSavedSearches(!showSavedSearches)}
-              className={`p-1 rounded transition-colors ${showSavedSearches ? 'text-primary-400 bg-primary-500/20' : 'text-slate-400 hover:text-primary-300'}`}
-              title="Saved searches & Smart Filters"
+              className={`p-1 rounded-lg transition-colors ${
+                showSavedSearches
+                  ? 'text-cyan-300 bg-cyan-500/20 border border-cyan-500/40'
+                  : 'text-slate-400 hover:text-cyan-300'
+              }`}
+              title="Saved telemetry searches & smart filters"
             >
               <Bookmark className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => setShowHelp(!showHelp)}
-              className="text-slate-500 hover:text-primary-400"
-              title="Search syntax guide"
+              className="text-slate-500 hover:text-cyan-400"
+              title="Command syntax guide"
             >
               <HelpCircle className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
-        {/* Middle: Dropdown Selects */}
+        {/* Middle: Select Filter Hub */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Status Select */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-surface-100 border border-slate-700/60 text-slate-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-primary-500 font-sans"
+            className="bg-slate-900 border border-slate-700/80 text-slate-300 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:border-cyan-500 font-mono"
           >
-            <option value="">All Statuses</option>
-            <option value="open">All Open (Active)</option>
-            <option value="closed">All Closed / Resolved</option>
+            <option value="">Status: All</option>
+            <option value="open">Status: Open / Active</option>
+            <option value="closed">Status: Resolved / Closed</option>
             <option value="Unconfirmed">Unconfirmed</option>
             <option value="Confirmed">Confirmed</option>
             <option value="In Progress">In Progress</option>
             <option value="In Review">In Review</option>
-            <option value="Resolved">Resolved</option>
+            <option value="Resolved">Resolved (FIXED)</option>
             <option value="Verified">Verified</option>
             <option value="Closed">Closed</option>
             <option value="Duplicate">Duplicate</option>
@@ -198,12 +227,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <select
             value={selectedMilestone}
             onChange={(e) => handleMilestoneChange(e.target.value)}
-            className="bg-surface-100 border border-slate-700/60 text-slate-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-primary-500 font-sans"
+            className="bg-slate-900 border border-slate-700/80 text-slate-300 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:border-cyan-500 font-mono"
           >
-            <option value="">All Milestones</option>
+            <option value="">Milestones: All</option>
             {milestones.map((m) => (
               <option key={m.id} value={m.name}>
-                {m.name} ({m.open_bugs_count || 0} open)
+                {m.name} ({m.open_bugs_count || 0} active)
               </option>
             ))}
           </select>
@@ -212,95 +241,102 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <select
             value={componentFilter}
             onChange={(e) => setComponentFilter(e.target.value)}
-            className="bg-surface-100 border border-slate-700/60 text-slate-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-primary-500 font-sans"
+            className="bg-slate-900 border border-slate-700/80 text-slate-300 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:border-cyan-500 font-mono"
           >
-            <option value="">All Components</option>
+            <option value="">Subsystems: All</option>
             <option value="core">Core Engine</option>
             <option value="auth">Auth & Security</option>
             <option value="ui">Web Client</option>
             <option value="api">REST & SSE Gateway</option>
-            <option value="db">Storage & Persistence</option>
-            <option value="git">GitHub Integration</option>
+            <option value="db">Storage & DB</option>
+            <option value="git">GitHub Importer</option>
           </select>
 
           {/* Priority Select */}
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="bg-surface-100 border border-slate-700/60 text-slate-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-primary-500 font-sans"
+            className="bg-slate-900 border border-slate-700/80 text-slate-300 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:border-cyan-500 font-mono"
           >
-            <option value="">All Priorities</option>
-            <option value="highest">Highest</option>
-            <option value="high">High</option>
-            <option value="normal">Normal</option>
-            <option value="low">Low</option>
-            <option value="lowest">Lowest</option>
+            <option value="">Threat Priority: All</option>
+            <option value="highest">P1 - Highest</option>
+            <option value="high">P2 - High</option>
+            <option value="normal">P3 - Normal</option>
+            <option value="low">P4 - Low</option>
+            <option value="lowest">P5 - Lowest</option>
           </select>
 
           {/* Assignee Select */}
           <select
             value={assigneeFilter}
             onChange={(e) => setAssigneeFilter(e.target.value)}
-            className="bg-surface-100 border border-slate-700/60 text-slate-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-primary-500 font-sans"
+            className="bg-slate-900 border border-slate-700/80 text-slate-300 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:border-cyan-500 font-mono"
           >
-            <option value="">All Assignees</option>
+            <option value="">Assignee: All</option>
             <option value="me">Assigned to Me</option>
             <option value="unassigned">Unassigned</option>
             <option value="u_alex">Alex River</option>
             <option value="u_sam">Sam Patel</option>
             <option value="u_priya">Priya Sharma</option>
             <option value="u_marcus">Marcus Vance</option>
+            <option value="u_sarah">Sarah Chen</option>
           </select>
 
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="text-xs text-rose-400 hover:text-rose-300 px-2 py-1 rounded bg-rose-500/10 border border-rose-500/20 flex items-center gap-1"
+              className="text-xs text-red-400 hover:text-red-300 px-2.5 py-1.5 rounded-xl bg-red-950/60 border border-red-500/30 flex items-center gap-1 font-mono transition-all"
             >
-              <X className="w-3 h-3" /> Reset
+              <X className="w-3.5 h-3.5" /> Reset
             </button>
           )}
         </div>
 
-        {/* Right: View mode toggler (Table vs Kanban Cards) */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400 font-mono mr-1">
-            {totalCount} bugs
-          </span>
-          <div className="flex items-center bg-surface-100 rounded-lg p-0.5 border border-slate-800">
+        {/* Right: View mode HUD & Count */}
+        <div className="flex items-center gap-3">
+          <div className="px-2.5 py-1 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-mono text-cyan-300 flex items-center gap-1.5">
+            <Activity className="w-3.5 h-3.5 text-cyan-400" />
+            <AnimatedCounter value={totalCount} suffix=" INCIDENTS" />
+          </div>
+
+          <div className="flex items-center bg-slate-900 rounded-xl p-1 border border-slate-800">
             <button
               onClick={() => setViewMode('table')}
-              className={`p-1.5 rounded-md text-xs transition-all ${
-                viewMode === 'table' ? 'bg-primary-600/30 text-white border border-primary-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'
+              className={`p-1.5 rounded-lg text-xs transition-all ${
+                viewMode === 'table'
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-glow-cyan'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
-              title="Dense Table view (Power user default)"
+              title="Dense Incident Matrix (Table view)"
             >
-              <Table className="w-3.5 h-3.5" />
+              <Table className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode('cards')}
-              className={`p-1.5 rounded-md text-xs transition-all ${
-                viewMode === 'cards' ? 'bg-primary-600/30 text-white border border-primary-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'
+              className={`p-1.5 rounded-lg text-xs transition-all ${
+                viewMode === 'cards'
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-glow-cyan'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
-              title="Card / Kanban status view"
+              title="Tactical Card Grid (Kanban view)"
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
+              <LayoutGrid className="w-4 h-4" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Quick Filter Chips (§3 Capability) */}
-      <div className="flex flex-wrap items-center gap-1.5 px-1">
-        <span className="text-[11px] text-slate-500 font-mono mr-1 flex items-center gap-1">
-          <Tag className="w-3 h-3" /> Quick filters:
+      {/* Quick Cyber Filter Chips */}
+      <div className="flex flex-wrap items-center gap-2 px-1">
+        <span className="text-[10px] text-slate-500 font-mono uppercase tracking-wider flex items-center gap-1">
+          <Tag className="w-3 h-3 text-cyan-400" /> Tactical tags:
         </span>
         <button
           onClick={toggleWatchedChip}
-          className={`px-2 py-0.5 rounded-md text-[11px] font-mono border transition-all flex items-center gap-1 ${
+          className={`px-2.5 py-1 rounded-xl text-[11px] font-mono border transition-all flex items-center gap-1.5 ${
             searchQuery.includes('is:watched')
-              ? 'bg-primary-500/20 text-primary-300 border-primary-500/40'
-              : 'bg-surface-100/60 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-300'
+              ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-glow-cyan'
+              : 'bg-slate-950/80 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-300'
           }`}
         >
           <Eye className="w-3 h-3" /> Watched by me
@@ -311,8 +347,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             <button
               key={kw.name}
               onClick={() => toggleKeywordChip(kw.name)}
-              className={`px-2 py-0.5 rounded-md text-[11px] font-mono border transition-all ${
-                isActive ? `${kw.color} font-bold shadow-sm` : 'bg-surface-100/60 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-300'
+              className={`px-2.5 py-1 rounded-xl text-[11px] font-mono border transition-all ${
+                isActive
+                  ? `${kw.color} font-bold`
+                  : 'bg-slate-950/80 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-300'
               }`}
             >
               #{kw.name}
@@ -323,17 +361,17 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
       {/* Saved Searches Popover Panel */}
       {showSavedSearches && (
-        <div className="p-3 bg-surface-100 border border-slate-700/80 rounded-xl text-xs space-y-2 animate-slide-up text-slate-300">
-          <div className="flex items-center justify-between pb-1 border-b border-slate-800">
-            <span className="font-bold text-white flex items-center gap-1.5">
-              <Bookmark className="w-3.5 h-3.5 text-primary-400" />
-              Saved Searches & Views
+        <div className="p-4 bg-slate-950 border border-cyan-500/30 rounded-2xl text-xs space-y-3 animate-slide-up text-slate-300 cyber-corners shadow-2xl">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+            <span className="font-bold font-mono text-white flex items-center gap-2">
+              <Bookmark className="w-4 h-4 text-cyan-400" />
+              SAVED TELEMETRY VIEWS & SMART FILTERS
             </span>
             <button
               onClick={() => setIsSavingSearch(!isSavingSearch)}
-              className="text-[11px] text-primary-400 hover:text-primary-300 flex items-center gap-1"
+              className="text-xs font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
             >
-              <Plus className="w-3 h-3" /> Save current view
+              <Plus className="w-3.5 h-3.5" /> Save active view
             </button>
           </div>
 
@@ -341,41 +379,41 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             <form onSubmit={handleSaveSearch} className="flex gap-2 pt-1 pb-2">
               <input
                 type="text"
-                placeholder="Search name (e.g. My Sprint Blockers)..."
+                placeholder="View name (e.g. Sprint Vulnerabilities)..."
                 value={newSearchName}
                 onChange={(e) => setNewSearchName(e.target.value)}
-                className="flex-1 px-2.5 py-1 bg-surface-200 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-primary-500"
+                className="flex-1 px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-xs font-mono text-white focus:outline-none focus:border-cyan-500"
                 autoFocus
               />
               <button
                 type="submit"
-                className="px-3 py-1 bg-primary-600 hover:bg-primary-500 text-white rounded-lg text-xs font-semibold"
+                className="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold rounded-xl text-xs font-mono transition-colors"
               >
                 Save
               </button>
             </form>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-1">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1">
             {savedSearches.length === 0 ? (
-              <p className="text-slate-500 col-span-3 py-2 text-center font-mono text-[11px]">
-                No saved searches yet. Save your favorite queries for 1-click retrieval!
+              <p className="text-slate-500 col-span-3 py-3 text-center font-mono text-[11px]">
+                No saved searches yet. Save your favorite telemetry filters for instant retrieval.
               </p>
             ) : (
               savedSearches.map((s) => (
                 <div
                   key={s.id}
                   onClick={() => handleApplySavedSearch(s.query)}
-                  className="p-2 rounded-lg bg-surface-200/80 hover:bg-surface-200 border border-slate-700/60 hover:border-primary-500/50 cursor-pointer flex items-center justify-between transition-all group"
+                  className="p-3 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/40 cursor-pointer flex items-center justify-between transition-all group"
                 >
-                  <div>
-                    <p className="font-semibold text-slate-200 text-xs">{s.name}</p>
-                    <p className="font-mono text-[10px] text-slate-400 truncate max-w-[200px]">{s.query}</p>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slate-200 text-xs truncate">{s.name}</p>
+                    <p className="font-mono text-[10px] text-cyan-400/80 truncate mt-0.5">{s.query}</p>
                   </div>
                   <button
                     onClick={(e) => handleDeleteSavedSearch(s.id, e)}
-                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-rose-400 transition-opacity"
-                    title="Delete saved search"
+                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-red-400 transition-opacity"
+                    title="Delete saved view"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -388,23 +426,23 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
       {/* Search syntax helper dropdown */}
       {showHelp && (
-        <div className="p-3 bg-surface-100 border border-slate-700/80 rounded-xl text-xs space-y-1.5 animate-slide-up text-slate-300">
-          <p className="font-bold text-white flex items-center gap-1.5">
-            <Filter className="w-3.5 h-3.5 text-primary-400" />
-            Typed Search Syntax (Bugzilla Power Search Rebuilt):
+        <div className="p-4 bg-slate-950 border border-cyan-500/30 rounded-2xl text-xs space-y-2 animate-slide-up text-slate-300 cyber-corners shadow-2xl">
+          <p className="font-bold font-mono text-white flex items-center gap-2">
+            <Filter className="w-4 h-4 text-cyan-400" />
+            TYPED RADAR SEARCH SYNTAX GUIDE:
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 text-[11px] font-mono text-slate-400 pt-1">
-            <div className="p-2 rounded bg-slate-900/60 border border-slate-800">
-              <span className="text-primary-300 font-bold">status:open</span> / <span className="text-primary-300 font-bold">status:closed</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2.5 text-[11px] font-mono text-slate-400 pt-1">
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+              <span className="text-cyan-300 font-bold">status:open</span> / <span className="text-cyan-300 font-bold">status:closed</span>
             </div>
-            <div className="p-2 rounded bg-slate-900/60 border border-slate-800">
-              <span className="text-cyan-300 font-bold">milestone:v2.1</span> / <span className="text-cyan-300 font-bold">version:2.0.4</span>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+              <span className="text-purple-300 font-bold">milestone:v2.1</span> / <span className="text-purple-300 font-bold">version:2.0.4</span>
             </div>
-            <div className="p-2 rounded bg-slate-900/60 border border-slate-800">
-              <span className="text-amber-300 font-bold">keyword:crash</span> / <span className="text-rose-300 font-bold">is:watched</span>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+              <span className="text-amber-300 font-bold">keyword:security</span> / <span className="text-emerald-300 font-bold">is:watched</span>
             </div>
-            <div className="p-2 rounded bg-slate-900/60 border border-slate-800">
-              <span className="text-purple-300 font-bold">assignee:me</span> / <span className="text-purple-300 font-bold">changedto:Resolved</span>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+              <span className="text-red-300 font-bold">assignee:me</span> / <span className="text-cyan-300 font-bold">priority:highest</span>
             </div>
           </div>
         </div>

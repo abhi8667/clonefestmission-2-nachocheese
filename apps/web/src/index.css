@@ -1,45 +1,231 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --cyber-grid: rgba(0, 229, 255, 0.03);
+    --cyber-glow-cyan: rgba(0, 229, 255, 0.4);
+    --cyber-glow-neon: rgba(0, 245, 155, 0.4);
+  }
+
   body {
-    @apply bg-background text-zinc-100 font-sans antialiased;
+    @apply bg-background text-slate-100 font-sans antialiased overflow-x-hidden selection:bg-cyan-500/30 selection:text-cyan-200;
+    background-color: #040711;
     background-image: 
-      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(34, 211, 238, 0.03) 0px, transparent 50%);
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.12), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, rgba(168, 85, 247, 0.06), transparent 70%),
+      linear-gradient(to right, var(--cyber-grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--cyber-grid) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
     background-attachment: fixed;
   }
 
+  /* Custom Futuristic Scrollbar */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
   }
   ::-webkit-scrollbar-track {
-    background: transparent;
+    background: rgba(8, 13, 26, 0.8);
   }
   ::-webkit-scrollbar-thumb {
-    background: #3f3f46;
-    border-radius: 9999px;
+    background: rgba(34, 211, 238, 0.25);
+    border-radius: 4px;
+    border: 1px solid rgba(34, 211, 238, 0.1);
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #52525b;
+    background: rgba(0, 229, 255, 0.5);
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
   }
 }
 
-@layer utilities {
-  .surface-glass {
-    @apply bg-surface-50/80 backdrop-blur-md border border-slate-800/80 shadow-xl;
-  }
-  .surface-card {
-    @apply bg-surface-100/70 backdrop-blur-sm border border-slate-800/60 shadow-lg hover:border-slate-700/80 transition-all duration-200;
-  }
-  .glow-primary {
-    box-shadow: 0 0 20px -5px rgba(99, 102, 241, 0.4);
-  }
-  .glow-cyan {
-    box-shadow: 0 0 20px -5px rgba(34, 211, 238, 0.4);
-  }
+/* High-tech SOC Glass Surfaces */
+.cyber-glass {
+  background: rgba(8, 13, 26, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(34, 211, 238, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+.cyber-card {
+  background: rgba(13, 21, 39, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(51, 65, 85, 0.8);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+.cyber-card:hover {
+  border-color: rgba(0, 229, 255, 0.35);
+  box-shadow: 0 8px 32px 0 rgba(0, 229, 255, 0.1), inset 0 1px 0 0 rgba(0, 229, 255, 0.2);
+}
+
+.cyber-card-danger {
+  background: rgba(255, 42, 85, 0.08);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 42, 85, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+  transition: all 0.3s ease;
+}
+.cyber-card-danger:hover {
+  border-color: rgba(255, 42, 85, 0.6);
+  box-shadow: 0 0 25px -3px rgba(255, 42, 85, 0.45);
+}
+
+.cyber-card-neon {
+  background: rgba(0, 245, 155, 0.08);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 245, 155, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+  transition: all 0.3s ease;
+}
+.cyber-card-neon:hover {
+  border-color: rgba(0, 245, 155, 0.6);
+  box-shadow: 0 0 25px -3px rgba(0, 245, 155, 0.4);
+}
+
+/* Futuristic Corner Cut & Brackets */
+.cyber-corners {
+  position: relative;
+}
+.cyber-corners::before,
+.cyber-corners::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  pointer-events: none;
+}
+.cyber-corners::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid rgba(0, 229, 255, 0.8);
+  border-left: 2px solid rgba(0, 229, 255, 0.8);
+}
+.cyber-corners::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid rgba(0, 229, 255, 0.8);
+  border-right: 2px solid rgba(0, 229, 255, 0.8);
+}
+
+/* Scanning line overlay */
+.cyber-scanline-overlay {
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(0, 229, 255, 0.02) 51%
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+}
+
+/* Tactical Button Styling */
+.cyber-btn-primary {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(to right, #00E5FF, #0284c7);
+  color: #040711;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 0 25px -3px rgba(0, 229, 255, 0.4);
+  transition: all 0.2s ease;
+  border: 1px solid rgba(103, 232, 249, 0.5);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.cyber-btn-primary:hover {
+  background: linear-gradient(to right, #22d3ee, #0ea5e9);
+  box-shadow: 0 0 30px -2px rgba(0, 229, 255, 0.6);
+}
+.cyber-btn-primary:active {
+  transform: scale(0.98);
+}
+
+.cyber-btn-neon {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(to right, #00F59B, #0d9488);
+  color: #040711;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 0 25px -3px rgba(0, 245, 155, 0.4);
+  transition: all 0.2s ease;
+  border: 1px solid rgba(110, 231, 183, 0.5);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.cyber-btn-neon:hover {
+  background: linear-gradient(to right, #34d399, #14b8a6);
+  box-shadow: 0 0 30px -2px rgba(0, 245, 155, 0.6);
+}
+.cyber-btn-neon:active {
+  transform: scale(0.98);
+}
+
+.cyber-btn-secondary {
+  position: relative;
+  background: rgba(13, 21, 39, 0.9);
+  border: 1px solid rgba(51, 65, 85, 0.8);
+  color: #e2e8f0;
+  font-weight: 600;
+  padding: 0.375rem 0.875rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.cyber-btn-secondary:hover {
+  background: rgba(18, 29, 54, 1);
+  border-color: rgba(0, 229, 255, 0.4);
+  color: #ffffff;
+}
+.cyber-btn-secondary:active {
+  transform: scale(0.98);
+}
+
+.cyber-btn-danger {
+  position: relative;
+  background: rgba(255, 42, 85, 0.15);
+  border: 1px solid rgba(255, 42, 85, 0.4);
+  color: #fecdd3;
+  font-weight: 600;
+  padding: 0.375rem 0.875rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 0 20px -3px rgba(255, 42, 85, 0.35);
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.cyber-btn-danger:hover {
+  background: rgba(255, 42, 85, 0.3);
+  border-color: rgba(255, 42, 85, 0.8);
+  color: #ffffff;
+}
+.cyber-btn-danger:active {
+  transform: scale(0.98);
 }

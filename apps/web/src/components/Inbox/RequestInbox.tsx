@@ -10,13 +10,18 @@ import {
   Send,
   Loader2,
   Check,
-  X
+  X,
+  ShieldCheck,
+  ShieldAlert,
+  Radio,
+  Lock
 } from 'lucide-react';
 import { fetchInbox, resolveFlag } from '../../services/api.ts';
 import { useAuth } from '../../context/AuthContext.tsx';
 import { useSSE } from '../../context/SSEContext.tsx';
 import { TableSkeleton } from '../Common/LoadingSkeleton.tsx';
 import { EmptyState } from '../Common/EmptyState.tsx';
+import { AnimatedCounter } from '../Cyber/AnimatedCounter.tsx';
 
 interface RequestInboxProps {
   onSelectBug: (bugId: number) => void;
@@ -77,68 +82,79 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({ onSelectBug }) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case '?': return 'bg-amber-500/20 text-amber-300 border-amber-500/40';
-      case '+': return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
-      case '-': return 'bg-rose-500/20 text-rose-300 border-rose-500/40';
-      default: return 'bg-slate-800 text-slate-400';
+      case '?':
+        return 'bg-amber-950/80 text-amber-300 border-amber-500/50 shadow-glow-amber';
+      case '+':
+        return 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50 shadow-glow-neon';
+      case '-':
+        return 'bg-red-950/80 text-red-300 border-red-500/50 shadow-glow-red';
+      default:
+        return 'bg-slate-900 text-slate-400 border-slate-700';
     }
   };
 
-  const items = activeTab === 'incoming' ? (data?.incoming || []) : activeTab === 'outgoing' ? (data?.outgoing || []) : (data?.resolved || []);
+  const items =
+    activeTab === 'incoming'
+      ? data?.incoming || []
+      : activeTab === 'outgoing'
+      ? data?.outgoing || []
+      : data?.resolved || [];
 
   return (
     <div className="space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-50/80 p-5 rounded-2xl border border-slate-800/80 shadow-xl">
-        <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <InboxIcon className="w-5 h-5 text-primary-400" />
-            Request & Approval Inbox
+      {/* Top Header Console */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-950/90 p-5 rounded-2xl border border-cyan-500/20 shadow-cyber-card backdrop-blur-xl cyber-corners">
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold font-mono text-white flex items-center gap-2.5">
+            <div className="p-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
+              <InboxIcon className="w-5 h-5" />
+            </div>
+            <span>CLEARANCE & APPROVAL INBOX</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Bugzilla flags reimagined: Personal queue of who is waiting on you and who you are waiting on.
+          <p className="text-xs font-mono text-slate-400">
+            Permissioned review flags & authorization queue. Zero unmonitored review bottlenecks.
           </p>
         </div>
 
-        {/* Tab switchers */}
-        <div className="flex items-center bg-surface-100 p-1 rounded-xl border border-slate-800 self-start sm:self-auto">
+        {/* Tab Switcher HUD */}
+        <div className="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 self-start sm:self-auto font-mono text-xs">
           <button
             onClick={() => setActiveTab('incoming')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-4 py-1.5 rounded-lg font-bold transition-all flex items-center gap-2 ${
               activeTab === 'incoming'
-                ? 'bg-primary-600 text-white shadow-glow-primary'
+                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-glow-cyan'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <span>Incoming</span>
             {data?.counts?.incoming ? (
-              <span className="px-1.5 py-0.2 rounded-full bg-accent-amber text-slate-950 text-[10px]">
-                {data.counts.incoming}
+              <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-slate-950 font-bold text-[10px] animate-pulse">
+                <AnimatedCounter value={data.counts.incoming} />
               </span>
             ) : null}
           </button>
 
           <button
             onClick={() => setActiveTab('outgoing')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-4 py-1.5 rounded-lg font-bold transition-all flex items-center gap-2 ${
               activeTab === 'outgoing'
-                ? 'bg-primary-600 text-white shadow-glow-primary'
+                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-glow-cyan'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <span>Outgoing</span>
             {data?.counts?.outgoing ? (
-              <span className="px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-300 text-[10px]">
-                {data.counts.outgoing}
+              <span className="px-1.5 py-0.2 rounded-full bg-slate-800 text-cyan-300 text-[10px]">
+                <AnimatedCounter value={data.counts.outgoing} />
               </span>
             ) : null}
           </button>
 
           <button
             onClick={() => setActiveTab('resolved')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`px-4 py-1.5 rounded-lg font-bold transition-all ${
               activeTab === 'resolved'
-                ? 'bg-primary-600 text-white shadow-glow-primary'
+                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-glow-cyan'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -150,6 +166,12 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({ onSelectBug }) => {
       {/* Inbox Items List */}
       {isLoading ? (
         <TableSkeleton rows={5} />
+      ) : items.length === 0 ? (
+        <EmptyState
+          icon={ShieldCheck}
+          title={activeTab === 'incoming' ? 'Zero Pending Incoming Flags' : 'No Outgoing Authorization Requests'}
+          description="Your clearance queue is clear. All review items and approval flags have been processed."
+        />
       ) : (
         <div className="space-y-3">
           {items.map((flag) => {
@@ -158,119 +180,118 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({ onSelectBug }) => {
             return (
               <div
                 key={flag.id}
-                className="p-4 rounded-2xl bg-surface-50/90 border border-slate-800 hover:border-slate-700/80 shadow-lg space-y-3 transition-all"
+                className="p-4 rounded-2xl bg-slate-950/80 border border-cyan-500/15 hover:border-cyan-500/40 shadow-cyber-card space-y-3 transition-all cyber-corners"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-start gap-3">
-                    <span className={`w-7 h-7 rounded-full flex items-center justify-center font-mono font-bold text-xs border shrink-0 mt-0.5 ${getStatusColor(flag.status)}`}>
+                    <span
+                      className={`w-8 h-8 rounded-full flex items-center justify-center font-mono font-bold text-xs border shrink-0 mt-0.5 ${getStatusColor(
+                        flag.status
+                      )}`}
+                    >
                       {flag.status}
                     </span>
 
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-mono font-bold text-xs text-primary-300 bg-primary-950/60 px-1.5 py-0.5 rounded border border-primary-800">
+                        <span className="font-mono font-bold text-xs text-cyan-300 bg-cyan-950/80 px-2 py-0.5 rounded-md border border-cyan-800/60">
                           {flag.type_name}
                         </span>
 
                         <span
                           onClick={() => onSelectBug(flag.bug_id)}
-                          className="font-mono font-bold text-xs text-primary-400 hover:underline cursor-pointer"
+                          className="font-mono font-bold text-xs text-cyan-400 hover:underline cursor-pointer"
                         >
                           #{flag.bug_id}
                         </span>
 
                         <span className="text-xs font-semibold text-white">
-                          {flag.bug_title || 'Bug report'}
+                          {flag.bug_title || 'Incident Report'}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-1">
+                      <div className="flex items-center gap-3 text-[11px] font-mono text-slate-400 mt-1">
                         <span>
-                          from <strong className="text-slate-300">@{flag.setter?.username || flag.setter_id}</strong>
+                          Requested by <strong className="text-slate-200">@{flag.setter?.username || flag.setter_id}</strong>
                         </span>
                         {flag.requestee && (
                           <span>
-                            assigned to <strong className="text-primary-300">@{flag.requestee.username}</strong>
+                            assigned to <strong className="text-cyan-300">@{flag.requestee.username}</strong>
                           </span>
                         )}
                         <span>•</span>
-                        <span className="font-mono text-[10px] text-slate-500">
+                        <span className="text-[10px] text-slate-500">
                           {new Date(flag.created_at).toLocaleDateString()}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Actions Area: One-click Inline Resolution (§5 Mockup) */}
-                  <div className="flex items-center gap-2 self-end sm:self-center">
-                    {flag.status === '?' && activeTab === 'incoming' && (
-                      <>
-                        {flag.type_name === 'review?' || flag.type_name === 'approval?' ? (
-                          <>
-                            <button
-                              onClick={() => handleResolve(flag.id, '+')}
-                              disabled={isSubmitting}
-                              className="px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-300 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 flex items-center gap-1.5 shadow-sm transition-all transform active:scale-95"
-                            >
-                              <Check className="w-3.5 h-3.5 stroke-[3]" />
-                              <span>+ Approve</span>
-                            </button>
-
-                            <button
-                              onClick={() => handleResolve(flag.id, '-')}
-                              disabled={isSubmitting}
-                              className="px-3 py-1.5 rounded-lg text-xs font-bold text-rose-300 bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 flex items-center gap-1.5 shadow-sm transition-all transform active:scale-95"
-                            >
-                              <X className="w-3.5 h-3.5 stroke-[3]" />
-                              <span>- Request Changes</span>
-                            </button>
-                          </>
-                        ) : (
+                  {/* Actions for pending items */}
+                  {flag.status === '?' && activeTab === 'incoming' && (
+                    <div className="flex items-center gap-2 self-end sm:self-auto">
+                      {!isReplying ? (
+                        <>
                           <button
-                            onClick={() => setReplyingFlagId(isReplying ? null : flag.id)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-bold text-primary-300 bg-primary-600/20 hover:bg-primary-600/30 border border-primary-500/40 flex items-center gap-1.5 shadow-sm transition-all"
+                            onClick={() => setReplyingFlagId(flag.id)}
+                            className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 text-xs font-mono transition-colors"
                           >
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            <span>Reply Info</span>
+                            Add Note
                           </button>
-                        )}
-                      </>
-                    )}
-
-                    <button
-                      onClick={() => onSelectBug(flag.bug_id)}
-                      className="px-2.5 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white bg-surface-100 hover:bg-surface-200 border border-slate-700/80 flex items-center gap-1 transition-all"
-                    >
-                      <span>Open Bug</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </button>
-                  </div>
+                          <button
+                            onClick={() => handleResolve(flag.id, '+')}
+                            disabled={isSubmitting}
+                            className="cyber-btn-neon !py-1.5 !px-3"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Grant (+)</span>
+                          </button>
+                          <button
+                            onClick={() => handleResolve(flag.id, '-')}
+                            disabled={isSubmitting}
+                            className="cyber-btn-danger !py-1.5 !px-3"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                            <span>Reject (-)</span>
+                          </button>
+                        </>
+                      ) : null}
+                    </div>
+                  )}
                 </div>
 
-                {/* Inline Reply Form for needinfo? */}
+                {/* Reply Form */}
                 {isReplying && (
-                  <div className="pt-2 border-t border-slate-800 space-y-2 animate-slide-up">
+                  <div className="mt-3 pt-3 border-t border-slate-800 space-y-2 animate-slide-up">
                     <textarea
-                      rows={2}
-                      placeholder="Provide the requested information to resolve this needinfo? request..."
                       value={replyComment}
                       onChange={(e) => setReplyComment(e.target.value)}
-                      className="w-full bg-surface-100 border border-slate-700 rounded-lg p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-primary-500"
+                      placeholder="Enter cryptographic justification / review comment..."
+                      rows={2}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-cyan-500"
                     />
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => setReplyingFlagId(null)}
-                        className="px-3 py-1 text-xs text-slate-400 hover:text-white"
+                        className="px-3 py-1.5 rounded-xl bg-slate-900 text-slate-400 hover:text-white text-xs font-mono"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={() => handleResolve(flag.id, '+', replyComment)}
-                        disabled={isSubmitting || !replyComment.trim()}
-                        className="px-3.5 py-1 text-xs font-bold text-white bg-primary-600 hover:bg-primary-500 rounded-lg shadow-glow-primary flex items-center gap-1 disabled:opacity-50"
+                        disabled={isSubmitting}
+                        className="cyber-btn-neon !py-1.5 !px-3"
                       >
-                        {isSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
-                        <span>Submit & Mark Answered (+)</span>
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Grant with Note</span>
+                      </button>
+                      <button
+                        onClick={() => handleResolve(flag.id, '-', replyComment)}
+                        disabled={isSubmitting}
+                        className="cyber-btn-danger !py-1.5 !px-3"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>Reject with Note</span>
                       </button>
                     </div>
                   </div>
@@ -278,20 +299,6 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({ onSelectBug }) => {
               </div>
             );
           })}
-
-          {items.length === 0 && (
-            <EmptyState
-              icon={InboxIcon}
-              title={`No ${activeTab} requests`}
-              description={
-                activeTab === 'incoming'
-                  ? 'Your queue is all clear! No pending review?, approval?, or needinfo? flags are waiting on your action.'
-                  : activeTab === 'outgoing'
-                  ? 'You have no outstanding requests waiting on other team members.'
-                  : 'No request history recorded yet.'
-              }
-            />
-          )}
         </div>
       )}
     </div>

@@ -1,8 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, ArrowRight, X, Sparkles, MessageSquare, Flag, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  ShieldAlert,
+  ArrowRight,
+  X,
+  Sparkles,
+  MessageSquare,
+  Flag,
+  RefreshCw,
+  ChevronDown,
+  ChevronUp,
+  Activity,
+  Radio
+} from 'lucide-react';
 import { fetchDigest } from '../../services/api.ts';
 import { useAuth } from '../../context/AuthContext.tsx';
 import { DigestSummary } from '@triarc/shared-types';
+import { AnimatedCounter } from '../Cyber/AnimatedCounter.tsx';
 
 interface DigestBannerProps {
   onSelectBug?: (bugId: number) => void;
@@ -16,7 +29,6 @@ export const DigestBanner: React.FC<DigestBannerProps> = ({ onSelectBug }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Reset dismiss status when switching user
     setIsDismissed(false);
     setIsExpanded(false);
     setIsLoading(true);
@@ -38,28 +50,35 @@ export const DigestBanner: React.FC<DigestBannerProps> = ({ onSelectBug }) => {
   }
 
   return (
-    <div className="mb-6 rounded-2xl bg-gradient-to-r from-primary-950/70 via-surface-100/90 to-surface-50/90 border border-primary-500/40 p-4 shadow-xl backdrop-blur-md animate-fade-in transition-all">
+    <div className="mb-6 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-cyan-950/40 border border-cyan-500/30 p-4 shadow-cyber-card backdrop-blur-xl animate-fade-in transition-all cyber-corners">
       <div className="flex items-start sm:items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
-        {/* Left: Icon + Summary title */}
+        {/* Left: Icon + Intelligence Briefing */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-primary-600/30 border border-primary-400/50 flex items-center justify-center text-primary-300 shadow-glow-primary shrink-0">
-            <Mail className="w-4 h-4 text-primary-300 animate-pulse" />
+          <div className="relative w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/50 flex items-center justify-center text-cyan-300 shadow-glow-cyan shrink-0">
+            <Radio className="w-5 h-5 text-cyan-400 animate-pulse" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-glow-cyan animate-ping" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-xs font-bold text-white tracking-wide flex items-center gap-1.5">
-                <span>Since You Were Away ({digest.period_label})</span>
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold bg-primary-500/20 text-primary-300 border border-primary-500/30">
-                  {digest.total_events} updates
+              <h3 className="text-xs font-bold font-mono text-white tracking-wide flex items-center gap-2">
+                <span>THREAT BRIEFING: SINCE LAST LOGIN ({digest.period_label.toUpperCase()})</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm">
+                  <AnimatedCounter value={digest.total_events} /> telemetry events
                 </span>
               </h3>
             </div>
-            <p className="text-[11px] text-slate-300 mt-0.5 flex items-center gap-2 flex-wrap">
-              <span><strong>{digest.status_changes_count}</strong> status changes</span>
-              <span>·</span>
-              <span><strong>{digest.new_flags_count}</strong> new flags</span>
-              <span>·</span>
-              <span><strong>{digest.comments_count}</strong> comments</span>
+            <p className="text-[11px] font-mono text-slate-300 mt-1 flex items-center gap-2 flex-wrap">
+              <span className="text-cyan-300">
+                <strong><AnimatedCounter value={digest.status_changes_count} /></strong> transitions
+              </span>
+              <span className="text-slate-600">·</span>
+              <span className="text-amber-300">
+                <strong><AnimatedCounter value={digest.new_flags_count} /></strong> review flags
+              </span>
+              <span className="text-slate-600">·</span>
+              <span className="text-emerald-300">
+                <strong><AnimatedCounter value={digest.comments_count} /></strong> security notes
+              </span>
             </p>
           </div>
         </div>
@@ -68,16 +87,17 @@ export const DigestBanner: React.FC<DigestBannerProps> = ({ onSelectBug }) => {
         <div className="flex items-center gap-2 ml-auto sm:ml-0">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="px-2.5 py-1.5 rounded-lg bg-surface-200/80 hover:bg-surface-200 border border-slate-700/80 hover:border-slate-600 text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-all"
+            className="px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-cyan-500/40 text-xs font-mono font-semibold text-cyan-300 flex items-center gap-1.5 transition-all shadow-sm"
           >
-            <span>{isExpanded ? 'Hide Details' : 'View Changes'}</span>
+            <span>{isExpanded ? 'Collapse Intel' : 'Expand Intel'}</span>
             {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
 
           <button
             onClick={() => setIsDismissed(true)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white bg-slate-800/40 hover:bg-slate-800 border border-slate-700/40 transition-all"
-            title="Dismiss digest"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-all"
+            title="Acknowledge & dismiss briefing"
+            aria-label="Dismiss intelligence briefing"
           >
             <X className="w-4 h-4" />
           </button>
@@ -86,33 +106,34 @@ export const DigestBanner: React.FC<DigestBannerProps> = ({ onSelectBug }) => {
 
       {/* Collapsible Details Grid */}
       {isExpanded && digest.items && digest.items.length > 0 && (
-        <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-2 animate-slide-up">
-          <h4 className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-            Key Changes Since Last Visit:
+        <div className="mt-4 pt-3 border-t border-slate-800/90 space-y-2.5 animate-slide-up">
+          <h4 className="text-[10px] uppercase font-mono font-bold text-slate-400 tracking-wider flex items-center gap-1.5">
+            <Activity className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Telemetry Timeline Items:</span>
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {digest.items.map((item) => (
               <div
                 key={item.id}
                 onClick={() => onSelectBug && onSelectBug(item.bug_id)}
-                className="p-2.5 rounded-xl bg-surface-200/50 hover:bg-surface-200/80 border border-slate-800 hover:border-slate-700 flex items-center justify-between gap-3 text-xs cursor-pointer group transition-all"
+                className="p-3 rounded-xl bg-slate-950/80 hover:bg-slate-900 border border-slate-800/80 hover:border-cyan-500/40 flex items-center justify-between gap-3 text-xs cursor-pointer group transition-all"
               >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono text-primary-400 font-bold text-[11px]">#{item.bug_id}</span>
+                <div className="min-w-0 space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-cyan-400 font-bold text-[11px]">#{item.bug_id}</span>
                     <span className="font-medium text-slate-200 truncate">{item.bug_title}</span>
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-0.5">
+                  <p className="text-[10px] font-mono text-slate-400">
                     {item.field === 'status' ? (
-                      <span>Status moved to <strong className="text-emerald-400">{item.new_value}</strong></span>
+                      <span>Status changed: <strong className="text-emerald-400">{item.old_value || 'None'} → {item.new_value}</strong></span>
                     ) : item.field === 'comment' ? (
-                      <span>New comment by {item.actor_name || 'team'}</span>
+                      <span>New security comment by <strong className="text-slate-300">{item.actor_name || 'operator'}</strong></span>
                     ) : (
-                      <span>Flag updated ({item.field})</span>
+                      <span>Flag updated: <strong className="text-amber-400">{item.field}</strong></span>
                     )}
                   </p>
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-primary-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+                <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all shrink-0" />
               </div>
             ))}
           </div>

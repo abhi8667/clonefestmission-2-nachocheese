@@ -34,7 +34,7 @@ if (bugCount.count === 0) {
 }
 
 // Health check
-app.get('/health', (req, res) => {
+app.get(['/health', '/api/health'], (req, res) => {
   res.json({ status: 'ok', service: 'triarc-api', timestamp: new Date().toISOString() });
 });
 
