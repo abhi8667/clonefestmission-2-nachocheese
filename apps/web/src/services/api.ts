@@ -19,12 +19,30 @@ import {
 
 const API_BASE = '/api';
 
+let activeToken: string | null = typeof localStorage !== 'undefined' ? localStorage.getItem('triarc_token') : null;
+
+export function setAuthToken(token: string | null) {
+  activeToken = token;
+  if (typeof localStorage !== 'undefined') {
+    if (token) {
+      localStorage.setItem('triarc_token', token);
+    } else {
+      localStorage.removeItem('triarc_token');
+    }
+  }
+}
+
+export function getAuthToken(): string | null {
+  return activeToken;
+}
+
 function getHeaders(token?: string, userId?: string): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json'
   };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  const tokenToUse = token || activeToken;
+  if (tokenToUse) {
+    headers['Authorization'] = `Bearer ${tokenToUse}`;
   }
   if (userId) {
     headers['x-user-id'] = userId;
@@ -522,12 +540,244 @@ export function exportFlowReportAsHtml(bugDetail: any): void {
 
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `triarc-bug-#${bug.id}-flow-report.html`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  const link = document.createElement('link');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `triarc-bug-#${bug.id}-flow-report.html`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+// -------------------------------------------------------------
+// Authentication APIs (W10.1)
+// -------------------------------------------------------------
+
+export async function loginUser(credentials: { username?: string; password?: string; userId?: string }): Promise<{ user: User; token: string }> {
+  const res = await fetch(`${API_BASE}/auth/login`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(credentials)
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || 'Login failed');
+  }
+  setAuthToken(data.token);
+  return data;
+}
+
+export async function quickLoginUser(userId: string): Promise<{ user: User; token: string }> {
+  const res = await fetch(`${API_BASE}/auth/quick-login`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ userId })
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || 'Quick login failed');
+  }
+  setAuthToken(data.token);
+  return data;
+}
+
+export async function fetchCurrentProfile(): Promise<{ user: User; token: string }> {
+  const res = await fetch(`${API_BASE}/auth/me`, {
+    headers: getHeaders()
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || 'Authentication required');
+  }
+  return data;
+}
+
+// -------------------------------------------------------------
+// Administration APIs (W10.4)
+// -------------------------------------------------------------
+
+export async function fetchAdminUsers(): Promise<{ users: User[]; groups: any[] }> {
+  const res = await fetch(`${API_BASE}/admin/users`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch admin users');
+  return res.json();
+}
+
+export async function updateAdminUser(userId: string, input: { role?: string; security_group_ids?: string[]; is_external?: boolean }): Promise<any> {
+  const res = await fetch(`${API_BASE}/admin/users/${userId}`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify(input)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Failed to update user');
+  }
+  return res.json();
+}
+
+export async function createAdminUser(input: { username: string; name: string; email: string; role: string; password?: string; security_group_ids?: string[] }): Promise<any> {
+  const res = await fetch(`${API_BASE}/admin/users`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(input)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Failed to create user');
+  }
+  return res.json();
+}
+
+export async function fetchAdminComponents(): Promise<{ components: any[] }> {
+  const res = await fetch(`${API_BASE}/admin/components`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch components');
+  return res.json();
+}
+
+export async function createAdminComponent(input: { id: string; name: string; description?: string }): Promise<any> {
+  const res = await fetch(`${API_BASE}/admin/components`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(input)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Failed to create component');
+  }
+  return res.json();
+}
+
+export async function deleteAdminComponent(compId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/admin/components/${compId}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  if (!res.ok) throw new Error('Failed to delete component');
+  return res.json();
+}
+
+export async function fetchAdminMilestones(): Promise<{ milestones: any[] }> {
+  const res = await fetch(`${API_BASE}/admin/milestones`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch milestones');
+  return res.json();
+}
+
+export async function createAdminMilestone(input: { name: string; due_date?: string }): Promise<any> {
+  const res = await fetch(`${API_BASE}/admin/milestones`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(input)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Failed to create milestone');
+  }
+  return res.json();
+}
+
+export async function deleteAdminMilestone(msId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/admin/milestones/${msId}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  if (!res.ok) throw new Error('Failed to delete milestone');
+  return res.json();
+}
+
+export async function fetchAdminVersions(): Promise<{ versions: any[] }> {
+  const res = await fetch(`${API_BASE}/admin/versions`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch versions');
+  return res.json();
+}
+
+export async function createAdminVersion(input: { name: string }): Promise<any> {
+  const res = await fetch(`${API_BASE}/admin/versions`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(input)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Failed to create version');
+  }
+  return res.json();
+}
+
+export async function deleteAdminVersion(verId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/admin/versions/${verId}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  if (!res.ok) throw new Error('Failed to delete version');
+  return res.json();
+}
+
+export async function fetchAdminFlagTypes(): Promise<{ flag_types: any[] }> {
+  const res = await fetch(`${API_BASE}/admin/flag-types`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch flag types');
+  return res.json();
+}
+
+export async function saveAdminFlagType(input: any): Promise<any> {
+  const res = await fetch(`${API_BASE}/admin/flag-types`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(input)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Failed to save flag type');
+  }
+  return res.json();
+}
+
+export async function fetchAdminWorkflow(): Promise<{ workflow: any }> {
+  const res = await fetch(`${API_BASE}/admin/workflow`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch workflow');
+  return res.json();
+}
+
+// -------------------------------------------------------------
+// GitHub Importer APIs (W9)
+// -------------------------------------------------------------
+
+export async function importGitHubRepo(input: { repoUrl: string; maxIssues?: number; githubToken?: string; useFixture?: boolean; fixtureName?: string }): Promise<any> {
+  const res = await fetch(`${API_BASE}/import/github`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(input)
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || 'GitHub import failed');
+  }
+  return data;
+}
+
+export async function importFixtureRepo(fixtureName: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/import/fixture`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ fixtureName })
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || 'Fixture import failed');
+  }
+  return data;
+}
+
+export async function fetchImportHistory(): Promise<{ imported_repos: any[] }> {
+  const res = await fetch(`${API_BASE}/import/history`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch import history');
+  return res.json();
+}
+
+export async function fetchImportFixtures(): Promise<{ fixtures: any[] }> {
+  const res = await fetch(`${API_BASE}/import/fixtures`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch fixtures');
+  return res.json();
+}
+
 

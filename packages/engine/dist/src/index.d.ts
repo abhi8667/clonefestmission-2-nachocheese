@@ -1,5 +1,6 @@
 import { WorkflowConfig } from '@triarc/shared-types';
 export declare const defaultWorkflowConfig: WorkflowConfig;
+export declare const workflowConfig: WorkflowConfig;
 export * from './workflow.js';
 export * from './flags.js';
 export * from './metrics.js';

@@ -1,0 +1,197 @@
+{
+  "facebook/react": {
+    "owner": "facebook",
+    "name": "react",
+    "url": "https://github.com/facebook/react",
+    "description": "The library for web and native user interfaces",
+    "issues": [
+      {
+        "number": 28491,
+        "title": "Fix memory leak in useDeferredValue transition cleanup",
+        "body": "When unmounting a component with an active deferred transition, the fiber node keeps a reference to the previous hook state in the update queue.",
+        "state": "CLOSED",
+        "created_at": "2026-07-10T14:22:00Z",
+        "closed_at": "2026-07-18T19:40:00Z",
+        "author": { "login": "gaearon", "name": "Dan Abramov", "avatar_url": "https://avatars.githubusercontent.com/u/810438?v=4" },
+        "assignee": { "login": "acdlite", "name": "Andrew Clark", "avatar_url": "https://avatars.githubusercontent.com/u/3624098?v=4" },
+        "labels": ["Component: Concurrent", "Type: Bug", "Resolution: Fixed", "Severity: High"],
+        "milestone": "19.1.0",
+        "pull_request": {
+          "number": 28512,
+          "title": "Clean up pending update queues on unmount for deferred values",
+          "url": "https://github.com/facebook/react/pull/28512",
+          "head_ref": "fix/deferred-unmount-leak",
+          "state": "merged",
+          "created_at": "2026-07-12T10:15:00Z",
+          "merged_at": "2026-07-18T19:40:00Z",
+          "reviews": [
+            { "author": "sophiebits", "state": "APPROVED", "submitted_at": "2026-07-17T16:30:00Z" }
+          ]
+        },
+        "commits": [
+          { "sha": "e9a4f21", "message": "fix(deferred): release fiber references on unmount (#28491)", "created_at": "2026-07-12T10:15:00Z" },
+          { "sha": "c3d8819", "message": "test: add regression suite for concurrent unmount (#28491)", "created_at": "2026-07-15T11:20:00Z" }
+        ]
+      },
+      {
+        "number": 28410,
+        "title": "Hydration mismatch warning suppresses error boundaries in React Server Components",
+        "body": "Server markup containing nested suspense boundaries triggers client mismatch and silently drops caught boundary errors.",
+        "state": "OPEN",
+        "created_at": "2026-08-01T09:12:00Z",
+        "closed_at": null,
+        "author": { "login": "sebmarkbage", "name": "Sebastian Markbåge", "avatar_url": "https://avatars.githubusercontent.com/u/63648?v=4" },
+        "assignee": { "login": "acdlite", "name": "Andrew Clark", "avatar_url": "https://avatars.githubusercontent.com/u/3624098?v=4" },
+        "labels": ["Component: Flight Server", "Type: Bug", "Status: In Review", "Priority: Highest"],
+        "milestone": "19.1.0",
+        "pull_request": {
+          "number": 28445,
+          "title": "Preserve error boundary state during RSC hydration fallbacks",
+          "url": "https://github.com/facebook/react/pull/28445",
+          "head_ref": "rsc/fix-boundary-hydration",
+          "state": "open",
+          "created_at": "2026-08-05T14:00:00Z",
+          "merged_at": null,
+          "reviews": [
+            { "author": "rickhanlonii", "state": "CHANGES_REQUESTED", "submitted_at": "2026-08-09T18:00:00Z" }
+          ]
+        },
+        "commits": [
+          { "sha": "71fa90b", "message": "fix(rsc): capture boundary error contexts on hydration (#28410)", "created_at": "2026-08-05T14:00:00Z" }
+        ]
+      },
+      {
+        "number": 28350,
+        "title": "Selective hydration throws error when navigating away during async component chunk fetch",
+        "body": "Clicking a route transition while selective hydration is waiting on a lazy dynamic import causes an uncaught promise rejection in ReactFiberWorkLoop.",
+        "state": "CLOSED",
+        "created_at": "2026-06-20T11:00:00Z",
+        "closed_at": "2026-07-02T15:30:00Z",
+        "author": { "login": "sophiebits", "name": "Sophie Alpert", "avatar_url": "https://avatars.githubusercontent.com/u/6820?v=4" },
+        "assignee": { "login": "sebmarkbage", "name": "Sebastian Markbåge", "avatar_url": "https://avatars.githubusercontent.com/u/63648?v=4" },
+        "labels": ["Component: Selective Hydration", "Type: Bug", "Resolution: Fixed"],
+        "milestone": "19.0.0",
+        "pull_request": {
+          "number": 28372,
+          "title": "Cancel pending selective hydration requests upon work-loop interruption",
+          "url": "https://github.com/facebook/react/pull/28372",
+          "head_ref": "fix/selective-abort",
+          "state": "merged",
+          "created_at": "2026-06-25T16:00:00Z",
+          "merged_at": "2026-07-02T15:30:00Z",
+          "reviews": [
+            { "author": "acdlite", "state": "APPROVED", "submitted_at": "2026-07-01T20:10:00Z" }
+          ]
+        },
+        "commits": [
+          { "sha": "1b54a88", "message": "fix: safely teardown hydration promises (#28350)", "created_at": "2026-06-25T16:00:00Z" }
+        ]
+      },
+      {
+        "number": 28210,
+        "title": "useSyncExternalStore stale snapshot during batched microtask updates",
+        "body": "When multiple stores notify listeners within the same queueMicrotask tick, getSnapshot returns previous state for dependent selectors.",
+        "state": "CLOSED",
+        "created_at": "2026-05-14T08:30:00Z",
+        "closed_at": "2026-05-28T12:00:00Z",
+        "author": { "login": "dai-shi", "name": "Daishi Kato", "avatar_url": "https://avatars.githubusercontent.com/u/490574?v=4" },
+        "assignee": { "login": "gaearon", "name": "Dan Abramov", "avatar_url": "https://avatars.githubusercontent.com/u/810438?v=4" },
+        "labels": ["Component: Hooks", "Type: Bug", "Resolution: Fixed"],
+        "milestone": "19.0.0",
+        "pull_request": {
+          "number": 28233,
+          "title": "Sync external store snapshot memoization on synchronous flush",
+          "url": "https://github.com/facebook/react/pull/28233",
+          "head_ref": "usesync-flush-sync",
+          "state": "merged",
+          "created_at": "2026-05-18T14:15:00Z",
+          "merged_at": "2026-05-28T12:00:00Z",
+          "reviews": [
+            { "author": "sebmarkbage", "state": "APPROVED", "submitted_at": "2026-05-27T18:40:00Z" }
+          ]
+        },
+        "commits": [
+          { "sha": "d04e311", "message": "fix(usesync): flush pending store checks synchronously (#28210)", "created_at": "2026-05-18T14:15:00Z" }
+        ]
+      },
+      {
+        "number": 28105,
+        "title": "DevTools profiler timeline desync with nested Offscreen components",
+        "body": "Hidden subtree renders are measured with active commit timestamps instead of passive background durations.",
+        "state": "OPEN",
+        "created_at": "2026-08-18T13:45:00Z",
+        "closed_at": null,
+        "author": { "login": "bvaughn", "name": "Brian Vaughn", "avatar_url": "https://avatars.githubusercontent.com/u/29597?v=4" },
+        "assignee": { "login": "bvaughn", "name": "Brian Vaughn", "avatar_url": "https://avatars.githubusercontent.com/u/29597?v=4" },
+        "labels": ["Component: DevTools", "Type: Bug", "Status: In Progress"],
+        "milestone": "19.1.0",
+        "pull_request": null,
+        "commits": [
+          { "sha": "9a01f44", "message": "wip: add offscreen layout timeline markers (#28105)", "created_at": "2026-08-20T10:00:00Z" }
+        ]
+      }
+    ]
+  },
+  "expressjs/express": {
+    "owner": "expressjs",
+    "name": "express",
+    "url": "https://github.com/expressjs/express",
+    "description": "Fast, unopinionated, minimalist web framework for node",
+    "issues": [
+      {
+        "number": 5420,
+        "title": "Router regex compilation fails with unicode surrogate pair path parameters",
+        "body": "Paths with encoded emoji or UTF-8 characters cause path-to-regexp parser to throw TypeError.",
+        "state": "CLOSED",
+        "created_at": "2026-06-01T10:00:00Z",
+        "closed_at": "2026-06-12T17:00:00Z",
+        "author": { "login": "dougwilson", "name": "Doug Wilson", "avatar_url": "https://avatars.githubusercontent.com/u/4082216?v=4" },
+        "assignee": { "login": "wesleytodd", "name": "Wes Todd", "avatar_url": "https://avatars.githubusercontent.com/u/200683?v=4" },
+        "labels": ["Component: Routing", "Type: Bug", "Resolution: Fixed"],
+        "milestone": "5.0.0",
+        "pull_request": {
+          "number": 5435,
+          "title": "Upgrade path-to-regexp and handle surrogate pair decoding",
+          "url": "https://github.com/expressjs/express/pull/5435",
+          "head_ref": "fix/unicode-routing",
+          "state": "merged",
+          "created_at": "2026-06-05T12:00:00Z",
+          "merged_at": "2026-06-12T17:00:00Z",
+          "reviews": [
+            { "author": "jonchurch", "state": "APPROVED", "submitted_at": "2026-06-11T14:20:00Z" }
+          ]
+        },
+        "commits": [
+          { "sha": "44ad991", "message": "fix: decode uri components with unicode safety (#5420)", "created_at": "2026-06-05T12:00:00Z" }
+        ]
+      },
+      {
+        "number": 5390,
+        "title": "req.ip returns undefined when app is behind dual AWS ALB proxy headers",
+        "body": "X-Forwarded-For array parsing truncates valid client address when multiple upstream gateways append whitespace.",
+        "state": "CLOSED",
+        "created_at": "2026-05-02T16:00:00Z",
+        "closed_at": "2026-05-19T11:00:00Z",
+        "author": { "login": "jonchurch", "name": "Jon Church", "avatar_url": "https://avatars.githubusercontent.com/u/1027776?v=4" },
+        "assignee": { "login": "dougwilson", "name": "Doug Wilson", "avatar_url": "https://avatars.githubusercontent.com/u/4082216?v=4" },
+        "labels": ["Component: Request", "Type: Bug", "Resolution: Fixed"],
+        "milestone": "5.0.0",
+        "pull_request": {
+          "number": 5402,
+          "title": "Normalize proxy header splitting across comma separators",
+          "url": "https://github.com/expressjs/express/pull/5402",
+          "head_ref": "fix/proxy-ip-parse",
+          "state": "merged",
+          "created_at": "2026-05-10T15:30:00Z",
+          "merged_at": "2026-05-19T11:00:00Z",
+          "reviews": [
+            { "author": "wesleytodd", "state": "APPROVED", "submitted_at": "2026-05-18T19:00:00Z" }
+          ]
+        },
+        "commits": [
+          { "sha": "99f4c32", "message": "fix: handle spaced x-forwarded-for headers (#5390)", "created_at": "2026-05-10T15:30:00Z" }
+        ]
+      }
+    ]
+  }
+}

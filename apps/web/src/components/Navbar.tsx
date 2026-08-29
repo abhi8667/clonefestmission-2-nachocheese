@@ -14,17 +14,22 @@ import {
   Radio,
   Keyboard,
   Bell,
-  Check
+  Check,
+  Github,
+  LogOut,
+  Sparkles,
+  Settings
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useSSE } from '../context/SSEContext.tsx';
 import { fetchNotifications, markNotificationRead, markAllNotificationsRead } from '../services/api.ts';
 
 interface NavbarProps {
-  activeTab: 'bugs' | 'inbox' | 'analytics';
-  setActiveTab: (tab: 'bugs' | 'inbox' | 'analytics') => void;
+  activeTab: 'bugs' | 'inbox' | 'analytics' | 'admin';
+  setActiveTab: (tab: 'bugs' | 'inbox' | 'analytics' | 'admin') => void;
   openNewBugModal: () => void;
   openWebhookSimulator: () => void;
+  openImportModal: () => void;
   openCommandPalette: () => void;
   openKeyboardShortcuts?: () => void;
   onSelectBug?: (bugId: number) => void;
@@ -36,6 +41,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   setActiveTab,
   openNewBugModal,
   openWebhookSimulator,
+  openImportModal,
   openCommandPalette,
   openKeyboardShortcuts,
   onSelectBug,
@@ -168,6 +174,20 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Activity className="w-3.5 h-3.5" />
               Flow Analytics
             </button>
+
+            {currentUser?.role === 'admin' && (
+              <button
+                onClick={() => setActiveTab('admin')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all ${
+                  activeTab === 'admin'
+                    ? 'bg-purple-600/20 text-purple-300 border border-purple-500/40 shadow-sm'
+                    : 'text-purple-400/80 hover:text-purple-300 hover:bg-purple-500/10'
+                }`}
+              >
+                <Settings className="w-3.5 h-3.5 text-purple-400" />
+                Admin
+              </button>
+            )}
           </nav>
         </div>
 
@@ -194,6 +214,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-400 shadow-sm shadow-emerald-400/50 animate-pulse' : 'bg-rose-500'}`} />
             <span className="hidden sm:inline">{isConnected ? 'Live' : 'Connecting'}</span>
           </div>
+
+          {/* GitHub Repo Import Trigger (W9) */}
+          <button
+            onClick={openImportModal}
+            className="px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-800/70 hover:bg-slate-700/80 border border-slate-700/60 flex items-center gap-1.5 transition-all shadow-sm"
+            title="Import real GitHub issues, PRs, and flow history"
+          >
+            <Github className="w-3.5 h-3.5 text-purple-400" />
+            <span className="hidden sm:inline">Import GitHub</span>
+          </button>
 
           {/* Webhook Simulator trigger */}
           <button
@@ -296,7 +326,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>New Bug</span>
           </button>
 
-          {/* Active User Switcher */}
+          {/* Active User Menu / Profile */}
           <div className="relative">
             <button
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
@@ -318,44 +348,65 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Dropdown Menu */}
             {isUserMenuOpen && (
-              <div className="absolute right-0 mt-2 w-64 rounded-xl bg-surface-100 border border-slate-700 shadow-2xl p-2 z-50 animate-slide-up">
-                <div className="px-2.5 py-2 border-b border-slate-800 mb-1">
-                  <p className="text-xs font-bold text-white">Switch Demo User & Role</p>
-                  <p className="text-[10px] text-slate-400">Controls permissions & transition guards</p>
+              <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-2.5 z-50 animate-slide-up space-y-2">
+                <div className="px-2 py-1.5 border-b border-slate-800">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white">{currentUser?.name}</span>
+                    <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border capitalize ${getRoleBadge(currentUser?.role || 'developer')}`}>
+                      {currentUser?.role}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 font-mono">@{currentUser?.username} · {currentUser?.email}</p>
                 </div>
+
                 <div className="space-y-1">
-                  {users.map((u) => {
-                    const isSelected = u.id === currentUser?.id;
-                    return (
-                      <button
-                        key={u.id}
-                        onClick={() => {
-                          switchUserById(u.id);
-                          setIsUserMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs transition-all ${
-                          isSelected ? 'bg-primary-600/20 text-white border border-primary-500/30' : 'text-slate-300 hover:bg-surface-200'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-300 overflow-hidden">
-                            {u.avatar_url ? (
-                              <img src={u.avatar_url} alt={u.name} className="w-full h-full object-cover" />
-                            ) : (
-                              u.name.charAt(0)
-                            )}
+                  <p className="text-[10px] uppercase font-semibold text-slate-400 px-2 tracking-wider">Quick Switch Account</p>
+                  <div className="max-h-48 overflow-y-auto space-y-0.5">
+                    {users.filter(u => !u.is_external).map((u) => {
+                      const isSelected = u.id === currentUser?.id;
+                      return (
+                        <button
+                          key={u.id}
+                          onClick={() => {
+                            switchUserById(u.id);
+                            setIsUserMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs transition-all ${
+                            isSelected ? 'bg-primary-600/20 text-white border border-primary-500/30' : 'text-slate-300 hover:bg-slate-800'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <img
+                              src={u.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100'}
+                              alt={u.name}
+                              className="w-5 h-5 rounded-full border border-slate-700 object-cover"
+                            />
+                            <div className="text-left">
+                              <span className="font-medium text-xs text-white">{u.name}</span>
+                            </div>
                           </div>
-                          <div className="text-left">
-                            <p className="font-semibold">{u.name}</p>
-                            <p className="text-[10px] text-slate-400">@{u.username}</p>
-                          </div>
-                        </div>
-                        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border capitalize ${getRoleBadge(u.role)}`}>
-                          {u.role}
-                        </span>
-                      </button>
-                    );
-                  })}
+                          <span className={`text-[9px] font-mono px-1 py-0.2 rounded border capitalize ${getRoleBadge(u.role)}`}>
+                            {u.role}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-800/80 flex flex-col gap-1">
+                  <button
+                    onClick={() => {
+                      const { setIsLoginModalOpen } = (window as any).__authContext || {};
+                      setIsUserMenuOpen(false);
+                      // Trigger login modal
+                      document.dispatchEvent(new CustomEvent('triarc:open-login-modal'));
+                    }}
+                    className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-lg text-xs text-cyan-400 hover:bg-slate-800 transition-colors"
+                  >
+                    <Shield className="w-3.5 h-3.5" />
+                    <span>Open Authentication Dialog</span>
+                  </button>
                 </div>
               </div>
             )}

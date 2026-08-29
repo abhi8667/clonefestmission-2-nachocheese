@@ -33,6 +33,7 @@ export const TableView: React.FC<TableViewProps> = ({
   onBugsUpdated
 }) => {
   const { currentUser } = useAuth();
+  const canTriage = currentUser?.role !== 'reporter';
   const [focusedIndex, setFocusedIndex] = useState<number>(0);
   const [selectedBugIds, setSelectedBugIds] = useState<number[]>([]);
   const [bulkTargetState, setBulkTargetState] = useState<string>('In Progress');

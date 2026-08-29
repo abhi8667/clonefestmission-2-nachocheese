@@ -7,9 +7,17 @@ export interface User {
   email: string;
   role: UserRole;
   avatar_url?: string;
+  security_group_ids?: string[];
+  is_external?: boolean;
 }
 
 export interface Group {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export interface Component {
   id: string;
   name: string;
   description?: string;
@@ -311,8 +319,13 @@ export type SSEEventType =
   | 'activity:created'
   | 'flag:created'
   | 'flag:resolved'
+  | 'git:linked'
   | 'presence:changed'
-  | 'notification:created';
+  | 'presence:ping'
+  | 'notification:created'
+  | 'admin:user_updated'
+  | 'import:progress'
+  | 'import:complete';
 
 export interface SSEMessage {
   type: SSEEventType;
@@ -421,4 +434,58 @@ export interface UpdateBugInput {
   target_milestone?: string | null;
   estimated_time?: number | null;
   remaining_time?: number | null;
+}
+
+// Administration types (W10.4)
+export interface AdminUserUpdateInput {
+  role?: UserRole;
+  security_group_ids?: string[];
+  is_external?: boolean;
+}
+
+export interface AdminComponentInput {
+  id: string;
+  name: string;
+  description?: string;
+  default_assignee_id?: string | null;
+}
+
+export interface AdminMilestoneInput {
+  id?: string;
+  name: string;
+  due_date?: string | null;
+  product_id?: string;
+}
+
+export interface AdminVersionInput {
+  id?: string;
+  name: string;
+  product_id?: string;
+}
+
+// GitHub Importer types (W9)
+export interface GitHubImportInput {
+  repoUrl: string;
+  maxIssues?: number;
+  githubToken?: string;
+  useFixture?: boolean;
+  fixtureName?: string;
+}
+
+export interface ImportedRepo {
+  id: number;
+  url: string;
+  owner: string;
+  name: string;
+  issue_count: number;
+  imported_at: string;
+}
+
+export interface ImportProgressEvent {
+  job_id: string;
+  stage: 'fetching' | 'mapping' | 'saving' | 'complete' | 'error';
+  current: number;
+  total: number;
+  message: string;
+  repo_name?: string;
 }

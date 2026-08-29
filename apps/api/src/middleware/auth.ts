@@ -21,13 +21,26 @@ if (isDemoModeEnabled() && process.env.NODE_ENV !== 'test') {
 }
 
 export function generateToken(user: User): string {
+  // Ensure security groups are included in token payload
+  let groupIds = user.security_group_ids;
+  if (!groupIds && user.id) {
+    try {
+      const groups = db.prepare('SELECT group_id FROM user_group_map WHERE user_id = ?').all(user.id) as { group_id: string }[];
+      groupIds = groups.map(g => g.group_id);
+    } catch {
+      groupIds = [];
+    }
+  }
+
   return jwt.sign(
     {
       id: user.id,
       username: user.username,
       name: user.name,
       email: user.email,
-      role: user.role
+      role: user.role,
+      avatar_url: user.avatar_url,
+      security_group_ids: groupIds || []
     },
     JWT_SECRET,
     { expiresIn: '7d' }
@@ -39,8 +52,10 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
   if (isDemoModeEnabled()) {
     const demoUserId = req.headers['x-user-id'] as string;
     if (demoUserId) {
-      const user = db.prepare('SELECT * FROM users WHERE id = ? OR username = ?').get(demoUserId, demoUserId) as User | undefined;
+      const user = db.prepare('SELECT id, username, name, email, role, avatar_url, is_external FROM users WHERE id = ? OR username = ?').get(demoUserId, demoUserId) as User | undefined;
       if (user) {
+        const groups = db.prepare('SELECT group_id FROM user_group_map WHERE user_id = ?').all(user.id) as { group_id: string }[];
+        user.security_group_ids = groups.map(g => g.group_id);
         req.user = user;
         return next();
       }
@@ -60,8 +75,10 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
   if (!token) {
     // Only fall back to admin user when TRIARC_DEMO_MODE is explicitly enabled
     if (isDemoModeEnabled()) {
-      const defaultUser = db.prepare("SELECT * FROM users WHERE role = 'admin' LIMIT 1").get() as User | undefined;
+      const defaultUser = db.prepare("SELECT id, username, name, email, role, avatar_url, is_external FROM users WHERE role = 'admin' LIMIT 1").get() as User | undefined;
       if (defaultUser) {
+        const groups = db.prepare('SELECT group_id FROM user_group_map WHERE user_id = ?').all(defaultUser.id) as { group_id: string }[];
+        defaultUser.security_group_ids = groups.map(g => g.group_id);
         req.user = defaultUser;
         return next();
       }
@@ -75,6 +92,10 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as User;
+    if (!decoded.security_group_ids && decoded.id) {
+      const groups = db.prepare('SELECT group_id FROM user_group_map WHERE user_id = ?').all(decoded.id) as { group_id: string }[];
+      decoded.security_group_ids = groups.map(g => g.group_id);
+    }
     req.user = decoded;
     next();
   } catch (err) {

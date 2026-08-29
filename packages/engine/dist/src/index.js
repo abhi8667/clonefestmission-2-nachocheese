@@ -52,6 +52,7 @@ export const defaultWorkflowConfig = {
         }
     ]
 };
+export const workflowConfig = defaultWorkflowConfig;
 export * from './workflow.js';
 export * from './flags.js';
 export * from './metrics.js';

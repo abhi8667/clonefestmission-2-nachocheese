@@ -6,7 +6,10 @@ import { CardView } from './components/BugList/CardView.tsx';
 import { BugDetailModal } from './components/BugDetail/BugDetailModal.tsx';
 import { RequestInbox } from './components/Inbox/RequestInbox.tsx';
 import { FlowAnalyticsView } from './components/Analytics/FlowAnalyticsView.tsx';
+import { AdminPanelView } from './components/Admin/AdminPanelView.tsx';
 import { NewBugModal } from './components/NewBug/NewBugModal.tsx';
+import { GitHubImportModal } from './components/Import/GitHubImportModal.tsx';
+import { LoginModal } from './components/Auth/LoginModal.tsx';
 import { WebhookSimulatorModal } from './components/WebhookSimulator/WebhookSimulatorModal.tsx';
 import { CommandPalette } from './components/CommandPalette.tsx';
 import { DigestBanner } from './components/Digest/DigestBanner.tsx';
@@ -19,10 +22,10 @@ import { Loader2 } from 'lucide-react';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 
 export const App: React.FC = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, setIsLoginModalOpen } = useAuth();
   const { lastEvent } = useSSE();
 
-  const [activeTab, setActiveTab] = useState<'bugs' | 'inbox' | 'analytics'>('bugs');
+  const [activeTab, setActiveTab] = useState<'bugs' | 'inbox' | 'analytics' | 'admin'>('bugs');
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
 
   // Filters
@@ -42,6 +45,7 @@ export const App: React.FC = () => {
   const [selectedBugId, setSelectedBugId] = useState<number | null>(null);
   const [isNewBugOpen, setIsNewBugOpen] = useState(false);
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isCmdOpen, setIsCmdOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
 
@@ -93,6 +97,13 @@ export const App: React.FC = () => {
     }
   }, [lastEvent]);
 
+  // Global custom event listener to open login modal from menu
+  useEffect(() => {
+    const handleOpenLogin = () => setIsLoginModalOpen(true);
+    document.addEventListener('triarc:open-login-modal', handleOpenLogin);
+    return () => document.removeEventListener('triarc:open-login-modal', handleOpenLogin);
+  }, [setIsLoginModalOpen]);
+
   // Global Keyboard Shortcuts (⌘K, ⌘N, ?)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -132,6 +143,7 @@ export const App: React.FC = () => {
         setActiveTab={setActiveTab}
         openNewBugModal={() => setIsNewBugOpen(true)}
         openWebhookSimulator={() => setIsSimulatorOpen(true)}
+        openImportModal={() => setIsImportModalOpen(true)}
         openCommandPalette={() => setIsCmdOpen(true)}
         openKeyboardShortcuts={() => setIsShortcutsOpen(true)}
         onSelectBug={(id) => setSelectedBugId(id)}
@@ -190,6 +202,10 @@ export const App: React.FC = () => {
           {activeTab === 'analytics' && (
             <FlowAnalyticsView onSelectBug={(id) => setSelectedBugId(id)} />
           )}
+
+          {activeTab === 'admin' && (
+            <AdminPanelView />
+          )}
         </ErrorBoundary>
       </main>
 
@@ -212,6 +228,16 @@ export const App: React.FC = () => {
         }}
         onSelectBug={(id) => setSelectedBugId(id)}
       />
+
+      <GitHubImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onImportComplete={() => {
+          loadBugs();
+        }}
+      />
+
+      <LoginModal />
 
       <WebhookSimulatorModal
         isOpen={isSimulatorOpen}

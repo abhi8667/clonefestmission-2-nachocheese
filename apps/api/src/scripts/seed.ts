@@ -1,6 +1,7 @@
 import { db } from '../db/database.js';
 import { initializeDatabase } from '../db/schema.js';
 import { indexBugEmbedding } from '../services/duplicate-radar.js';
+import bcrypt from 'bcryptjs';
 
 export function runSeed() {
   console.log('🌱 Starting Triarc database seeding...');
@@ -31,21 +32,21 @@ export function runSeed() {
     DELETE FROM users;
   `);
   db.pragma('foreign_keys = ON');
-
   console.log('  Cleaned tables. Seeding users, groups, milestones, and keywords...');
 
-  // 1. Seed Users
+  // 1. Seed Users with bcrypt hashed passwords (password123)
+  const defaultPasswordHash = bcrypt.hashSync('password123', 10);
   const insertUser = db.prepare(`
-    INSERT INTO users (id, username, name, email, role, avatar_url)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO users (id, username, name, email, role, avatar_url, password_hash, is_external)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 0)
   `);
 
-  insertUser.run('u_alex', 'alex', 'Alex River', 'alex@triarc.dev', 'developer', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100');
-  insertUser.run('u_sam', 'sam', 'Sam Patel', 'sam@triarc.dev', 'developer', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100');
-  insertUser.run('u_priya', 'priya', 'Priya Sharma', 'priya@triarc.dev', 'triager', 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100');
-  insertUser.run('u_marcus', 'marcus', 'Marcus Vance', 'marcus@triarc.dev', 'admin', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100');
-  insertUser.run('u_sarah', 'sarah', 'Sarah Connor', 'sarah@triarc.dev', 'security', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100');
-  insertUser.run('u_chen', 'chen', 'Chen Wei', 'chen@triarc.dev', 'reporter', 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100');
+  insertUser.run('u_alex', 'alex', 'Alex River', 'alex@triarc.dev', 'developer', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', defaultPasswordHash);
+  insertUser.run('u_sam', 'sam', 'Sam Patel', 'sam@triarc.dev', 'developer', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100', defaultPasswordHash);
+  insertUser.run('u_priya', 'priya', 'Priya Sharma', 'priya@triarc.dev', 'triager', 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100', defaultPasswordHash);
+  insertUser.run('u_marcus', 'marcus', 'Marcus Vance', 'marcus@triarc.dev', 'admin', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100', defaultPasswordHash);
+  insertUser.run('u_sarah', 'sarah', 'Sarah Connor', 'sarah@triarc.dev', 'security', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100', defaultPasswordHash);
+  insertUser.run('u_chen', 'chen', 'Chen Wei', 'chen@triarc.dev', 'reporter', 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100', defaultPasswordHash);
 
   // 2. Seed Groups
   const insertGroup = db.prepare('INSERT INTO groups (id, name, description) VALUES (?, ?, ?)');

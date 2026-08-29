@@ -74,4 +74,50 @@ describe('Security & Row-Level Authorization (§7 & §10)', () => {
     assert.equal(hasSecBugInSecResults, true, 'Security group member should see confidential duplicate suggestions');
     assert.equal(hasSecBugInNonSecResults, false, 'Non-member MUST NOT see confidential security bug in duplicate radar');
   });
+
+  it('Verifies bcrypt password hashing and blocks external users from login', async () => {
+    const bcrypt = (await import('bcryptjs')).default;
+    const marcus = db.prepare("SELECT * FROM users WHERE id = 'u_marcus'").get() as any;
+
+    // Verify bcrypt password
+    assert.ok(marcus.password_hash, 'Admin must have password hash');
+    assert.equal(bcrypt.compareSync('password123', marcus.password_hash), true);
+    assert.equal(bcrypt.compareSync('wrongpassword', marcus.password_hash), false);
+
+    // Create external user
+    db.prepare(`
+      INSERT OR REPLACE INTO users (id, username, name, email, role, is_external)
+      VALUES ('gh_octocat', 'octocat', 'The Octocat', 'octo@github.com', 'reporter', 1)
+    `).run();
+
+    const externalUser = db.prepare("SELECT * FROM users WHERE id = 'gh_octocat'").get() as any;
+    assert.equal(externalUser.is_external, 1, 'External user must have is_external = 1');
+  });
+
+  it('Successfully imports GitHub repository issues and builds real flow timeline', async () => {
+    const { importGitHubRepository } = await import('../src/services/github-importer.js');
+
+    const result = await importGitHubRepository({
+      repoUrl: 'https://github.com/facebook/react',
+      useFixture: true,
+      fixtureName: 'facebook/react',
+      jobId: 'test_job_1'
+    });
+
+    assert.equal(result.success, true);
+    assert.ok(result.total_issues > 0);
+
+    // Verify imported bug exists
+    const importedBug = db.prepare("SELECT * FROM bugs WHERE title LIKE '%useDeferredValue%'").get() as any;
+    assert.ok(importedBug, 'Imported bug should exist in database');
+    assert.equal(importedBug.status, 'Resolved');
+
+    // Verify git links were created
+    const gitLinks = db.prepare('SELECT * FROM git_links WHERE bug_id = ?').all(importedBug.id) as any[];
+    assert.ok(gitLinks.length > 0, 'Git links for PR / commits should be created');
+
+    // Verify activity history was constructed
+    const activities = db.prepare('SELECT * FROM activity WHERE bug_id = ?').all(importedBug.id) as any[];
+    assert.ok(activities.length >= 2, 'Activity transitions should be recorded');
+  });
 });

@@ -1,12 +1,18 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, UserRole } from '@triarc/shared-types';
-import { fetchUsers } from '../services/api.ts';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { User } from '@triarc/shared-types';
+import { fetchUsers, loginUser, quickLoginUser, fetchCurrentProfile, setAuthToken, getAuthToken } from '../services/api.ts';
 
 interface AuthContextType {
   currentUser: User | null;
   users: User[];
   setCurrentUser: (user: User) => void;
-  switchUserById: (userId: string) => void;
+  switchUserById: (userId: string) => Promise<void>;
+  login: (credentials: { username?: string; password?: string; userId?: string }) => Promise<void>;
+  quickLogin: (userId: string) => Promise<void>;
+  logout: () => void;
+  refreshProfile: () => Promise<void>;
+  isLoginModalOpen: boolean;
+  setIsLoginModalOpen: (open: boolean) => void;
   isLoading: boolean;
 }
 
@@ -15,37 +21,98 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchUsers()
-      .then((data) => {
-        setUsers(data);
-        const savedId = localStorage.getItem('triarc_active_user_id');
-        const defaultUser = data.find((u) => u.id === savedId) || data.find((u) => u.username === 'alex') || data[0];
-        if (defaultUser) {
-          setCurrentUser(defaultUser);
-        }
-      })
-      .catch((err) => {
-        console.error('Failed to load users:', err);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, []);
-
-  const switchUserById = (userId: string) => {
-    const found = users.find((u) => u.id === userId);
-    if (found) {
-      setCurrentUser(found);
-      localStorage.setItem('triarc_active_user_id', found.id);
+  const loadUsersList = async () => {
+    try {
+      const data = await fetchUsers();
+      setUsers(data);
+      return data;
+    } catch (err) {
+      console.error('Failed to load users list:', err);
+      return [];
     }
   };
 
-  const handleSetCurrentUser = (user: User) => {
-    setCurrentUser(user);
-    localStorage.setItem('triarc_active_user_id', user.id);
+  const initAuth = useCallback(async () => {
+    setIsLoading(true);
+    const allUsers = await loadUsersList();
+    const existingToken = getAuthToken();
+
+    if (existingToken) {
+      try {
+        const { user } = await fetchCurrentProfile();
+        setCurrentUser(user);
+        setIsLoading(false);
+        return;
+      } catch (err) {
+        // Token invalid, clear it
+        setAuthToken(null);
+      }
+    }
+
+    // Default fallback in demo mode
+    const savedId = typeof localStorage !== 'undefined' ? localStorage.getItem('triarc_active_user_id') : null;
+    const defaultUser = allUsers.find((u) => u.id === savedId) ||
+      allUsers.find((u) => u.username === 'alex' && !u.is_external) ||
+      allUsers.find((u) => !u.is_external) ||
+      allUsers[0];
+
+    if (defaultUser) {
+      try {
+        const res = await quickLoginUser(defaultUser.id);
+        setCurrentUser(res.user);
+      } catch {
+        setCurrentUser(defaultUser);
+      }
+    }
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
+
+  const login = async (credentials: { username?: string; password?: string; userId?: string }) => {
+    const res = await loginUser(credentials);
+    setCurrentUser(res.user);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('triarc_active_user_id', res.user.id);
+    }
+    setIsLoginModalOpen(false);
+  };
+
+  const quickLogin = async (userId: string) => {
+    const res = await quickLoginUser(userId);
+    setCurrentUser(res.user);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('triarc_active_user_id', res.user.id);
+    }
+    setIsLoginModalOpen(false);
+  };
+
+  const switchUserById = async (userId: string) => {
+    await quickLogin(userId);
+  };
+
+  const logout = () => {
+    setAuthToken(null);
+    setCurrentUser(null);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('triarc_active_user_id');
+      localStorage.removeItem('triarc_token');
+    }
+    setIsLoginModalOpen(true);
+  };
+
+  const refreshProfile = async () => {
+    try {
+      const { user } = await fetchCurrentProfile();
+      setCurrentUser(user);
+    } catch {
+      // Ignore
+    }
   };
 
   return (
@@ -53,8 +120,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         currentUser,
         users,
-        setCurrentUser: handleSetCurrentUser,
+        setCurrentUser: (u) => setCurrentUser(u),
         switchUserById,
+        login,
+        quickLogin,
+        logout,
+        refreshProfile,
+        isLoginModalOpen,
+        setIsLoginModalOpen,
         isLoading
       }}
     >

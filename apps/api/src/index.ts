@@ -10,6 +10,8 @@ import { webhooksRouter } from './routes/webhooks.js';
 import { streamRouter } from './routes/stream.js';
 import { savedSearchesRouter } from './routes/saved-searches.js';
 import { notificationsRouter } from './routes/notifications.js';
+import { adminRouter } from './routes/admin.js';
+import { importRouter } from './routes/import.js';
 import { authMiddleware } from './middleware/auth.js';
 import { createRateLimiter } from './middleware/rate-limit.js';
 import { runSeed } from './scripts/seed.js';
@@ -53,24 +55,28 @@ app.get('/api/openapi.json', (req, res) => {
       '/api/flags/{id}': { patch: { summary: 'Resolve request flag' } },
       '/api/inbox': { get: { summary: 'Get Request Inbox' } },
       '/api/analytics/flow': { get: { summary: 'Get cumulative flow analytics' } },
+      '/api/admin/users': { get: { summary: 'Admin users management' } },
+      '/api/import/github': { post: { summary: 'Import GitHub repository' } },
       '/api/webhooks/github': { post: { summary: 'GitHub webhook ingest' } },
       '/api/stream': { get: { summary: 'Server-Sent Events stream' } }
     }
   });
 });
 
-// Mount routes
+// Mount public routes
 app.use('/api/auth', authRouter);
 app.use('/api', authRouter); // /api/users
 app.use('/api/webhooks', webhooksRouter);
 app.use('/api', streamRouter);
 
-// Protected routes (with fallback for easy demo mode)
+// Protected routes
 app.use('/api', authMiddleware, bugsRouter);
 app.use('/api', authMiddleware, flagsRouter);
 app.use('/api', authMiddleware, analyticsRouter);
 app.use('/api', authMiddleware, savedSearchesRouter);
 app.use('/api', authMiddleware, notificationsRouter);
+app.use('/api/admin', authMiddleware, adminRouter);
+app.use('/api/import', authMiddleware, importRouter);
 
 // Global Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
