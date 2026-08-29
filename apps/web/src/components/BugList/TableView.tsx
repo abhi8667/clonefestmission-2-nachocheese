@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { bulkTransitionBugs } from '../../services/api.ts';
 import { useAuth } from '../../context/AuthContext.tsx';
+import { EmptyState } from '../Common/EmptyState.tsx';
 
 interface TableViewProps {
   bugs: Bug[];
@@ -247,14 +248,15 @@ export const TableView: React.FC<TableViewProps> = ({
 
       {/* Main Table */}
       <div className="w-full overflow-x-auto rounded-xl border border-slate-800/90 bg-surface-50/80 backdrop-blur-sm shadow-xl">
-        <table className="w-full text-left border-collapse text-xs">
+        <table className="w-full text-left border-collapse text-xs" aria-label="Bugs triage table">
           <thead>
             <tr className="border-b border-slate-800 bg-surface-100/90 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-              <th className="py-2.5 px-3 w-8 text-center">
+              <th scope="col" className="py-2.5 px-3 w-8 text-center">
                 <button
+                  type="button"
                   onClick={handleSelectAll}
                   className="text-slate-400 hover:text-white transition-colors"
-                  title="Select all"
+                  aria-label={selectedBugIds.length === bugs.length && bugs.length > 0 ? "Deselect all bugs" : "Select all bugs"}
                 >
                   {selectedBugIds.length === bugs.length && bugs.length > 0 ? (
                     <CheckSquare className="w-3.5 h-3.5 text-primary-400" />
@@ -263,15 +265,15 @@ export const TableView: React.FC<TableViewProps> = ({
                   )}
                 </button>
               </th>
-              <th className="py-2.5 px-2 w-14 text-center">ID</th>
-              <th className="py-2.5 px-2 w-10 text-center">Sev</th>
-              <th className="py-2.5 px-2 w-10 text-center">Prio</th>
-              <th className="py-2.5 px-3">Title</th>
-              <th className="py-2.5 px-3 w-28">Status</th>
-              <th className="py-2.5 px-3 w-24">Component</th>
-              <th className="py-2.5 px-3 w-32">Assignee</th>
-              <th className="py-2.5 px-3 w-16 text-center">Activity</th>
-              <th className="py-2.5 px-3 w-20 text-right">Updated</th>
+              <th scope="col" className="py-2.5 px-2 w-14 text-center">ID</th>
+              <th scope="col" className="py-2.5 px-2 w-10 text-center">Sev</th>
+              <th scope="col" className="py-2.5 px-2 w-10 text-center">Prio</th>
+              <th scope="col" className="py-2.5 px-3">Title</th>
+              <th scope="col" className="py-2.5 px-3 w-28">Status</th>
+              <th scope="col" className="py-2.5 px-3 w-24">Component</th>
+              <th scope="col" className="py-2.5 px-3 w-32">Assignee</th>
+              <th scope="col" className="py-2.5 px-3 w-16 text-center">Activity</th>
+              <th scope="col" className="py-2.5 px-3 w-20 text-right">Updated</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/60">
@@ -288,7 +290,15 @@ export const TableView: React.FC<TableViewProps> = ({
                 <tr
                   key={bug.id}
                   onClick={() => onSelectBug(bug.id)}
-                  className={`group cursor-pointer transition-colors duration-150 ${
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onSelectBug(bug.id);
+                    }
+                  }}
+                  aria-label={`Bug #${bug.id}: ${bug.title}`}
+                  className={`group cursor-pointer transition-colors duration-150 focus:outline-none focus-visible:bg-slate-800/60 ${
                     isSelected
                       ? 'bg-primary-950/40 border-l-4 border-l-primary-500'
                       : isChecked
@@ -322,11 +332,11 @@ export const TableView: React.FC<TableViewProps> = ({
                     {getPriorityBadge(bug.priority)}
                   </td>
 
-                  {/* Title + Stalled / SLA Indicator chip */}
+                  {/* Title + Stalled / SLA Indicator chip + Keywords & Milestone */}
                   <td className="py-2.5 px-3 max-w-lg">
-                    <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       {bug.security_group_id && (
-                        <span className="p-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30" title="Confidential security bug">
+                        <span className="p-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30 shrink-0" title="Confidential security bug">
                           <ShieldAlert className="w-3 h-3" />
                         </span>
                       )}
@@ -334,15 +344,29 @@ export const TableView: React.FC<TableViewProps> = ({
                         {bug.title}
                       </span>
 
+                      {/* Milestone badge */}
+                      {bug.target_milestone && (
+                        <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-primary-500/15 text-primary-300 border border-primary-500/30 shrink-0">
+                          {bug.target_milestone}
+                        </span>
+                      )}
+
+                      {/* Keywords */}
+                      {bug.keywords && bug.keywords.slice(0, 2).map((k) => (
+                        <span key={k.id} className="text-[10px] font-mono text-cyan-400/80 bg-cyan-500/10 px-1 rounded shrink-0">
+                          #{k.name}
+                        </span>
+                      ))}
+
                       {isBug412Stalled && (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-stalled-bg text-stalled-text border border-stalled-border animate-pulse-subtle shadow-glow-stalled whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-stalled-bg text-stalled-text border border-stalled-border animate-pulse-subtle shadow-glow-stalled whitespace-nowrap shrink-0">
                           <AlertTriangle className="w-2.5 h-2.5" />
                           Stalled 4d · Review
                         </span>
                       )}
 
                       {isSlaBreached && !isBug412Stalled && (
-                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 whitespace-nowrap">
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 whitespace-nowrap shrink-0">
                           SLA +{bug.sla_status?.breach_hours}h
                         </span>
                       )}
@@ -399,9 +423,11 @@ export const TableView: React.FC<TableViewProps> = ({
         </table>
 
         {bugs.length === 0 && (
-          <div className="p-12 text-center text-slate-500 text-sm">
-            No bugs found matching current filters.
-          </div>
+          <EmptyState
+            title="No matching bugs found"
+            description="Try clearing your search query or selecting a different milestone or keyword filter."
+            className="border-none bg-transparent"
+          />
         )}
       </div>
     </div>

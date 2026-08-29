@@ -32,6 +32,27 @@ export function initializeDatabase() {
       description TEXT
     );
 
+    -- Milestones & Versions (§3 Capability)
+    CREATE TABLE IF NOT EXISTS milestones (
+      id TEXT PRIMARY KEY,
+      product_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      due_date TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS versions (
+      id TEXT PRIMARY KEY,
+      product_id TEXT NOT NULL,
+      name TEXT NOT NULL
+    );
+
+    -- Keywords / Labels (§3 Capability)
+    CREATE TABLE IF NOT EXISTS keywords (
+      id TEXT PRIMARY KEY,
+      name TEXT UNIQUE NOT NULL,
+      description TEXT
+    );
+
     -- Bugs
     CREATE TABLE IF NOT EXISTS bugs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,12 +68,57 @@ export function initializeDatabase() {
       duplicate_of INTEGER,
       security_group_id TEXT,
       time_in_state_json TEXT,
+      version TEXT,
+      target_milestone TEXT,
+      estimated_time REAL DEFAULT 0,
+      remaining_time REAL DEFAULT 0,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       FOREIGN KEY (component_id) REFERENCES components(id),
       FOREIGN KEY (reporter_id) REFERENCES users(id),
       FOREIGN KEY (assignee_id) REFERENCES users(id),
       FOREIGN KEY (security_group_id) REFERENCES groups(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS bug_keywords (
+      bug_id INTEGER NOT NULL,
+      keyword_id TEXT NOT NULL,
+      PRIMARY KEY (bug_id, keyword_id),
+      FOREIGN KEY (bug_id) REFERENCES bugs(id) ON DELETE CASCADE,
+      FOREIGN KEY (keyword_id) REFERENCES keywords(id) ON DELETE CASCADE
+    );
+
+    -- Watchers / CC List (§3 Capability)
+    CREATE TABLE IF NOT EXISTS watchers (
+      bug_id INTEGER NOT NULL,
+      user_id TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (bug_id, user_id),
+      FOREIGN KEY (bug_id) REFERENCES bugs(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    -- Saved Searches (§3 Capability)
+    CREATE TABLE IF NOT EXISTS saved_searches (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      query TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    -- Notifications / Event Routing (§3 Capability)
+    CREATE TABLE IF NOT EXISTS notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      bug_id INTEGER NOT NULL,
+      type TEXT NOT NULL,
+      message TEXT NOT NULL,
+      read INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (bug_id) REFERENCES bugs(id) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS bug_group_map (
@@ -127,12 +193,13 @@ export function initializeDatabase() {
       FOREIGN KEY (bug_id) REFERENCES bugs(id) ON DELETE CASCADE
     );
 
-    -- Comments & Attachments
+    -- Comments & Attachments (with Work Time logging)
     CREATE TABLE IF NOT EXISTS comments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       bug_id INTEGER NOT NULL,
       author_id TEXT NOT NULL,
       body TEXT NOT NULL,
+      work_time REAL DEFAULT 0,
       is_private INTEGER DEFAULT 0,
       created_at TEXT NOT NULL,
       FOREIGN KEY (bug_id) REFERENCES bugs(id) ON DELETE CASCADE,
@@ -159,15 +226,41 @@ export function initializeDatabase() {
       vector_json TEXT NOT NULL,
       FOREIGN KEY (bug_id) REFERENCES bugs(id) ON DELETE CASCADE
     );
+  `);
 
-    -- Critical Indexes (§9 target <150ms)
+  // Safe ALTER TABLE migrations for existing databases (runs before indexes)
+  const alterColumns = [
+    { table: 'bugs', col: 'version', def: 'TEXT' },
+    { table: 'bugs', col: 'target_milestone', def: 'TEXT' },
+    { table: 'bugs', col: 'estimated_time', def: 'REAL DEFAULT 0' },
+    { table: 'bugs', col: 'remaining_time', def: 'REAL DEFAULT 0' },
+    { table: 'comments', col: 'work_time', def: 'REAL DEFAULT 0' }
+  ];
+
+  for (const { table, col, def } of alterColumns) {
+    try {
+      db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`);
+    } catch {
+      // Column already exists
+    }
+  }
+
+  // Create indexes
+  db.exec(`
     CREATE INDEX IF NOT EXISTS idx_activity_bug_created ON activity(bug_id, created_at);
     CREATE INDEX IF NOT EXISTS idx_bugs_status_comp ON bugs(status, component_id);
+    CREATE INDEX IF NOT EXISTS idx_bugs_milestone ON bugs(target_milestone);
     CREATE INDEX IF NOT EXISTS idx_flags_req_status ON flags(requestee_id, status);
     CREATE INDEX IF NOT EXISTS idx_flags_setter_status ON flags(setter_id, status);
     CREATE INDEX IF NOT EXISTS idx_relationships_from ON relationships(from_bug_id);
     CREATE INDEX IF NOT EXISTS idx_relationships_to ON relationships(to_bug_id);
     CREATE INDEX IF NOT EXISTS idx_git_links_bug ON git_links(bug_id);
+    CREATE INDEX IF NOT EXISTS idx_watchers_bug ON watchers(bug_id);
+    CREATE INDEX IF NOT EXISTS idx_watchers_user ON watchers(user_id);
+    CREATE INDEX IF NOT EXISTS idx_bug_keywords_bug ON bug_keywords(bug_id);
+    CREATE INDEX IF NOT EXISTS idx_bug_keywords_kw ON bug_keywords(keyword_id);
+    CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON notifications(user_id, read);
+    CREATE INDEX IF NOT EXISTS idx_saved_searches_user ON saved_searches(user_id);
   `);
 
   // Initialize standard flag types if not exists
@@ -193,5 +286,35 @@ export function initializeDatabase() {
     insertComp.run('api', 'REST & SSE Gateway', 'Express HTTP API and real-time streaming');
     insertComp.run('db', 'Storage & Persistence', 'SQLite database and migrations layer');
     insertComp.run('git', 'GitHub Integration', 'Webhooks, commit scrapers, and branch linking');
+  }
+
+  // Initialize default keywords
+  const existingKws = db.prepare('SELECT COUNT(*) as count FROM keywords').get() as { count: number };
+  if (existingKws.count === 0) {
+    const insertKw = db.prepare('INSERT INTO keywords (id, name, description) VALUES (?, ?, ?)');
+    insertKw.run('kw_regression', 'regression', 'Bug broke previously working functionality');
+    insertKw.run('kw_perf', 'perf', 'Performance or latency degradation');
+    insertKw.run('kw_crash', 'crash', 'Application exception, panic, or unexpected shutdown');
+    insertKw.run('kw_security', 'security', 'Security vulnerability or auth issue');
+    insertKw.run('kw_ux', 'ux', 'User experience and accessibility flaw');
+    insertKw.run('kw_docs', 'docs', 'Documentation discrepancy or missing guide');
+    insertKw.run('kw_help_wanted', 'help-wanted', 'Open for team contribution');
+  }
+
+  // Initialize default milestones
+  const existingMilestones = db.prepare('SELECT COUNT(*) as count FROM milestones').get() as { count: number };
+  if (existingMilestones.count === 0) {
+    const now = new Date();
+    const msInDay = 24 * 60 * 60 * 1000;
+    const dueV21 = new Date(now.getTime() + 14 * msInDay).toISOString().split('T')[0];
+    const dueV22 = new Date(now.getTime() + 45 * msInDay).toISOString().split('T')[0];
+
+    const insertMilestone = db.prepare('INSERT INTO milestones (id, product_id, name, due_date) VALUES (?, ?, ?, ?)');
+    insertMilestone.run('ms_v21', 'triarc', 'v2.1', dueV21);
+    insertMilestone.run('ms_v22', 'triarc', 'v2.2', dueV22);
+
+    const insertVersion = db.prepare('INSERT INTO versions (id, product_id, name) VALUES (?, ?, ?)');
+    insertVersion.run('ver_204', 'triarc', '2.0.4');
+    insertVersion.run('ver_210', 'triarc', '2.1.0-beta');
   }
 }

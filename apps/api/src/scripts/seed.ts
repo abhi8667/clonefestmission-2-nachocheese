@@ -8,6 +8,7 @@ export function runSeed() {
   initializeDatabase();
 
   // Clean existing data for clean seed
+  db.pragma('foreign_keys = OFF');
   db.exec(`
     DELETE FROM bug_embeddings;
     DELETE FROM comments;
@@ -18,12 +19,20 @@ export function runSeed() {
     DELETE FROM activity;
     DELETE FROM bug_group_map;
     DELETE FROM user_group_map;
+    DELETE FROM bug_keywords;
+    DELETE FROM watchers;
+    DELETE FROM saved_searches;
+    DELETE FROM notifications;
     DELETE FROM bugs;
+    DELETE FROM keywords;
+    DELETE FROM milestones;
+    DELETE FROM versions;
     DELETE FROM groups;
     DELETE FROM users;
   `);
+  db.pragma('foreign_keys = ON');
 
-  console.log('  Cleaned tables. Seeding users and groups...');
+  console.log('  Cleaned tables. Seeding users, groups, milestones, and keywords...');
 
   // 1. Seed Users
   const insertUser = db.prepare(`
@@ -46,18 +55,40 @@ export function runSeed() {
   insertUserGroup.run('u_marcus', 'grp_sec');
   insertUserGroup.run('u_sarah', 'grp_sec');
 
+  // 3. Seed Keywords
+  const insertKw = db.prepare('INSERT INTO keywords (id, name, description) VALUES (?, ?, ?)');
+  insertKw.run('kw_regression', 'regression', 'Bug broke previously working functionality');
+  insertKw.run('kw_perf', 'perf', 'Performance or latency degradation');
+  insertKw.run('kw_crash', 'crash', 'Application exception, panic, or unexpected shutdown');
+  insertKw.run('kw_security', 'security', 'Security vulnerability or auth issue');
+  insertKw.run('kw_ux', 'ux', 'User experience and accessibility flaw');
+  insertKw.run('kw_docs', 'docs', 'Documentation discrepancy or missing guide');
+  insertKw.run('kw_help_wanted', 'help-wanted', 'Open for team contribution');
+
+  // 4. Seed Milestones & Versions
   const now = Date.now();
   const DAY_MS = 24 * 60 * 60 * 1000;
   const HOUR_MS = 60 * 60 * 1000;
 
+  const dueV21 = new Date(now + 14 * DAY_MS).toISOString().split('T')[0];
+  const dueV22 = new Date(now + 45 * DAY_MS).toISOString().split('T')[0];
+
+  const insertMilestone = db.prepare('INSERT INTO milestones (id, product_id, name, due_date) VALUES (?, ?, ?, ?)');
+  insertMilestone.run('ms_v21', 'triarc', 'v2.1', dueV21);
+  insertMilestone.run('ms_v22', 'triarc', 'v2.2', dueV22);
+
+  const insertVersion = db.prepare('INSERT INTO versions (id, product_id, name) VALUES (?, ?, ?)');
+  insertVersion.run('ver_204', 'triarc', '2.0.4');
+  insertVersion.run('ver_210', 'triarc', '2.1.0-beta');
+
   console.log('  Seeding headline demo bugs (§5 & §13)...');
 
-  // 3. Seed Headline Bug #412 (Crash on save when offline - In Review, stalled 4d waiting on Alex's review?)
+  // 5. Seed Headline Bug #412 (Crash on save when offline - In Review, stalled 4d waiting on Alex's review?)
   const bug412CreatedAt = new Date(now - 14 * DAY_MS).toISOString();
   const insertBug = db.prepare(`
     INSERT INTO bugs (
-      id, title, description, status, severity, priority, component_id, reporter_id, assignee_id, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      id, title, description, status, severity, priority, component_id, reporter_id, assignee_id, version, target_milestone, estimated_time, remaining_time, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   insertBug.run(
@@ -70,9 +101,24 @@ export function runSeed() {
     'core',
     'u_sam',
     'u_sam',
+    '2.1.0-beta',
+    'v2.1',
+    12.0,
+    4.0,
     bug412CreatedAt,
     new Date(now - 4 * DAY_MS).toISOString()
   );
+
+  // Link Keywords to #412
+  const insertBugKw = db.prepare('INSERT INTO bug_keywords (bug_id, keyword_id) VALUES (?, ?)');
+  insertBugKw.run(412, 'kw_crash');
+  insertBugKw.run(412, 'kw_regression');
+
+  // Watchers for #412
+  const insertWatcher = db.prepare('INSERT INTO watchers (bug_id, user_id, created_at) VALUES (?, ?, ?)');
+  insertWatcher.run(412, 'u_sam', bug412CreatedAt);
+  insertWatcher.run(412, 'u_alex', bug412CreatedAt);
+  insertWatcher.run(412, 'u_priya', bug412CreatedAt);
 
   // Activities for #412
   const insertActivity = db.prepare(`
@@ -80,12 +126,9 @@ export function runSeed() {
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
 
-  // reported -> triaged (2d 4h)
   insertActivity.run(412, 'u_sam', 'status', null, 'Unconfirmed', 0, new Date(now - 14 * DAY_MS).toISOString());
   insertActivity.run(412, 'u_priya', 'status', 'Unconfirmed', 'Confirmed', 0, new Date(now - 11.8 * DAY_MS).toISOString());
-  // triaged -> branch (1d 2h)
   insertActivity.run(412, 'u_sam', 'status', 'Confirmed', 'In Progress', 0, new Date(now - 10.7 * DAY_MS).toISOString());
-  // PR opened (3h)
   insertActivity.run(412, null, 'git_branch', null, 'branch:fix/offline-save-crash', 1, new Date(now - 10.5 * DAY_MS).toISOString());
   insertActivity.run(412, null, 'git_pr', null, 'PR #89: Fix crash during offline document save', 1, new Date(now - 10.3 * DAY_MS).toISOString());
   insertActivity.run(412, 'u_sam', 'status', 'In Progress', 'In Review', 0, new Date(now - 10.3 * DAY_MS).toISOString());
@@ -107,16 +150,16 @@ export function runSeed() {
   insertFlag.run('ft_review', 412, '?', 'u_sam', 'u_alex', new Date(now - 4.1 * DAY_MS).toISOString());
   insertActivity.run(412, 'u_sam', 'flag_created', null, 'Requested review? for @alex', 0, new Date(now - 4.1 * DAY_MS).toISOString());
 
-  // Comments for #412
+  // Comments for #412 with work_time logged
   const insertComment = db.prepare(`
-    INSERT INTO comments (bug_id, author_id, body, is_private, created_at)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO comments (bug_id, author_id, body, work_time, is_private, created_at)
+    VALUES (?, ?, ?, ?, ?, ?)
   `);
-  insertComment.run(412, 'u_sam', 'I have pushed PR #89 with the local queue fallback. @alex please review the SQLite locking logic.', 0, new Date(now - 4.1 * DAY_MS).toISOString());
+  insertComment.run(412, 'u_sam', 'I have pushed PR #89 with the local queue fallback. @alex please review the SQLite locking logic.', 3.5, 0, new Date(now - 4.1 * DAY_MS).toISOString());
 
   indexBugEmbedding(412, 'Crash on save when offline', 'Application throws uncaught NullPointerException in SyncEngine when attempting to persist document while network state is disconnected.');
 
-  // 4. Headline Bug #398 (Login fails on mobile Safari - needinfo? requested from Priya)
+  // 6. Headline Bug #398 (Login fails on mobile Safari - needinfo? requested from Priya)
   insertBug.run(
     398,
     'Login fails on mobile Safari with cookies disabled',
@@ -127,16 +170,26 @@ export function runSeed() {
     'auth',
     'u_chen',
     'u_sam',
+    '2.0.4',
+    'v2.1',
+    6.0,
+    6.0,
     new Date(now - 2 * DAY_MS).toISOString(),
     new Date(now - 6 * HOUR_MS).toISOString()
   );
+  insertBugKw.run(398, 'kw_security');
+  insertBugKw.run(398, 'kw_ux');
+  insertWatcher.run(398, 'u_chen', new Date(now - 2 * DAY_MS).toISOString());
+  insertWatcher.run(398, 'u_sam', new Date(now - 2 * DAY_MS).toISOString());
+  insertWatcher.run(398, 'u_priya', new Date(now - 2 * DAY_MS).toISOString());
+
   insertActivity.run(398, 'u_chen', 'status', null, 'Unconfirmed', 0, new Date(now - 2 * DAY_MS).toISOString());
   insertActivity.run(398, 'u_priya', 'status', 'Unconfirmed', 'Confirmed', 0, new Date(now - 1.5 * DAY_MS).toISOString());
   insertFlag.run('ft_needinfo', 398, '?', 'u_sam', 'u_priya', new Date(now - 6 * HOUR_MS).toISOString());
-  insertComment.run(398, 'u_sam', '@priya Could you confirm if this happens on standard Safari or Private Browsing mode specifically?', 0, new Date(now - 6 * HOUR_MS).toISOString());
+  insertComment.run(398, 'u_sam', '@priya Could you confirm if this happens on standard Safari or Private Browsing mode specifically?', 0.5, 0, new Date(now - 6 * HOUR_MS).toISOString());
   indexBugEmbedding(398, 'Login fails on mobile Safari with cookies disabled', 'Authentication session handshake returns 401 loop when third-party cookie restrictions are active on iOS Safari 17.5+.');
 
-  // 5. Seed Duplicate Radar Match Candidates (for live dedup demo testing)
+  // 7. Seed Duplicate Radar Match Candidates (for live dedup demo testing)
   insertBug.run(
     102,
     'Fatal error when saving file while disconnected from internet',
@@ -147,9 +200,14 @@ export function runSeed() {
     'core',
     'u_chen',
     'u_alex',
+    '2.0.4',
+    'v2.1',
+    4.0,
+    0.0,
     new Date(now - 20 * DAY_MS).toISOString(),
     new Date(now - 18 * DAY_MS).toISOString()
   );
+  insertBugKw.run(102, 'kw_crash');
   indexBugEmbedding(102, 'Fatal error when saving file while disconnected from internet', 'When user loses wifi connectivity and hits cmd+s, editor throws fatal exception and loses dirty buffer changes.');
 
   insertBug.run(
@@ -162,12 +220,17 @@ export function runSeed() {
     'core',
     'u_sam',
     'u_sam',
+    '2.0.4',
+    'v2.1',
+    4.0,
+    0.0,
     new Date(now - 25 * DAY_MS).toISOString(),
     new Date(now - 22 * DAY_MS).toISOString()
   );
+  insertBugKw.run(103, 'kw_crash');
   indexBugEmbedding(103, 'Uncaught exception in SyncEngine during offline document save', 'SyncEngine does not check network reachable state prior to calling HTTP sync endpoint, resulting in unhandled promise rejection.');
 
-  // 6. Seed Sleeper Branch Bug (branch quiet for > 3 days while In Progress)
+  // 8. Seed Sleeper Branch Bug (branch quiet for > 3 days while In Progress)
   insertBug.run(
     250,
     'Refactor SSE connection recovery and exponential backoff',
@@ -178,14 +241,19 @@ export function runSeed() {
     'api',
     'u_priya',
     'u_alex',
+    '2.1.0-beta',
+    'v2.2',
+    16.0,
+    10.0,
     new Date(now - 8 * DAY_MS).toISOString(),
     new Date(now - 5 * DAY_MS).toISOString()
   );
+  insertBugKw.run(250, 'kw_perf');
   insertActivity.run(250, 'u_priya', 'status', null, 'In Progress', 0, new Date(now - 8 * DAY_MS).toISOString());
   insertGitLink.run(250, 'BRANCH', 'refactor/sse-backoff', 'https://github.com/triarc/api/tree/refactor/sse-backoff', 'active', new Date(now - 4.5 * DAY_MS).toISOString());
   indexBugEmbedding(250, 'Refactor SSE connection recovery and exponential backoff', 'Improve reconnection jitter and handle network sleep wake-up events on background tab restoration.');
 
-  // 7. Seed Confidential Security Bug
+  // 9. Seed Confidential Security Bug
   insertBug.run(
     999,
     'Potential JWT token confusion with asymmetric public keys',
@@ -196,9 +264,14 @@ export function runSeed() {
     'auth',
     'u_sarah',
     'u_marcus',
+    '2.1.0-beta',
+    'v2.1',
+    8.0,
+    4.0,
     new Date(now - 3 * DAY_MS).toISOString(),
     new Date(now - 1 * DAY_MS).toISOString()
   );
+  insertBugKw.run(999, 'kw_security');
   db.prepare("UPDATE bugs SET security_group_id = 'grp_sec' WHERE id = 999").run();
   indexBugEmbedding(999, 'Potential JWT token confusion with asymmetric public keys', 'Algorithm validation must reject none and HMAC when RS256 key is expected in verification headers.');
 
@@ -208,6 +281,7 @@ export function runSeed() {
   const severities = ['blocker', 'critical', 'major', 'normal', 'minor', 'trivial', 'enhancement'];
   const priorities = ['highest', 'high', 'normal', 'low', 'lowest'];
   const users = ['u_alex', 'u_sam', 'u_priya', 'u_marcus', 'u_chen'];
+  const kws = ['kw_regression', 'kw_perf', 'kw_crash', 'kw_security', 'kw_ux', 'kw_docs', 'kw_help_wanted'];
 
   const bugTitles = [
     'Memory leak in query result streaming when client disconnects early',
@@ -250,6 +324,9 @@ export function runSeed() {
     const priority = priorities[i % priorities.length];
     const reporter = users[i % users.length];
     const assignee = users[(i + 1) % users.length];
+    const targetMilestone = i % 2 === 0 ? 'v2.1' : 'v2.2';
+    const version = i % 3 === 0 ? '2.1.0-beta' : '2.0.4';
+    const estTime = (i % 8) + 2;
 
     // Distribute creation across past 45 days
     const daysAgo = (140 - i) * 0.3 + (i % 5);
@@ -276,11 +353,19 @@ export function runSeed() {
       component,
       reporter,
       assignee,
+      version,
+      targetMilestone,
+      estTime,
+      status === 'Resolved' || status === 'Verified' || status === 'Closed' ? 0 : Math.max(1, estTime - 2),
       createdIso,
       new Date(createdDate.getTime() + 1.5 * DAY_MS).toISOString()
     );
 
     const bugId = Number(result.lastInsertRowid);
+
+    // Add keywords
+    const kwId = kws[i % kws.length];
+    insertBugKw.run(bugId, kwId);
 
     // Initial creation activity
     insertActivity.run(bugId, reporter, 'status', null, 'Unconfirmed', 0, createdIso);
@@ -327,6 +412,17 @@ export function runSeed() {
     // Index embeddings
     indexBugEmbedding(bugId, title, `Detailed investigation report for issue #${i}.`);
   }
+
+  // Seed Sample Saved Searches
+  const insertSavedSearch = db.prepare('INSERT INTO saved_searches (id, user_id, name, query, created_at) VALUES (?, ?, ?, ?, ?)');
+  insertSavedSearch.run('ss_1', 'u_alex', 'My Stalled & In Review', 'assignee:me status:"In Review"', new Date(now - 3 * DAY_MS).toISOString());
+  insertSavedSearch.run('ss_2', 'u_alex', 'Milestone v2.1 Regressions', 'milestone:v2.1 keyword:regression', new Date(now - 2 * DAY_MS).toISOString());
+  insertSavedSearch.run('ss_3', 'u_alex', 'Critical Open Issues', 'is:open severity:blocker,critical', new Date(now - 1 * DAY_MS).toISOString());
+
+  // Seed Sample Notifications
+  const insertNotif = db.prepare('INSERT INTO notifications (user_id, bug_id, type, message, read, created_at) VALUES (?, ?, ?, ?, ?, ?)');
+  insertNotif.run('u_alex', 412, 'flag_assigned', 'Sam Patel requested review? from you on Bug #412', 0, new Date(now - 4.1 * DAY_MS).toISOString());
+  insertNotif.run('u_alex', 398, 'watcher_activity', 'Chen Wei reported Bug #398 (Login fails on mobile Safari)', 0, new Date(now - 2 * DAY_MS).toISOString());
 
   // Create some relationships
   console.log('  Linking bug relationships...');

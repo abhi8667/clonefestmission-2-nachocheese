@@ -8,7 +8,10 @@ import { flagsRouter } from './routes/flags.js';
 import { analyticsRouter } from './routes/analytics.js';
 import { webhooksRouter } from './routes/webhooks.js';
 import { streamRouter } from './routes/stream.js';
+import { savedSearchesRouter } from './routes/saved-searches.js';
+import { notificationsRouter } from './routes/notifications.js';
 import { authMiddleware } from './middleware/auth.js';
+import { createRateLimiter } from './middleware/rate-limit.js';
 import { runSeed } from './scripts/seed.js';
 
 const app = express();
@@ -16,6 +19,7 @@ const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+app.use('/api', createRateLimiter({ max: 1000, windowMs: 15 * 60 * 1000 }));
 
 // Initialize database schema
 initializeDatabase();
@@ -65,11 +69,18 @@ app.use('/api', streamRouter);
 app.use('/api', authMiddleware, bugsRouter);
 app.use('/api', authMiddleware, flagsRouter);
 app.use('/api', authMiddleware, analyticsRouter);
+app.use('/api', authMiddleware, savedSearchesRouter);
+app.use('/api', authMiddleware, notificationsRouter);
 
-// Error handler
+// Global Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('API Error:', err);
-  res.status(500).json({ error: err.message || 'Internal server error' });
+  const status = typeof err.status === 'number' ? err.status : 500;
+  res.status(status).json({
+    error: err.message || 'Internal server error',
+    code: err.code || (status === 500 ? 'INTERNAL_SERVER_ERROR' : 'API_ERROR'),
+    ...(err.details ? { details: err.details } : {})
+  });
 });
 
 if (process.env.NODE_ENV !== 'test') {

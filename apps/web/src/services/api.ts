@@ -131,11 +131,119 @@ export async function relateBug(bugId: number, toBugId: number, type: string, us
   return res.json();
 }
 
-export async function addComment(bugId: number, body: string, is_private: boolean = false, userId?: string): Promise<any> {
+export async function fetchKeywords(): Promise<{ keywords: any[] }> {
+  const res = await fetch(`${API_BASE}/keywords`);
+  if (!res.ok) throw new Error('Failed to fetch keywords');
+  return res.json();
+}
+
+export async function fetchMilestones(): Promise<{ milestones: any[] }> {
+  const res = await fetch(`${API_BASE}/milestones`);
+  if (!res.ok) throw new Error('Failed to fetch milestones');
+  return res.json();
+}
+
+export async function fetchVersions(): Promise<{ versions: any[] }> {
+  const res = await fetch(`${API_BASE}/versions`);
+  if (!res.ok) throw new Error('Failed to fetch versions');
+  return res.json();
+}
+
+export async function watchBug(bugId: number, userId?: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/bugs/${bugId}/watch`, {
+    method: 'POST',
+    headers: getHeaders(undefined, userId)
+  });
+  if (!res.ok) throw new Error('Failed to watch bug');
+  return res.json();
+}
+
+export async function unwatchBug(bugId: number, userId?: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/bugs/${bugId}/watch`, {
+    method: 'DELETE',
+    headers: getHeaders(undefined, userId)
+  });
+  if (!res.ok) throw new Error('Failed to unwatch bug');
+  return res.json();
+}
+
+export async function addBugKeyword(bugId: number, keyword_id: string, userId?: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/bugs/${bugId}/keywords`, {
+    method: 'POST',
+    headers: getHeaders(undefined, userId),
+    body: JSON.stringify({ keyword_id })
+  });
+  if (!res.ok) throw new Error('Failed to add keyword');
+  return res.json();
+}
+
+export async function removeBugKeyword(bugId: number, keywordId: string, userId?: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/bugs/${bugId}/keywords/${keywordId}`, {
+    method: 'DELETE',
+    headers: getHeaders(undefined, userId)
+  });
+  if (!res.ok) throw new Error('Failed to remove keyword');
+  return res.json();
+}
+
+export async function fetchSavedSearches(userId?: string): Promise<{ saved_searches: any[] }> {
+  const res = await fetch(`${API_BASE}/saved-searches`, {
+    headers: getHeaders(undefined, userId)
+  });
+  if (!res.ok) throw new Error('Failed to fetch saved searches');
+  return res.json();
+}
+
+export async function createSavedSearch(name: string, query: string, userId?: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/saved-searches`, {
+    method: 'POST',
+    headers: getHeaders(undefined, userId),
+    body: JSON.stringify({ name, query })
+  });
+  if (!res.ok) throw new Error('Failed to create saved search');
+  return res.json();
+}
+
+export async function deleteSavedSearch(id: string, userId?: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/saved-searches/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders(undefined, userId)
+  });
+  if (!res.ok) throw new Error('Failed to delete saved search');
+  return res.json();
+}
+
+export async function fetchNotifications(unreadOnly: boolean = false, userId?: string): Promise<{ notifications: any[]; unread_count: number }> {
+  const res = await fetch(`${API_BASE}/notifications${unreadOnly ? '?unread=true' : ''}`, {
+    headers: getHeaders(undefined, userId)
+  });
+  if (!res.ok) throw new Error('Failed to fetch notifications');
+  return res.json();
+}
+
+export async function markNotificationRead(id: number, userId?: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/notifications/${id}/read`, {
+    method: 'PATCH',
+    headers: getHeaders(undefined, userId)
+  });
+  if (!res.ok) throw new Error('Failed to mark notification read');
+  return res.json();
+}
+
+export async function markAllNotificationsRead(userId?: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/notifications/read-all`, {
+    method: 'POST',
+    headers: getHeaders(undefined, userId)
+  });
+  if (!res.ok) throw new Error('Failed to mark all notifications read');
+  return res.json();
+}
+
+export async function addComment(bugId: number, body: string, is_private: boolean = false, work_time: number = 0, userId?: string): Promise<any> {
   const res = await fetch(`${API_BASE}/bugs/${bugId}/comments`, {
     method: 'POST',
     headers: getHeaders(undefined, userId),
-    body: JSON.stringify({ body, is_private })
+    body: JSON.stringify({ body, is_private, work_time })
   });
   if (!res.ok) {
     const err = await res.json();

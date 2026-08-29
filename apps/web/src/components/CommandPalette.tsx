@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, Layers, Inbox, Activity, Plus, GitPullRequest, ArrowRight, UserCheck } from 'lucide-react';
 import { Bug } from '@triarc/shared-types';
 import { useAuth } from '../context/AuthContext.tsx';
+import { useFocusTrap } from '../hooks/useFocusTrap.ts';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -26,6 +27,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const { users, switchUserById } = useAuth();
+  const trapRef = useFocusTrap<HTMLDivElement>({
+    isOpen,
+    onClose,
+    initialFocusRef: inputRef
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -48,23 +54,26 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   // User switch actions
   const userActions = users.map((u) => ({
     id: `user_${u.id}`,
-    label: `Switch user to ${u.name} (${u.role})`,
+    label: `Switch User Persona: ${u.name} (@${u.username} - ${u.role})`,
     icon: UserCheck,
-    action: () => { switchUserById(u.id); onClose(); }
+    action: () => {
+      switchUserById(u.id);
+      onClose();
+    }
   }));
 
-  // Filtered bugs
-  const filteredBugs = bugs
-    .filter((b) =>
+  const allActions = [...staticActions, ...userActions];
+
+  const filteredActions = allActions.filter((a) =>
+    a.label.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const filteredBugs = bugs.filter(
+    (b) =>
       b.title.toLowerCase().includes(query.toLowerCase()) ||
       b.id.toString().includes(query) ||
       b.component_id.toLowerCase().includes(query.toLowerCase())
-    )
-    .slice(0, 8);
-
-  const filteredActions = [...staticActions, ...userActions].filter((a) =>
-    a.label.toLowerCase().includes(query.toLowerCase())
-  ).slice(0, 4);
+  ).slice(0, 8);
 
   const allItems = [
     ...filteredActions.map((a) => ({ type: 'action', data: a })),
@@ -97,6 +106,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
       <div
+        ref={trapRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Command Palette"
         className="w-full max-w-2xl bg-surface-100 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden animate-slide-up"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
@@ -121,7 +134,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
 
         {/* Results List */}
-        <div className="max-h-96 overflow-y-auto p-2 space-y-1">
+        <div className="max-h-96 overflow-y-auto p-2 space-y-1" role="listbox">
           {filteredActions.length > 0 && (
             <div className="px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">
               Actions & Navigation
@@ -131,10 +144,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             const Icon = item.icon;
             const isSelected = selectedIndex === idx;
             return (
-              <div
+              <button
+                type="button"
+                role="option"
+                aria-selected={isSelected}
                 key={item.id}
                 onClick={item.action}
-                className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs cursor-pointer transition-all ${
+                className={`w-full text-left flex items-center justify-between px-3 py-2 rounded-xl text-xs cursor-pointer transition-all ${
                   isSelected ? 'bg-primary-600/20 text-white border border-primary-500/30' : 'text-slate-300 hover:bg-surface-200'
                 }`}
               >
@@ -143,7 +159,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   <span className="font-medium">{item.label}</span>
                 </div>
                 <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
-              </div>
+              </button>
             );
           })}
 
@@ -156,13 +172,16 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             const itemIdx = filteredActions.length + bIdx;
             const isSelected = selectedIndex === itemIdx;
             return (
-              <div
+              <button
+                type="button"
+                role="option"
+                aria-selected={isSelected}
                 key={bug.id}
                 onClick={() => {
                   onSelectBug(bug.id);
                   onClose();
                 }}
-                className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs cursor-pointer transition-all ${
+                className={`w-full text-left flex items-center justify-between px-3 py-2 rounded-xl text-xs cursor-pointer transition-all ${
                   isSelected ? 'bg-primary-600/20 text-white border border-primary-500/30' : 'text-slate-300 hover:bg-surface-200'
                 }`}
               >
@@ -178,7 +197,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     {bug.status}
                   </span>
                 </div>
-              </div>
+              </button>
             );
           })}
 

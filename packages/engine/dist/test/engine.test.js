@@ -1,9 +1,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultWorkflowConfig } from '../src/index.js';
-import { validateTransition, createTransitionActivity } from '../src/workflow.js';
+import { validateTransition, getAvailableTransitions, createTransitionActivity } from '../src/workflow.js';
 import { validateFlagCreation, validateFlagResolution } from '../src/flags.js';
-import { computeTimeInState, detectStalledState, computeSlaStatus, computeActivitySparkline } from '../src/metrics.js';
+import { computeTimeInState, detectStalledState, detectSleeperBranches, computeCumulativeFlow, computeSlaStatus, computeActivitySparkline } from '../src/metrics.js';
 import { parseSearchQuery } from '../src/query.js';
 import { validateRelationship } from '../src/relationships.js';
 describe('Workflow Engine (§8 Test Suite)', () => {
@@ -116,6 +116,16 @@ describe('Workflow Engine (§8 Test Suite)', () => {
         const adminResolveResult = validateFlagResolution(flag, reviewFlagType, 'user_admin', 'admin', '-');
         assert.equal(adminResolveResult.valid, true);
     });
+    it('8. getAvailableTransitions filters correctly by current status and user role', () => {
+        const devTransitionsFromInProgress = getAvailableTransitions(config, 'In Progress', 'developer');
+        const targetStates = devTransitionsFromInProgress.map((t) => t.to);
+        assert.ok(targetStates.includes('In Review'));
+        assert.ok(targetStates.includes('Resolved'));
+        const reporterTransitionsFromUnconfirmed = getAvailableTransitions(config, 'Unconfirmed', 'reporter');
+        assert.equal(reporterTransitionsFromUnconfirmed.length, 0, 'Reporter cannot triage unconfirmed bugs');
+        const triagerTransitionsFromUnconfirmed = getAvailableTransitions(config, 'Unconfirmed', 'triager');
+        assert.ok(triagerTransitionsFromUnconfirmed.some((t) => t.to === 'Confirmed'));
+    });
 });
 describe('Engine Flow Metrics & Stalled Detection', () => {
     it('Computes time in state correctly', () => {
@@ -183,14 +193,64 @@ describe('Engine Flow Metrics & Stalled Detection', () => {
         assert.equal(stalled.stalledStage, 'In Review');
         assert.match(stalled.stalledReason || '', /waiting on review \(flag review\? → @Alex River\)/);
     });
+    it('Detects sleeper branches when git branch is quiet for > 3 days while In Progress', () => {
+        const bug = {
+            id: 250,
+            title: 'Refactor background queue',
+            description: 'Async task runner',
+            status: 'In Progress',
+            severity: 'normal',
+            priority: 'normal',
+            component_id: 'core',
+            reporter_id: 'user1',
+            created_at: '2026-08-01T00:00:00Z',
+            updated_at: '2026-08-05T00:00:00Z'
+        };
+        const gitLinks = [
+            {
+                id: 1,
+                bug_id: 250,
+                kind: 'BRANCH',
+                ref: 'feat/async-queue',
+                url: 'https://github.com/org/repo/tree/feat/async-queue',
+                state: 'active',
+                updated_at: '2026-08-02T00:00:00Z' // 4 days ago
+            }
+        ];
+        const now = new Date('2026-08-06T12:00:00Z');
+        const sleeper = detectSleeperBranches(bug, gitLinks, now);
+        assert.equal(sleeper.hasSleeper, true);
+        assert.equal(sleeper.branchRef, 'feat/async-queue');
+    });
+    it('Computes cumulative flow (CFD) point intervals accurately', () => {
+        const bugs = [
+            { id: 1, title: 'Bug 1', description: '', status: 'Resolved', severity: 'normal', priority: 'normal', component_id: 'core', reporter_id: 'u1', created_at: '2026-08-01T00:00:00Z', updated_at: '2026-08-05T00:00:00Z' },
+            { id: 2, title: 'Bug 2', description: '', status: 'In Progress', severity: 'normal', priority: 'normal', component_id: 'core', reporter_id: 'u1', created_at: '2026-08-03T00:00:00Z', updated_at: '2026-08-05T00:00:00Z' }
+        ];
+        const activities = [
+            { id: 1, bug_id: 1, actor_id: 'u1', field: 'status', old_value: null, new_value: 'Unconfirmed', automated: false, created_at: '2026-08-01T00:00:00Z' },
+            { id: 2, bug_id: 1, actor_id: 'u1', field: 'status', old_value: 'Unconfirmed', new_value: 'Resolved', automated: false, created_at: '2026-08-04T00:00:00Z' },
+            { id: 3, bug_id: 2, actor_id: 'u1', field: 'status', old_value: null, new_value: 'In Progress', automated: false, created_at: '2026-08-03T00:00:00Z' }
+        ];
+        const start = new Date('2026-08-01T00:00:00Z');
+        const end = new Date('2026-08-05T00:00:00Z');
+        const cfd = computeCumulativeFlow(bugs, activities, ['Unconfirmed', 'In Progress', 'Resolved'], start, end, 5);
+        assert.equal(cfd.length, 6);
+        const lastPoint = cfd[cfd.length - 1];
+        assert.equal(lastPoint.counts['Resolved'], 1);
+        assert.equal(lastPoint.counts['In Progress'], 1);
+    });
 });
 describe('Engine Search Query Parser', () => {
     it('Parses complex search query string into structured filter', () => {
-        const query = 'status:open priority:high assignee:alex changedto:Resolved memory leak';
+        const query = 'status:open priority:high assignee:alex milestone:v2.1 keyword:crash is:watched changedto:Resolved memory leak';
         const parsed = parseSearchQuery(query);
         assert.deepEqual(parsed.statuses, ['Unconfirmed', 'Confirmed', 'In Progress', 'In Review']);
         assert.deepEqual(parsed.priorities, ['high']);
         assert.deepEqual(parsed.assignees, ['alex']);
+        assert.deepEqual(parsed.milestones, ['v2.1']);
+        assert.deepEqual(parsed.keywords, ['crash']);
+        assert.equal(parsed.isWatched, true);
         assert.equal(parsed.changedTo, 'Resolved');
         assert.deepEqual(parsed.text, ['memory', 'leak']);
     });

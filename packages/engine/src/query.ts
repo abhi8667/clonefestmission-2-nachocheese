@@ -5,6 +5,11 @@ export interface QueryFilter {
   components?: string[];
   assignees?: string[];
   reporters?: string[];
+  keywords?: string[];
+  milestones?: string[];
+  versions?: string[];
+  watchers?: string[];
+  isWatched?: boolean;
   changedTo?: string;
   changedBy?: string;
   changedAfter?: string;
@@ -34,11 +39,22 @@ export function parseSearchQuery(queryStr: string): QueryFilter {
     if (key && value) {
       switch (key) {
         case 'status':
+          if (value.toLowerCase() === 'open') {
+            filter.statuses = ['Unconfirmed', 'Confirmed', 'In Progress', 'In Review'];
+          } else if (value.toLowerCase() === 'closed') {
+            filter.statuses = ['Resolved', 'Verified', 'Closed', 'Duplicate', 'WontFix'];
+          } else {
+            filter.statuses = filter.statuses || [];
+            filter.statuses.push(value);
+          }
+          break;
         case 'is':
           if (value.toLowerCase() === 'open') {
             filter.statuses = ['Unconfirmed', 'Confirmed', 'In Progress', 'In Review'];
           } else if (value.toLowerCase() === 'closed') {
             filter.statuses = ['Resolved', 'Verified', 'Closed', 'Duplicate', 'WontFix'];
+          } else if (value.toLowerCase() === 'watched') {
+            filter.isWatched = true;
           } else {
             filter.statuses = filter.statuses || [];
             filter.statuses.push(value);
@@ -63,6 +79,26 @@ export function parseSearchQuery(queryStr: string): QueryFilter {
         case 'reporter':
           filter.reporters = filter.reporters || [];
           filter.reporters.push(value);
+          break;
+        case 'keyword':
+        case 'label':
+        case 'tag':
+          filter.keywords = filter.keywords || [];
+          filter.keywords.push(value.toLowerCase());
+          break;
+        case 'milestone':
+        case 'target':
+          filter.milestones = filter.milestones || [];
+          filter.milestones.push(value);
+          break;
+        case 'version':
+          filter.versions = filter.versions || [];
+          filter.versions.push(value);
+          break;
+        case 'watcher':
+        case 'cc':
+          filter.watchers = filter.watchers || [];
+          filter.watchers.push(value);
           break;
         case 'changedto':
           filter.changedTo = value;

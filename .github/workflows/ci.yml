@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Typecheck across all 4 workspaces
+        run: npm run typecheck
+
+      - name: Run Pure Engine Unit Tests (§8 Test Suite)
+        run: npm run test:engine
+
+      - name: Run API Integration, Performance & Security Tests
+        run: npm run test -w apps/api
+
+      - name: Build all packages
+        run: npm run build

@@ -7,11 +7,15 @@ import {
   ArrowRight,
   Shield,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  Tag,
+  Clock,
+  Milestone as MilestoneIcon
 } from 'lucide-react';
-import { createBug, checkDuplicates } from '../../services/api.ts';
+import { createBug, checkDuplicates, fetchMilestones, fetchVersions, fetchKeywords } from '../../services/api.ts';
 import { useAuth } from '../../context/AuthContext.tsx';
 import { DuplicateMatch, BugSeverity, BugPriority } from '@triarc/shared-types';
+import { useFocusTrap } from '../../hooks/useFocusTrap.ts';
 
 interface NewBugModalProps {
   isOpen: boolean;
@@ -27,18 +31,38 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
   onSelectBug
 }) => {
   const { currentUser, users } = useAuth();
+  const trapRef = useFocusTrap<HTMLDivElement>({
+    isOpen,
+    onClose
+  });
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [componentId, setComponentId] = useState('core');
   const [severity, setSeverity] = useState<BugSeverity>('normal');
   const [priority, setPriority] = useState<BugPriority>('normal');
   const [assigneeId, setAssigneeId] = useState('');
+  const [targetMilestone, setTargetMilestone] = useState('');
+  const [version, setVersion] = useState('');
+  const [estimatedTime, setEstimatedTime] = useState('');
+  const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
   const [isConfidential, setIsConfidential] = useState(false);
+
+  const [milestones, setMilestones] = useState<any[]>([]);
+  const [versions, setVersions] = useState<any[]>([]);
+  const [keywords, setKeywords] = useState<any[]>([]);
 
   const [duplicates, setDuplicates] = useState<DuplicateMatch[]>([]);
   const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchMilestones().then((r) => setMilestones(r.milestones || [])).catch(() => {});
+      fetchVersions().then((r) => setVersions(r.versions || [])).catch(() => {});
+      fetchKeywords().then((r) => setKeywords(r.keywords || [])).catch(() => {});
+    }
+  }, [isOpen]);
 
   // Debounced Duplicate Radar (300ms)
   useEffect(() => {
@@ -66,10 +90,18 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
 
   if (!isOpen) return null;
 
+  const toggleKeyword = (kwId: string) => {
+    if (selectedKeywords.includes(kwId)) {
+      setSelectedKeywords(selectedKeywords.filter((k) => k !== kwId));
+    } else {
+      setSelectedKeywords([...selectedKeywords, kwId]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !description.trim()) {
-      setErrorMsg('Title and description are required');
+      setErrorMsg('Please provide a title and description');
       return;
     }
 
@@ -85,7 +117,11 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
           severity,
           priority,
           assignee_id: assigneeId || null,
-          security_group_id: isConfidential ? 'grp_sec' : null
+          security_group_id: isConfidential ? 'grp_sec' : null,
+          target_milestone: targetMilestone || null,
+          version: version || null,
+          estimated_time: estimatedTime ? parseFloat(estimatedTime) : 0,
+          keyword_ids: selectedKeywords
         },
         currentUser?.id
       );
@@ -102,6 +138,10 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto animate-fade-in" onClick={onClose}>
       <div
+        ref={trapRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-bug-modal-title"
         className="w-full max-w-3xl bg-surface-50 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden my-6 animate-slide-up flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
@@ -112,13 +152,14 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
               <Plus className="w-4 h-4 stroke-[3]" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">File a New Bug Report</h2>
+              <h2 id="new-bug-modal-title" className="text-base font-bold text-white">File a New Bug Report</h2>
               <p className="text-[11px] text-slate-400">Creates a structured, auditable report with Live Duplicate Radar</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             className="p-1.5 rounded-lg text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 transition-all"
           >
             <X className="w-5 h-5" />
@@ -136,10 +177,11 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
 
           {/* Title */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label htmlFor="new-bug-title" className="block text-xs font-semibold text-slate-300 mb-1">
               Summary / Title <span className="text-rose-400">*</span>
             </label>
             <input
+              id="new-bug-title"
               type="text"
               required
               placeholder="e.g. Crash on save when offline (NPE in SyncEngine)"
@@ -151,7 +193,12 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
 
           {/* Headline #3: Live Duplicate Radar Card */}
           {(duplicates.length > 0 || isCheckingDuplicates) && (
-            <div className="p-4 rounded-xl bg-surface-100/90 border border-amber-500/30 shadow-lg space-y-2.5 animate-slide-up">
+            <div
+              role="region"
+              aria-live="polite"
+              aria-label="Duplicate radar suggestions"
+              className="p-4 rounded-xl bg-surface-100/90 border border-amber-500/30 shadow-lg space-y-2.5 animate-slide-up"
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Radar className={`w-4 h-4 text-amber-400 ${isCheckingDuplicates ? 'animate-spin' : 'animate-pulse'}`} />
@@ -282,8 +329,83 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
             </div>
           </div>
 
+          {/* Capability Grid: Milestone, Version, Estimate (§3) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 rounded-xl bg-surface-100/60 border border-slate-800/80">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-400 mb-1 flex items-center gap-1">
+                <MilestoneIcon className="w-3 h-3 text-primary-400" /> Target Milestone:
+              </label>
+              <select
+                value={targetMilestone}
+                onChange={(e) => setTargetMilestone(e.target.value)}
+                className="w-full bg-surface-100 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-primary-500"
+              >
+                <option value="">None (Backlog)</option>
+                {milestones.map((m) => (
+                  <option key={m.id} value={m.name}>{m.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-400 mb-1">Found in Version:</label>
+              <select
+                value={version}
+                onChange={(e) => setVersion(e.target.value)}
+                className="w-full bg-surface-100 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-primary-500"
+              >
+                <option value="">None / Unspecified</option>
+                {versions.map((v) => (
+                  <option key={v.id} value={v.name}>{v.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-400 mb-1 flex items-center gap-1">
+                <Clock className="w-3 h-3 text-amber-400" /> Estimated Time (hrs):
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.5"
+                placeholder="e.g. 4.0"
+                value={estimatedTime}
+                onChange={(e) => setEstimatedTime(e.target.value)}
+                className="w-full bg-surface-100 border border-slate-700 rounded-lg p-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-primary-500"
+              >
+              </input>
+            </div>
+          </div>
+
+          {/* Keywords / Labels selection */}
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-400 mb-1.5 flex items-center gap-1">
+              <Tag className="w-3 h-3 text-cyan-400" /> Keywords & Labels:
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {keywords.map((kw) => {
+                const isSelected = selectedKeywords.includes(kw.id);
+                return (
+                  <button
+                    key={kw.id}
+                    type="button"
+                    onClick={() => toggleKeyword(kw.id)}
+                    className={`px-2 py-1 rounded-lg text-xs font-mono border transition-all ${
+                      isSelected
+                        ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-semibold'
+                        : 'bg-surface-100 text-slate-400 border-slate-700/60 hover:text-slate-200'
+                    }`}
+                  >
+                    #{kw.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Security Group Toggle */}
-          <div className="pt-2">
+          <div className="pt-1">
             <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer p-2.5 rounded-lg bg-surface-100 border border-slate-800 hover:border-slate-700 transition-all">
               <input
                 type="checkbox"

@@ -12,6 +12,48 @@ export interface Group {
     name: string;
     description?: string;
 }
+export interface Keyword {
+    id: string;
+    name: string;
+    description?: string;
+}
+export interface Milestone {
+    id: string;
+    product_id: string;
+    name: string;
+    due_date?: string;
+    open_bugs_count?: number;
+    closed_bugs_count?: number;
+}
+export interface Version {
+    id: string;
+    product_id: string;
+    name: string;
+}
+export interface Watcher {
+    bug_id: number;
+    user_id: string;
+    created_at: string;
+    user?: User;
+}
+export interface SavedSearch {
+    id: string;
+    user_id: string;
+    name: string;
+    query: string;
+    created_at: string;
+}
+export type NotificationType = 'status_change' | 'flag_assigned' | 'flag_resolved' | 'comment_added' | 'watcher_activity';
+export interface Notification {
+    id: number;
+    user_id: string;
+    bug_id: number;
+    type: NotificationType | string;
+    message: string;
+    read: boolean | number;
+    created_at: string;
+    bug_title?: string;
+}
 export type BugStatus = 'Unconfirmed' | 'Confirmed' | 'In Progress' | 'In Review' | 'Resolved' | 'Verified' | 'Closed' | 'Duplicate' | 'WontFix';
 export type BugSeverity = 'blocker' | 'critical' | 'major' | 'normal' | 'minor' | 'trivial' | 'enhancement';
 export type BugPriority = 'highest' | 'high' | 'normal' | 'low' | 'lowest';
@@ -32,6 +74,10 @@ export interface Bug {
     duplicate_of?: number | null;
     security_group_id?: string | null;
     time_in_state_json?: string | null;
+    version?: string | null;
+    target_milestone?: string | null;
+    estimated_time?: number | null;
+    remaining_time?: number | null;
     created_at: string;
     updated_at: string;
     flags?: Flag[];
@@ -40,6 +86,9 @@ export interface Bug {
     comments_count?: number;
     activity_sparkline?: number[];
     sla_status?: SlaStatus;
+    keywords?: Keyword[];
+    watchers?: User[];
+    is_watched?: boolean;
 }
 export interface Activity {
     id: number;
@@ -95,6 +144,7 @@ export interface Comment {
     author_id: string;
     author?: User;
     body: string;
+    work_time?: number | null;
     is_private: boolean | number;
     created_at: string;
 }
@@ -211,7 +261,7 @@ export interface PresenceEvent {
         last_seen: string;
     }[];
 }
-export type SSEEventType = 'bug:updated' | 'bug:created' | 'activity:created' | 'flag:created' | 'flag:resolved' | 'presence:changed';
+export type SSEEventType = 'bug:updated' | 'bug:created' | 'activity:created' | 'flag:created' | 'flag:resolved' | 'presence:changed' | 'notification:created';
 export interface SSEMessage {
     type: SSEEventType;
     data: any;
@@ -277,6 +327,10 @@ export interface CreateBugInput {
     component_id: string;
     assignee_id?: string | null;
     security_group_id?: string | null;
+    version?: string | null;
+    target_milestone?: string | null;
+    estimated_time?: number | null;
+    keyword_ids?: string[];
 }
 export interface TransitionBugInput {
     toState: string;
@@ -300,5 +354,9 @@ export interface UpdateBugInput {
     priority?: BugPriority;
     component_id?: string;
     assignee_id?: string | null;
+    version?: string | null;
+    target_milestone?: string | null;
+    estimated_time?: number | null;
+    remaining_time?: number | null;
 }
 //# sourceMappingURL=index.d.ts.map

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Layers,
   Inbox,
@@ -12,10 +12,13 @@ import {
   ChevronDown,
   CheckCircle2,
   Radio,
-  Keyboard
+  Keyboard,
+  Bell,
+  Check
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useSSE } from '../context/SSEContext.tsx';
+import { fetchNotifications, markNotificationRead, markAllNotificationsRead } from '../services/api.ts';
 
 interface NavbarProps {
   activeTab: 'bugs' | 'inbox' | 'analytics';
@@ -24,6 +27,7 @@ interface NavbarProps {
   openWebhookSimulator: () => void;
   openCommandPalette: () => void;
   openKeyboardShortcuts?: () => void;
+  onSelectBug?: (bugId: number) => void;
   inboxCount?: number;
 }
 
@@ -34,11 +38,55 @@ export const Navbar: React.FC<NavbarProps> = ({
   openWebhookSimulator,
   openCommandPalette,
   openKeyboardShortcuts,
+  onSelectBug,
   inboxCount = 0
 }) => {
   const { currentUser, users, switchUserById } = useAuth();
-  const { isConnected } = useSSE();
+  const { isConnected, lastEvent } = useSSE();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+
+  const loadNotifications = async () => {
+    try {
+      const data = await fetchNotifications(false, currentUser?.id);
+      setNotifications(data.notifications || []);
+      setUnreadNotifCount(data.unread_count || 0);
+    } catch (err) {
+      // Ignore
+    }
+  };
+
+  useEffect(() => {
+    loadNotifications();
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (lastEvent?.type === 'notification:created' || lastEvent?.type === 'bug:updated') {
+      loadNotifications();
+    }
+  }, [lastEvent]);
+
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllNotificationsRead(currentUser?.id);
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: 1 })));
+      setUnreadNotifCount(0);
+    } catch (err) {}
+  };
+
+  const handleSelectNotification = async (notif: any) => {
+    try {
+      await markNotificationRead(notif.id, currentUser?.id);
+      setNotifications((prev) => prev.map((n) => n.id === notif.id ? { ...n, read: 1 } : n));
+      setUnreadNotifCount((prev) => Math.max(0, prev - 1));
+      if (notif.bug_id && onSelectBug) {
+        onSelectBug(notif.bug_id);
+      }
+      setIsNotifOpen(false);
+    } catch (err) {}
+  };
 
   const getRoleBadge = (role: string) => {
     switch (role) {
@@ -60,7 +108,12 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Left: Brand + Navigation Tabs */}
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab('bugs')}>
+          <button
+            type="button"
+            aria-label="Triarc Home - Go to Bug List"
+            className="flex items-center gap-2.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-lg p-1 transition-all"
+            onClick={() => setActiveTab('bugs')}
+          >
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-accent-cyan flex items-center justify-center shadow-glow-primary">
               <span className="font-extrabold font-mono text-white text-base tracking-tighter">▲</span>
             </div>
@@ -72,9 +125,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </span>
               </span>
             </div>
-          </div>
+          </button>
 
-          <nav className="flex items-center gap-1.5 ml-4">
+          <nav aria-label="Main Navigation" className="flex items-center gap-1.5 ml-4">
             <button
               onClick={() => setActiveTab('bugs')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all ${
@@ -162,6 +215,77 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Keyboard className="w-4 h-4" />
             </button>
           )}
+
+          {/* Notifications Bell */}
+          <div className="relative">
+            <button
+              onClick={() => setIsNotifOpen(!isNotifOpen)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white bg-slate-800/70 hover:bg-slate-700/80 border border-slate-700/60 transition-all relative"
+              title="Notifications & Watcher Alerts"
+              aria-label={`Notifications ${unreadNotifCount > 0 ? `(${unreadNotifCount} unread)` : ''}`}
+            >
+              <Bell className="w-4 h-4" />
+              {unreadNotifCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center animate-pulse">
+                  {unreadNotifCount > 9 ? '9+' : unreadNotifCount}
+                </span>
+              )}
+            </button>
+
+            {isNotifOpen && (
+              <div className="absolute right-0 mt-2 w-80 rounded-xl bg-surface-100 border border-slate-700 shadow-2xl p-2 z-50 animate-slide-up">
+                <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-slate-800 mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <Bell className="w-3.5 h-3.5 text-primary-400" />
+                    <span className="text-xs font-bold text-white">Notifications</span>
+                    {unreadNotifCount > 0 && (
+                      <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-500/20 text-rose-300 font-mono">
+                        {unreadNotifCount} new
+                      </span>
+                    )}
+                  </div>
+                  {unreadNotifCount > 0 && (
+                    <button
+                      onClick={handleMarkAllRead}
+                      className="text-[10px] text-primary-400 hover:text-primary-300 flex items-center gap-1 transition-colors"
+                    >
+                      <Check className="w-3 h-3" /> Mark all read
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-80 overflow-y-auto space-y-1">
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-slate-500">
+                      No notifications yet
+                    </div>
+                  ) : (
+                    notifications.map((n) => (
+                      <button
+                        key={n.id}
+                        onClick={() => handleSelectNotification(n)}
+                        className={`w-full text-left p-2 rounded-lg text-xs transition-all flex flex-col gap-1 ${
+                          !n.read ? 'bg-primary-900/20 border border-primary-500/30' : 'hover:bg-slate-800/40 text-slate-400'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-mono text-slate-400 font-semibold">
+                            Bug #{n.bug_id}
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            {new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <p className={`text-xs ${!n.read ? 'text-slate-100 font-medium' : 'text-slate-300'}`}>
+                          {n.message}
+                        </p>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* New Bug button */}
           <button

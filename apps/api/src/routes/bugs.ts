@@ -2,12 +2,85 @@ import { Router, Response } from 'express';
 import { db } from '../db/database.js';
 import { AuthenticatedRequest } from '../middleware/auth.js';
 import { canUserViewBug, getSecurityFilterSQL } from '../middleware/security.js';
-import { defaultWorkflowConfig, validateTransition, getAvailableTransitions, deriveFlowMetrics, parseSearchQuery, validateRelationship, computeActivitySparkline, computeSlaStatus } from '@triarc/engine';
-import { Bug, Activity, Flag, Relationship, GitLink, Comment, TimelineItem, BulkTransitionResult } from '@triarc/shared-types';
+import {
+  defaultWorkflowConfig,
+  validateTransition,
+  getAvailableTransitions,
+  deriveFlowMetrics,
+  parseSearchQuery,
+  validateRelationship,
+  computeActivitySparkline,
+  computeSlaStatus
+} from '@triarc/engine';
+import {
+  Bug,
+  Activity,
+  Flag,
+  Relationship,
+  GitLink,
+  Comment,
+  TimelineItem,
+  BulkTransitionResult,
+  Keyword,
+  Milestone,
+  Version,
+  User
+} from '@triarc/shared-types';
 import { indexBugEmbedding, findDuplicates } from '../services/duplicate-radar.js';
 import { sseService } from '../services/sse.js';
 
 export const bugsRouter = Router();
+
+// Helper to notify watchers of a bug on events
+export function notifyWatchers(bugId: number, actorId: string | null, type: string, message: string) {
+  const watchers = db.prepare('SELECT user_id FROM watchers WHERE bug_id = ?').all(bugId) as { user_id: string }[];
+  const insertNotif = db.prepare(`
+    INSERT INTO notifications (user_id, bug_id, type, message, read, created_at)
+    VALUES (?, ?, ?, ?, 0, datetime('now'))
+  `);
+
+  for (const w of watchers) {
+    if (w.user_id !== actorId) {
+      try {
+        insertNotif.run(w.user_id, bugId, type, message);
+        sseService.broadcast('notification:created', {
+          user_id: w.user_id,
+          bug_id: bugId,
+          type,
+          message
+        });
+      } catch (err) {
+        // Continue if notification insert fails
+      }
+    }
+  }
+}
+
+// GET /api/keywords - List all keywords
+bugsRouter.get('/keywords', (req: AuthenticatedRequest, res: Response) => {
+  const keywords = db.prepare('SELECT * FROM keywords ORDER BY name ASC').all() as Keyword[];
+  res.json({ keywords });
+});
+
+// GET /api/milestones - List all milestones with open/closed stats
+bugsRouter.get('/milestones', (req: AuthenticatedRequest, res: Response) => {
+  const milestones = db.prepare(`
+    SELECT
+      m.*,
+      (SELECT COUNT(*) FROM bugs WHERE bugs.target_milestone = m.name AND bugs.status NOT IN ('Resolved', 'Verified', 'Closed', 'Duplicate', 'WontFix')) as open_bugs_count,
+      (SELECT COUNT(*) FROM bugs WHERE bugs.target_milestone = m.name AND bugs.status IN ('Resolved', 'Verified', 'Closed', 'Duplicate', 'WontFix')) as closed_bugs_count
+    FROM milestones m
+    ORDER BY m.name ASC
+  `).all() as Milestone[];
+
+  res.json({ milestones });
+});
+
+// GET /api/versions - List all versions
+bugsRouter.get('/versions', (req: AuthenticatedRequest, res: Response) => {
+  const versions = db.prepare('SELECT * FROM versions ORDER BY name DESC').all() as Version[];
+  res.json({ versions });
+});
 
 // GET /api/bugs - List and search bugs
 bugsRouter.get('/bugs', (req: AuthenticatedRequest, res: Response) => {
@@ -17,6 +90,8 @@ bugsRouter.get('/bugs', (req: AuthenticatedRequest, res: Response) => {
   const severityParam = req.query.severity as string | undefined;
   const componentParam = req.query.component as string | undefined;
   const assigneeParam = req.query.assignee as string | undefined;
+  const milestoneParam = req.query.milestone as string | undefined;
+  const keywordParam = req.query.keyword as string | undefined;
 
   const security = getSecurityFilterSQL(req.user);
   let whereClauses: string[] = [security.sql];
@@ -49,6 +124,50 @@ bugsRouter.get('/bugs', (req: AuthenticatedRequest, res: Response) => {
       params.push(...parsed.components);
     }
 
+    if (parsed.milestones && parsed.milestones.length > 0) {
+      const placeholders = parsed.milestones.map(() => '?').join(',');
+      whereClauses.push(`bugs.target_milestone IN (${placeholders})`);
+      params.push(...parsed.milestones);
+    }
+
+    if (parsed.versions && parsed.versions.length > 0) {
+      const placeholders = parsed.versions.map(() => '?').join(',');
+      whereClauses.push(`bugs.version IN (${placeholders})`);
+      params.push(...parsed.versions);
+    }
+
+    if (parsed.keywords && parsed.keywords.length > 0) {
+      for (const kw of parsed.keywords) {
+        whereClauses.push(`bugs.id IN (
+          SELECT bug_id FROM bug_keywords bk
+          JOIN keywords k ON bk.keyword_id = k.id
+          WHERE LOWER(k.name) = ? OR LOWER(k.id) = ?
+        )`);
+        params.push(kw.toLowerCase(), kw.toLowerCase());
+      }
+    }
+
+    if (parsed.isWatched && req.user) {
+      whereClauses.push(`bugs.id IN (SELECT bug_id FROM watchers WHERE user_id = ?)`);
+      params.push(req.user.id);
+    }
+
+    if (parsed.watchers && parsed.watchers.length > 0) {
+      for (const w of parsed.watchers) {
+        if (w === 'me' && req.user) {
+          whereClauses.push(`bugs.id IN (SELECT bug_id FROM watchers WHERE user_id = ?)`);
+          params.push(req.user.id);
+        } else {
+          whereClauses.push(`bugs.id IN (
+            SELECT w.bug_id FROM watchers w
+            JOIN users u ON w.user_id = u.id
+            WHERE u.username = ? OR u.name LIKE ?
+          )`);
+          params.push(w, `%${w}%`);
+        }
+      }
+    }
+
     if (parsed.assignees && parsed.assignees.length > 0) {
       for (const a of parsed.assignees) {
         if (a === 'me' && req.user) {
@@ -57,7 +176,9 @@ bugsRouter.get('/bugs', (req: AuthenticatedRequest, res: Response) => {
         } else if (a === 'unassigned') {
           whereClauses.push(`bugs.assignee_id IS NULL`);
         } else {
-          whereClauses.push(`(u_assignee.username LIKE ? OR u_assignee.name LIKE ?)`);
+          whereClauses.push(`bugs.assignee_id IN (
+            SELECT id FROM users WHERE username LIKE ? OR name LIKE ?
+          )`);
           params.push(`%${a}%`, `%${a}%`);
         }
       }
@@ -100,6 +221,20 @@ bugsRouter.get('/bugs', (req: AuthenticatedRequest, res: Response) => {
     params.push(componentParam);
   }
 
+  if (milestoneParam) {
+    whereClauses.push(`bugs.target_milestone = ?`);
+    params.push(milestoneParam);
+  }
+
+  if (keywordParam) {
+    whereClauses.push(`bugs.id IN (
+      SELECT bug_id FROM bug_keywords bk
+      JOIN keywords k ON bk.keyword_id = k.id
+      WHERE LOWER(k.name) = ? OR LOWER(k.id) = ?
+    )`);
+    params.push(keywordParam.toLowerCase(), keywordParam.toLowerCase());
+  }
+
   if (assigneeParam) {
     if (assigneeParam === 'me' && req.user) {
       whereClauses.push(`bugs.assignee_id = ?`);
@@ -132,6 +267,8 @@ bugsRouter.get('/bugs', (req: AuthenticatedRequest, res: Response) => {
 
   // Fetch activities for sparklines and SLA computation in batch
   const activitiesByBug: Record<number, Activity[]> = {};
+  const keywordsByBug: Record<number, Keyword[]> = {};
+
   if (bugIds.length > 0) {
     const placeholders = bugIds.map(() => '?').join(',');
     const actRows = db.prepare(`
@@ -143,6 +280,18 @@ bugsRouter.get('/bugs', (req: AuthenticatedRequest, res: Response) => {
     for (const act of actRows) {
       if (!activitiesByBug[act.bug_id]) activitiesByBug[act.bug_id] = [];
       activitiesByBug[act.bug_id].push(act);
+    }
+
+    const kwRows = db.prepare(`
+      SELECT bk.bug_id, k.*
+      FROM bug_keywords bk
+      JOIN keywords k ON bk.keyword_id = k.id
+      WHERE bk.bug_id IN (${placeholders})
+    `).all(...bugIds) as (Keyword & { bug_id: number })[];
+
+    for (const kw of kwRows) {
+      if (!keywordsByBug[kw.bug_id]) keywordsByBug[kw.bug_id] = [];
+      keywordsByBug[kw.bug_id].push({ id: kw.id, name: kw.name, description: kw.description });
     }
   }
 
@@ -158,16 +307,21 @@ bugsRouter.get('/bugs', (req: AuthenticatedRequest, res: Response) => {
       severity: r.severity,
       priority: r.priority,
       component_id: r.component_id,
-      component_name: r.component_name,
+      component_name: r.component_name || r.component_id,
       reporter_id: r.reporter_id,
       assignee_id: r.assignee_id,
       resolution: r.resolution,
       duplicate_of: r.duplicate_of,
       security_group_id: r.security_group_id,
+      version: r.version,
+      target_milestone: r.target_milestone,
+      estimated_time: r.estimated_time || 0,
+      remaining_time: r.remaining_time || 0,
       created_at: r.created_at,
       updated_at: r.updated_at,
-      comments_count: r.comments_count,
+      comments_count: r.comments_count || 0,
       activity_sparkline: sparkline,
+      keywords: keywordsByBug[r.id] || [],
       reporter: r.rep_id ? {
         id: r.rep_id,
         username: r.rep_username,
@@ -186,58 +340,51 @@ bugsRouter.get('/bugs', (req: AuthenticatedRequest, res: Response) => {
       } : null
     };
 
-    const flowMetrics = deriveFlowMetrics(bugObj, bugActs, [], []);
+    const flowMetrics = deriveFlowMetrics(bugObj, bugActs);
     bugObj.sla_status = computeSlaStatus(bugObj, flowMetrics);
 
     return bugObj;
   });
 
-  res.json({ bugs, count: bugs.length });
+  res.json({
+    bugs,
+    count: bugs.length
+  });
 });
 
-
-// POST /api/duplicates/check - Live debounced duplicate radar check before submit
-bugsRouter.post('/duplicates/check', (req: AuthenticatedRequest, res: Response) => {
-  const { title, description, excludeBugId } = req.body;
-  if (!title) {
-    return res.json({ duplicates: [] });
-  }
-
-  const duplicates = findDuplicates(title, description || '', excludeBugId, req.user);
-  res.json({ duplicates });
-});
-
-// POST /api/bugs - Create new bug
+// POST /api/bugs - Create a new bug
 bugsRouter.post('/bugs', (req: AuthenticatedRequest, res: Response) => {
   const {
     title,
     description,
     severity = 'normal',
     priority = 'normal',
-    component_id = 'core',
+    component_id,
     assignee_id = null,
-    security_group_id = null
+    security_group_id = null,
+    version = null,
+    target_milestone = null,
+    estimated_time = 0,
+    keyword_ids = []
   } = req.body;
 
-  if (!title || !description) {
-    return res.status(400).json({ error: 'Title and description are required' });
+  if (!title || !description || !component_id) {
+    return res.status(400).json({ error: 'Title, description, and component_id are required' });
   }
 
-  const reporterId = req.user ? req.user.id : 'user_dev1';
+  const reporterId = req.user ? req.user.id : 'u_alex';
+  const initialStatus = 'Unconfirmed';
   const nowIso = new Date().toISOString();
-  const initialStatus = defaultWorkflowConfig.initial || 'Unconfirmed';
 
   const insertStmt = db.prepare(`
     INSERT INTO bugs (
-      title, description, status, severity, priority,
-      component_id, reporter_id, assignee_id, security_group_id,
-      created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      title, description, status, severity, priority, component_id, reporter_id, assignee_id, security_group_id, version, target_milestone, estimated_time, remaining_time, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = insertStmt.run(
-    title,
-    description,
+    title.trim(),
+    description.trim(),
     initialStatus,
     severity,
     priority,
@@ -245,11 +392,30 @@ bugsRouter.post('/bugs', (req: AuthenticatedRequest, res: Response) => {
     reporterId,
     assignee_id,
     security_group_id,
+    version,
+    target_milestone,
+    Number(estimated_time) || 0,
+    Number(estimated_time) || 0,
     nowIso,
     nowIso
   );
 
   const bugId = Number(result.lastInsertRowid);
+
+  // Auto-add reporter as watcher
+  try {
+    db.prepare('INSERT INTO watchers (bug_id, user_id, created_at) VALUES (?, ?, ?)').run(bugId, reporterId, nowIso);
+  } catch (err) {}
+
+  // Link keywords
+  if (Array.isArray(keyword_ids)) {
+    const insertBk = db.prepare('INSERT INTO bug_keywords (bug_id, keyword_id) VALUES (?, ?)');
+    for (const kwId of keyword_ids) {
+      try {
+        insertBk.run(bugId, kwId);
+      } catch (err) {}
+    }
+  }
 
   // Write initial activity row
   db.prepare(`
@@ -275,7 +441,7 @@ bugsRouter.post('/bugs', (req: AuthenticatedRequest, res: Response) => {
   });
 });
 
-// GET /api/bugs/:id - Full details + relationships + flags + flow metrics + valid next transitions
+// GET /api/bugs/:id - Full details + relationships + flags + flow metrics + keywords + watchers
 bugsRouter.get('/bugs/:id', (req: AuthenticatedRequest, res: Response) => {
   const bugId = parseInt(String(req.params.id), 10);
   if (isNaN(bugId)) return res.status(400).json({ error: 'Invalid bug ID' });
@@ -299,6 +465,24 @@ bugsRouter.get('/bugs/:id', (req: AuthenticatedRequest, res: Response) => {
 
   if (!bugRow) return res.status(404).json({ error: 'Bug not found' });
 
+  // Fetch keywords
+  const keywords = db.prepare(`
+    SELECT k.* FROM bug_keywords bk
+    JOIN keywords k ON bk.keyword_id = k.id
+    WHERE bk.bug_id = ?
+  `).all(bugId) as Keyword[];
+
+  // Fetch watchers
+  const watchers = db.prepare(`
+    SELECT u.id, u.username, u.name, u.email, u.role, u.avatar_url
+    FROM watchers w
+    JOIN users u ON w.user_id = u.id
+    WHERE w.bug_id = ?
+  `).all(bugId) as User[];
+
+  const currentUserId = req.user?.id;
+  const is_watched = currentUserId ? watchers.some((w) => w.id === currentUserId) : false;
+
   const bug: Bug = {
     id: bugRow.id,
     title: bugRow.title,
@@ -307,14 +491,21 @@ bugsRouter.get('/bugs/:id', (req: AuthenticatedRequest, res: Response) => {
     severity: bugRow.severity,
     priority: bugRow.priority,
     component_id: bugRow.component_id,
-    component_name: bugRow.component_name,
+    component_name: bugRow.component_name || bugRow.component_id,
     reporter_id: bugRow.reporter_id,
     assignee_id: bugRow.assignee_id,
     resolution: bugRow.resolution,
     duplicate_of: bugRow.duplicate_of,
     security_group_id: bugRow.security_group_id,
+    version: bugRow.version,
+    target_milestone: bugRow.target_milestone,
+    estimated_time: bugRow.estimated_time || 0,
+    remaining_time: bugRow.remaining_time || 0,
     created_at: bugRow.created_at,
     updated_at: bugRow.updated_at,
+    keywords,
+    watchers,
+    is_watched,
     reporter: bugRow.rep_id ? {
       id: bugRow.rep_id,
       username: bugRow.rep_username,
@@ -385,11 +576,11 @@ bugsRouter.get('/bugs/:id', (req: AuthenticatedRequest, res: Response) => {
     SELECT * FROM git_links WHERE bug_id = ? ORDER BY id DESC
   `).all(bugId) as GitLink[];
 
-  // Fetch comments
+  // Fetch comments (with work_time)
   const comments = db.prepare(`
     SELECT
       c.*,
-      u.name as author_name, u.username as author_username, u.role as author_role, u.avatar_url as author_avatar
+      u.name as author_name, u.username as author_username, u.email as author_email, u.role as author_role, u.avatar_url as author_avatar
     FROM comments c
     JOIN users u ON c.author_id = u.id
     WHERE c.bug_id = ?
@@ -399,9 +590,10 @@ bugsRouter.get('/bugs/:id', (req: AuthenticatedRequest, res: Response) => {
     bug_id: c.bug_id,
     author_id: c.author_id,
     body: c.body,
+    work_time: c.work_time || 0,
     is_private: !!c.is_private,
     created_at: c.created_at,
-    author: { id: c.author_id, name: c.author_name, username: c.author_username, role: c.author_role, avatar_url: c.author_avatar }
+    author: { id: c.author_id, name: c.author_name, username: c.author_username, email: c.author_email || `${c.author_username}@triarc.dev`, role: c.author_role, avatar_url: c.author_avatar }
   })) as Comment[];
 
   // Fetch activity log
@@ -440,7 +632,60 @@ bugsRouter.get('/bugs/:id', (req: AuthenticatedRequest, res: Response) => {
   });
 });
 
-// PATCH /api/bugs/:id - Inline field update (Assignee, Priority, Severity, Component, Title, Description)
+// POST /api/bugs/:id/watch - Toggle/Add watcher
+bugsRouter.post('/bugs/:id/watch', (req: AuthenticatedRequest, res: Response) => {
+  const bugId = parseInt(String(req.params.id), 10);
+  if (isNaN(bugId)) return res.status(400).json({ error: 'Invalid bug ID' });
+
+  const userId = req.user?.id || 'u_alex';
+  const nowIso = new Date().toISOString();
+
+  try {
+    db.prepare('INSERT INTO watchers (bug_id, user_id, created_at) VALUES (?, ?, ?)').run(bugId, userId, nowIso);
+  } catch (err) {
+    // Already watching
+  }
+
+  res.json({ success: true, is_watched: true });
+});
+
+// DELETE /api/bugs/:id/watch - Remove watcher
+bugsRouter.delete('/bugs/:id/watch', (req: AuthenticatedRequest, res: Response) => {
+  const bugId = parseInt(String(req.params.id), 10);
+  if (isNaN(bugId)) return res.status(400).json({ error: 'Invalid bug ID' });
+
+  const userId = req.user?.id || 'u_alex';
+  db.prepare('DELETE FROM watchers WHERE bug_id = ? AND user_id = ?').run(bugId, userId);
+
+  res.json({ success: true, is_watched: false });
+});
+
+// POST /api/bugs/:id/keywords - Add keyword to bug
+bugsRouter.post('/bugs/:id/keywords', (req: AuthenticatedRequest, res: Response) => {
+  const bugId = parseInt(String(req.params.id), 10);
+  const { keyword_id } = req.body;
+
+  if (isNaN(bugId) || !keyword_id) {
+    return res.status(400).json({ error: 'bugId and keyword_id are required' });
+  }
+
+  try {
+    db.prepare('INSERT INTO bug_keywords (bug_id, keyword_id) VALUES (?, ?)').run(bugId, keyword_id);
+  } catch (err) {}
+
+  res.json({ success: true });
+});
+
+// DELETE /api/bugs/:id/keywords/:keywordId - Remove keyword from bug
+bugsRouter.delete('/bugs/:id/keywords/:keywordId', (req: AuthenticatedRequest, res: Response) => {
+  const bugId = parseInt(String(req.params.id), 10);
+  const { keywordId } = req.params;
+
+  db.prepare('DELETE FROM bug_keywords WHERE bug_id = ? AND keyword_id = ?').run(bugId, keywordId);
+  res.json({ success: true });
+});
+
+// PATCH /api/bugs/:id - Inline field update (Assignee, Priority, Severity, Component, Title, Milestone, Version, Estimated Time)
 bugsRouter.patch('/bugs/:id', (req: AuthenticatedRequest, res: Response) => {
   const bugId = parseInt(String(req.params.id), 10);
   if (isNaN(bugId)) return res.status(400).json({ error: 'Invalid bug ID' });
@@ -448,7 +693,7 @@ bugsRouter.patch('/bugs/:id', (req: AuthenticatedRequest, res: Response) => {
   const bug = db.prepare('SELECT * FROM bugs WHERE id = ?').get(bugId) as Bug | undefined;
   if (!bug) return res.status(404).json({ error: 'Bug not found' });
 
-  const { title, description, priority, severity, component_id, assignee_id } = req.body;
+  const { title, description, priority, severity, component_id, assignee_id, version, target_milestone, estimated_time, remaining_time } = req.body;
   const actorId = req.user ? req.user.id : null;
   const nowIso = new Date().toISOString();
 
@@ -486,6 +731,30 @@ bugsRouter.patch('/bugs/:id', (req: AuthenticatedRequest, res: Response) => {
     activityLogs.push({ field: 'component', old_value: bug.component_id, new_value: component_id });
   }
 
+  if (version !== undefined && version !== bug.version) {
+    updates.push('version = ?');
+    params.push(version);
+    activityLogs.push({ field: 'version', old_value: bug.version || 'None', new_value: version || 'None' });
+  }
+
+  if (target_milestone !== undefined && target_milestone !== bug.target_milestone) {
+    updates.push('target_milestone = ?');
+    params.push(target_milestone);
+    activityLogs.push({ field: 'milestone', old_value: bug.target_milestone || 'None', new_value: target_milestone || 'None' });
+  }
+
+  if (estimated_time !== undefined && Number(estimated_time) !== bug.estimated_time) {
+    updates.push('estimated_time = ?');
+    params.push(Number(estimated_time));
+    activityLogs.push({ field: 'estimated_time', old_value: `${bug.estimated_time || 0}h`, new_value: `${estimated_time}h` });
+  }
+
+  if (remaining_time !== undefined && Number(remaining_time) !== bug.remaining_time) {
+    updates.push('remaining_time = ?');
+    params.push(Number(remaining_time));
+    activityLogs.push({ field: 'remaining_time', old_value: `${bug.remaining_time || 0}h`, new_value: `${remaining_time}h` });
+  }
+
   if (assignee_id !== undefined && assignee_id !== bug.assignee_id) {
     updates.push('assignee_id = ?');
     params.push(assignee_id);
@@ -517,6 +786,9 @@ bugsRouter.patch('/bugs/:id', (req: AuthenticatedRequest, res: Response) => {
   if (title !== undefined || description !== undefined) {
     indexBugEmbedding(bugId, title ?? bug.title, description ?? bug.description);
   }
+
+  // Notify watchers
+  notifyWatchers(bugId, actorId, 'status_change', `Bug #${bugId} updated: ${activityLogs.map((a) => a.field).join(', ')}`);
 
   // Broadcast live SSE
   sseService.broadcast('bug:updated', {
@@ -591,8 +863,10 @@ bugsRouter.post('/bugs/bulk-transition', (req: AuthenticatedRequest, res: Respon
       db.prepare(`
         INSERT INTO comments (bug_id, author_id, body, created_at)
         VALUES (?, ?, ?, ?)
-      `).run(bugId, actorId || 'user_dev1', comment.trim(), nowIso);
+      `).run(bugId, actorId || 'u_alex', comment.trim(), nowIso);
     }
+
+    notifyWatchers(bugId, actorId, 'status_change', `Bug #${bugId} transitioned to ${toState}`);
 
     results.push({
       bug_id: bugId,
@@ -619,7 +893,6 @@ bugsRouter.post('/bugs/bulk-transition', (req: AuthenticatedRequest, res: Respon
     results
   });
 });
-
 
 // PATCH /api/bugs/:id/transition - Validated by Engine
 bugsRouter.patch('/bugs/:id/transition', (req: AuthenticatedRequest, res: Response) => {
@@ -674,7 +947,7 @@ bugsRouter.patch('/bugs/:id/transition', (req: AuthenticatedRequest, res: Respon
     db.prepare(`
       INSERT INTO comments (bug_id, author_id, body, created_at)
       VALUES (?, ?, ?, ?)
-    `).run(bugId, actorId || 'user_dev1', comment.trim(), nowIso);
+    `).run(bugId, actorId || 'u_alex', comment.trim(), nowIso);
   }
 
   // If transition to duplicate, record relationship
@@ -688,6 +961,9 @@ bugsRouter.patch('/bugs/:id/transition', (req: AuthenticatedRequest, res: Respon
       // Ignored if duplicate already linked
     }
   }
+
+  // Notify watchers
+  notifyWatchers(bugId, actorId, 'status_change', `Bug #${bugId} transitioned from ${bug.status} to ${toState}`);
 
   // Broadcast live SSE update
   sseService.broadcast('bug:updated', {
@@ -747,27 +1023,44 @@ bugsRouter.post('/bugs/:id/relate', (req: AuthenticatedRequest, res: Response) =
   });
 });
 
-// POST /api/bugs/:id/comments - Add comment
+// POST /api/bugs/:id/comments - Add comment with optional work_time logging
 bugsRouter.post('/bugs/:id/comments', (req: AuthenticatedRequest, res: Response) => {
   const bugId = parseInt(String(req.params.id), 10);
-  const { body, is_private = false } = req.body;
+  const { body, work_time = 0, is_private = false } = req.body;
 
   if (isNaN(bugId) || !body || !body.trim()) {
     return res.status(400).json({ error: 'Comment body is required' });
   }
 
-  const authorId = req.user ? req.user.id : 'user_dev1';
+  const authorId = req.user ? req.user.id : 'u_alex';
   const nowIso = new Date().toISOString();
+  const parsedWorkTime = Number(work_time) || 0;
 
   const insert = db.prepare(`
-    INSERT INTO comments (bug_id, author_id, body, is_private, created_at)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(bugId, authorId, body.trim(), is_private ? 1 : 0, nowIso);
+    INSERT INTO comments (bug_id, author_id, body, work_time, is_private, created_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(bugId, authorId, body.trim(), parsedWorkTime, is_private ? 1 : 0, nowIso);
+
+  // If work_time was logged, deduct from bug remaining_time
+  if (parsedWorkTime > 0) {
+    const bug = db.prepare('SELECT remaining_time FROM bugs WHERE id = ?').get(bugId) as { remaining_time: number } | undefined;
+    if (bug) {
+      const newRemaining = Math.max(0, (bug.remaining_time || 0) - parsedWorkTime);
+      db.prepare('UPDATE bugs SET remaining_time = ? WHERE id = ?').run(newRemaining, bugId);
+
+      db.prepare(`
+        INSERT INTO activity (bug_id, actor_id, field, old_value, new_value, automated, created_at)
+        VALUES (?, ?, 'work_time', NULL, ?, 0, ?)
+      `).run(bugId, authorId, `Logged ${parsedWorkTime}h work`, nowIso);
+    }
+  }
 
   db.prepare(`
     INSERT INTO activity (bug_id, actor_id, field, old_value, new_value, automated, created_at)
     VALUES (?, ?, 'comment', NULL, 'New comment added', 0, ?)
   `).run(bugId, authorId, nowIso);
+
+  notifyWatchers(bugId, authorId, 'comment_added', `New comment posted on Bug #${bugId}`);
 
   sseService.broadcast('activity:created', { bug_id: bugId, field: 'comment' });
 
@@ -775,6 +1068,7 @@ bugsRouter.post('/bugs/:id/comments', (req: AuthenticatedRequest, res: Response)
     id: insert.lastInsertRowid,
     bug_id: bugId,
     body: body.trim(),
+    work_time: parsedWorkTime,
     created_at: nowIso
   });
 });
@@ -816,6 +1110,8 @@ bugsRouter.get('/bugs/:id/timeline', (req: AuthenticatedRequest, res: Response) 
       title = act.old_value ? `Status changed from ${act.old_value} to ${act.new_value}` : `Created as ${act.new_value}`;
     } else if (act.field === 'comment') {
       title = 'Comment added';
+    } else if (act.field === 'work_time') {
+      title = 'Work time logged';
     } else if (act.field === 'flag_resolved') {
       title = `Flag resolved to ${act.new_value}`;
     }

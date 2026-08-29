@@ -13,6 +13,7 @@ import {
 import { fetchFlowAnalytics } from '../../services/api.ts';
 import { useAuth } from '../../context/AuthContext.tsx';
 import { WorkflowGraph } from './WorkflowGraph.tsx';
+import { CardSkeleton, ChartSkeleton } from '../Common/LoadingSkeleton.tsx';
 
 interface FlowAnalyticsViewProps {
   onSelectBug: (bugId: number) => void;
@@ -92,9 +93,9 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
       </div>
 
       {isLoading ? (
-        <div className="p-16 flex flex-col items-center justify-center gap-3 text-slate-400">
-          <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
-          <p className="text-xs font-mono">Computing cumulative-flow areas & stage latencies...</p>
+        <div className="space-y-4">
+          <CardSkeleton count={6} />
+          <ChartSkeleton />
         </div>
       ) : (
         <>
@@ -210,6 +211,64 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
               </div>
             </div>
           </div>
+
+          {/* Milestone Predictive Delivery Forecast (§3 Capability) */}
+          {data?.milestone_forecasts && data.milestone_forecasts.length > 0 && (
+            <div className="p-5 rounded-2xl bg-surface-50/90 border border-slate-800 shadow-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-emerald-400" />
+                    Predictive Milestone Delivery Forecast
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Calculated from current team velocity ({data?.summary?.throughput_per_week || 0} resolved bugs/week)
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                {data.milestone_forecasts.map((mf: any) => (
+                  <div key={mf.id} className="p-4 rounded-xl bg-surface-100/90 border border-slate-700/80 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-sm font-bold text-primary-300">{mf.name}</span>
+                        <span className="text-[10px] text-slate-400 font-mono">
+                          Due: {mf.due_date || 'No target date'}
+                        </span>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono border ${
+                        mf.risk_status === 'AT_RISK'
+                          ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
+                          : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                      }`}>
+                        {mf.risk_status === 'AT_RISK' ? '⚠️ AT RISK OF SLIP' : '✓ ON TRACK'}
+                      </span>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px] font-mono">
+                        <span className="text-slate-400">{mf.closed_bugs} of {mf.total_bugs} bugs resolved</span>
+                        <span className="text-slate-200 font-bold">{mf.completion_pct}%</span>
+                      </div>
+                      <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-primary-500 to-emerald-400 rounded-full transition-all duration-500"
+                          style={{ width: `${mf.completion_pct}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800">
+                      <span>Remaining effort: <strong className="text-slate-200">{mf.remaining_hours}h</strong></span>
+                      <span>Predicted delivery: <strong className="text-slate-200 font-mono">{mf.predicted_completion_date}</strong></span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Sleeper Branches Alert Card & Stalled Bugs Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

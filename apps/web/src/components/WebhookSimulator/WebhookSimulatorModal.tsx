@@ -10,6 +10,7 @@ import {
   Bot
 } from 'lucide-react';
 import { simulateWebhook } from '../../services/api.ts';
+import { useFocusTrap } from '../../hooks/useFocusTrap.ts';
 
 interface WebhookSimulatorModalProps {
   isOpen: boolean;
@@ -22,6 +23,10 @@ export const WebhookSimulatorModal: React.FC<WebhookSimulatorModalProps> = ({
   onClose,
   onSelectBug
 }) => {
+  const trapRef = useFocusTrap<HTMLDivElement>({
+    isOpen,
+    onClose
+  });
   const [bugId, setBugId] = useState<number>(412);
   const [simType, setSimType] = useState<'commit' | 'pr_open' | 'pr_review' | 'pr_merge'>('commit');
   const [message, setMessage] = useState('Fixes #412: resolve offline save crash with fallback queue');
@@ -59,6 +64,10 @@ export const WebhookSimulatorModal: React.FC<WebhookSimulatorModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto animate-fade-in" onClick={onClose}>
       <div
+        ref={trapRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="webhook-sim-title"
         className="w-full max-w-2xl bg-surface-50 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden my-6 animate-slide-up flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
@@ -69,7 +78,7 @@ export const WebhookSimulatorModal: React.FC<WebhookSimulatorModalProps> = ({
               <GitPullRequest className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <h2 id="webhook-sim-title" className="text-base font-bold text-white flex items-center gap-2">
                 <span>GitHub Webhook & Event Replayer</span>
                 <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                   automated: true
@@ -83,6 +92,7 @@ export const WebhookSimulatorModal: React.FC<WebhookSimulatorModalProps> = ({
 
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             className="p-1.5 rounded-lg text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 transition-all"
           >
             <X className="w-5 h-5" />

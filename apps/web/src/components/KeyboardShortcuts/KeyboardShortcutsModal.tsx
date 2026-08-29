@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { X, Command, ArrowUp, ArrowDown, CornerDownLeft, Keyboard } from 'lucide-react';
+import { useFocusTrap } from '../../hooks/useFocusTrap.ts';
 
 interface ShortcutsModalProps {
   isOpen: boolean;
@@ -45,14 +46,10 @@ const SHORTCUTS = [
 ];
 
 export const KeyboardShortcutsModal: React.FC<ShortcutsModalProps> = ({ isOpen, onClose }) => {
-  useEffect(() => {
-    if (!isOpen) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [isOpen, onClose]);
+  const trapRef = useFocusTrap<HTMLDivElement>({
+    isOpen,
+    onClose
+  });
 
   if (!isOpen) return null;
 
@@ -62,6 +59,10 @@ export const KeyboardShortcutsModal: React.FC<ShortcutsModalProps> = ({ isOpen, 
       onClick={onClose}
     >
       <div
+        ref={trapRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="shortcuts-modal-title"
         className="w-full max-w-xl bg-surface-50 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
@@ -72,7 +73,7 @@ export const KeyboardShortcutsModal: React.FC<ShortcutsModalProps> = ({ isOpen, 
               <Keyboard className="w-3.5 h-3.5 text-primary-300" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-white">Keyboard Shortcuts</h2>
+              <h2 id="shortcuts-modal-title" className="text-sm font-bold text-white">Keyboard Shortcuts</h2>
               <p className="text-[11px] text-slate-400">Press <Kbd keys={['?']} inline /> anywhere to reopen</p>
             </div>
           </div>

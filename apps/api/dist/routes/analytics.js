@@ -174,6 +174,40 @@ analyticsRouter.get('/analytics/flow', (req, res) => {
   `).get();
     const totalResolved = db.prepare("SELECT COUNT(*) as count FROM bugs WHERE status IN ('Resolved', 'Verified', 'Closed')").get();
     const reopenRate = totalResolved.count > 0 ? Math.round((reopenCount.count / totalResolved.count) * 100) : 0;
+    // Milestone Predictive Delivery Forecast (§3 Capability)
+    const milestoneRows = db.prepare(`
+    SELECT
+      m.*,
+      (SELECT COUNT(*) FROM bugs WHERE bugs.target_milestone = m.name AND bugs.status NOT IN ('Resolved', 'Verified', 'Closed', 'Duplicate', 'WontFix')) as open_bugs,
+      (SELECT COUNT(*) FROM bugs WHERE bugs.target_milestone = m.name AND bugs.status IN ('Resolved', 'Verified', 'Closed', 'Duplicate', 'WontFix')) as closed_bugs,
+      (SELECT COALESCE(SUM(remaining_time), 0) FROM bugs WHERE bugs.target_milestone = m.name AND bugs.status NOT IN ('Resolved', 'Verified', 'Closed', 'Duplicate', 'WontFix')) as remaining_hours
+    FROM milestones m
+    ORDER BY m.due_date ASC
+  `).all();
+    // Weekly throughput over current period
+    const resolvedInPeriod = db.prepare(`
+    SELECT COUNT(*) as count FROM activity
+    WHERE field = 'status' AND new_value = 'Resolved' AND created_at >= ?
+  `).get(startDate.toISOString());
+    const throughputPerWeek = Math.max(1, Math.round((resolvedInPeriod.count / (days / 7)) * 10) / 10);
+    const milestoneForecasts = milestoneRows.map((m) => {
+        const weeksNeeded = throughputPerWeek > 0 ? (m.open_bugs / throughputPerWeek) : 0;
+        const predictedDate = new Date(Date.now() + weeksNeeded * 7 * 24 * 60 * 60 * 1000);
+        const dueDate = m.due_date ? new Date(m.due_date) : null;
+        const isOverdueRisk = dueDate ? predictedDate.getTime() > dueDate.getTime() : false;
+        return {
+            id: m.id,
+            name: m.name,
+            due_date: m.due_date,
+            open_bugs: m.open_bugs,
+            closed_bugs: m.closed_bugs,
+            total_bugs: m.open_bugs + m.closed_bugs,
+            remaining_hours: m.remaining_hours,
+            predicted_completion_date: predictedDate.toISOString().split('T')[0],
+            risk_status: isOverdueRisk ? 'AT_RISK' : 'ON_TRACK',
+            completion_pct: (m.open_bugs + m.closed_bugs) > 0 ? Math.round((m.closed_bugs / (m.open_bugs + m.closed_bugs)) * 100) : 0
+        };
+    });
     const avgTriageHours = countBugsWithMetrics > 0 ? Math.round((totalTriageMs / countBugsWithMetrics) / (3600 * 1000) * 10) / 10 : 0;
     const avgDevHours = countBugsWithMetrics > 0 ? Math.round((totalDevMs / countBugsWithMetrics) / (3600 * 1000) * 10) / 10 : 0;
     const avgReviewHours = countBugsWithMetrics > 0 ? Math.round((totalReviewMs / countBugsWithMetrics) / (3600 * 1000) * 10) / 10 : 0;
@@ -190,6 +224,7 @@ analyticsRouter.get('/analytics/flow', (req, res) => {
             reopen_rate_percent: reopenRate,
             sla_compliance_percent: slaCompliancePercent,
             sla_breached_count: slaBreachedBugs.length,
+            throughput_per_week: throughputPerWeek,
             averages: {
                 triage_hours: avgTriageHours,
                 dev_hours: avgDevHours,
@@ -197,6 +232,7 @@ analyticsRouter.get('/analytics/flow', (req, res) => {
                 verify_hours: avgVerifyHours
             }
         },
+        milestone_forecasts: milestoneForecasts,
         stalled_bugs: stalledBugs,
         sleeper_branches: sleeperBranches,
         sla_breached_bugs: slaBreachedBugs

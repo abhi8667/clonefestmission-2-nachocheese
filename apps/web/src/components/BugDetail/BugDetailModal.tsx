@@ -14,9 +14,25 @@ import {
   ExternalLink,
   Flame,
   AlertTriangle,
-  Download
+  Download,
+  Eye,
+  EyeOff,
+  Tag,
+  Clock,
+  Plus,
+  Milestone as MilestoneIcon
 } from 'lucide-react';
-import { fetchBugDetail, addComment, sendPresenceHeartbeat, exportFlowReportAsHtml } from '../../services/api.ts';
+import {
+  fetchBugDetail,
+  addComment,
+  sendPresenceHeartbeat,
+  exportFlowReportAsHtml,
+  watchBug,
+  unwatchBug,
+  addBugKeyword,
+  removeBugKeyword,
+  fetchKeywords
+} from '../../services/api.ts';
 import { FlowTimeline } from './FlowTimeline.tsx';
 import { StatusTransitionDropdown } from './StatusTransitionDropdown.tsx';
 import { FlagsPanel } from './FlagsPanel.tsx';
@@ -24,6 +40,8 @@ import { RelationshipsPanel } from './RelationshipsPanel.tsx';
 import { ActivityLogPanel } from './ActivityLogPanel.tsx';
 import { useAuth } from '../../context/AuthContext.tsx';
 import { useSSE } from '../../context/SSEContext.tsx';
+import { useFocusTrap } from '../../hooks/useFocusTrap.ts';
+import { DetailSkeleton } from '../Common/LoadingSkeleton.tsx';
 
 interface BugDetailModalProps {
   bugId: number | null;
@@ -37,13 +55,21 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
   onSelectBug
 }) => {
   const { currentUser } = useAuth();
+  const trapRef = useFocusTrap<HTMLDivElement>({
+    isOpen: bugId !== null,
+    onClose
+  });
   const { lastEvent } = useSSE();
   const [data, setData] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'comments' | 'relationships' | 'flags' | 'git' | 'activity'>('comments');
   const [newComment, setNewComment] = useState('');
+  const [workTime, setWorkTime] = useState<string>('');
   const [isPrivateComment, setIsPrivateComment] = useState(false);
   const [isPostingComment, setIsPostingComment] = useState(false);
+  const [allKeywords, setAllKeywords] = useState<any[]>([]);
+  const [isAddingKeyword, setIsAddingKeyword] = useState(false);
+  const [selectedKeywordToAdd, setSelectedKeywordToAdd] = useState('');
 
   const loadData = () => {
     if (!bugId) return;
@@ -63,6 +89,7 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
     if (bugId) {
       setIsLoading(true);
       loadData();
+      fetchKeywords().then((res) => setAllKeywords(res.keywords || [])).catch(() => {});
     }
   }, [bugId, currentUser?.id]);
 
@@ -88,14 +115,44 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
 
   if (!bugId) return null;
 
+  const handleToggleWatch = async () => {
+    try {
+      if (data?.bug?.is_watched) {
+        await unwatchBug(bugId, currentUser?.id);
+      } else {
+        await watchBug(bugId, currentUser?.id);
+      }
+      loadData();
+    } catch (err) {}
+  };
+
+  const handleAddKeyword = async () => {
+    if (!selectedKeywordToAdd) return;
+    try {
+      await addBugKeyword(bugId, selectedKeywordToAdd, currentUser?.id);
+      setIsAddingKeyword(false);
+      setSelectedKeywordToAdd('');
+      loadData();
+    } catch (err) {}
+  };
+
+  const handleRemoveKeyword = async (keywordId: string) => {
+    try {
+      await removeBugKeyword(bugId, keywordId, currentUser?.id);
+      loadData();
+    } catch (err) {}
+  };
+
   const handlePostComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
 
     setIsPostingComment(true);
     try {
-      await addComment(bugId, newComment, isPrivateComment, currentUser?.id);
+      const parsedWork = workTime ? parseFloat(workTime) : 0;
+      await addComment(bugId, newComment, isPrivateComment, parsedWork, currentUser?.id);
       setNewComment('');
+      setWorkTime('');
       loadData();
     } catch (err: any) {
       alert(err.message || 'Failed to post comment');
@@ -104,9 +161,17 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
     }
   };
 
+  // Compute total logged work time from comments
+  const totalLoggedWorkHours = (data?.comments || []).reduce((acc: number, c: any) => acc + (Number(c.work_time) || 0), 0);
+  const elapsedFlowHours = Math.round((data?.flow_metrics?.total_lead_time_ms || 0) / (3600 * 1000));
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto animate-fade-in" onClick={onClose}>
       <div
+        ref={trapRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bug-detail-modal-title"
         className="w-full max-w-5xl bg-surface-50 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden my-6 animate-slide-up flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
@@ -144,12 +209,28 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
               )}
             </div>
 
-            <h2 className="text-lg lg:text-xl font-bold text-white leading-snug">
+            <h2 id="bug-detail-modal-title" className="text-lg lg:text-xl font-bold text-white leading-snug">
               {data?.bug?.title || 'Loading bug details...'}
             </h2>
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Watch / Unwatch Toggle */}
+            {data?.bug && (
+              <button
+                onClick={handleToggleWatch}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition-all shadow-sm ${
+                  data.bug.is_watched
+                    ? 'bg-primary-500/20 text-primary-300 border-primary-500/40 hover:bg-primary-500/30'
+                    : 'bg-slate-800/80 text-slate-400 border-slate-700/80 hover:text-slate-200'
+                }`}
+                title={data.bug.is_watched ? 'You are watching this bug. Click to unwatch' : 'Click to watch and receive notification updates'}
+              >
+                {data.bug.is_watched ? <Eye className="w-3.5 h-3.5 text-primary-400" /> : <EyeOff className="w-3.5 h-3.5" />}
+                <span>{data.bug.is_watched ? 'Watching' : 'Watch'} ({data.bug.watchers?.length || 0})</span>
+              </button>
+            )}
+
             {data?.bug && (
               <button
                 onClick={() => exportFlowReportAsHtml(data)}
@@ -172,12 +253,9 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
 
         {/* Content Body */}
         {isLoading ? (
-          <div className="p-16 flex flex-col items-center justify-center gap-3 text-slate-400">
-            <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
-            <p className="text-xs font-mono">Deriving flow metrics and loading lifecycle history...</p>
-          </div>
+          <DetailSkeleton />
         ) : (
-          <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-6">
+          <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-5">
             {/* Headline #1: Per-Bug Flow Timeline */}
             {data?.bug && (
               <FlowTimeline
@@ -215,6 +293,114 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
                 <span className="font-semibold text-slate-200 capitalize">
                   {data?.bug?.severity} / {data?.bug?.priority}
                 </span>
+              </div>
+            </div>
+
+            {/* Capability Bar: Milestone, Version, Keywords & Time Tracking (§3) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Milestone & Keywords */}
+              <div className="p-3 bg-surface-100/50 rounded-xl border border-slate-800/80 text-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 font-semibold flex items-center gap-1.5">
+                    <MilestoneIcon className="w-3.5 h-3.5 text-primary-400" />
+                    Target Milestone & Version
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono px-2 py-0.5 rounded bg-primary-500/20 text-primary-300 border border-primary-500/30 text-[11px] font-bold">
+                      {data?.bug?.target_milestone || 'None'}
+                    </span>
+                    {data?.bug?.version && (
+                      <span className="font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 text-[10px]">
+                        v{data.bug.version}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1 border-t border-slate-800/60">
+                  <span className="text-slate-400 font-semibold flex items-center gap-1.5">
+                    <Tag className="w-3.5 h-3.5 text-cyan-400" />
+                    Keywords & Labels
+                  </span>
+                  <div className="flex flex-wrap items-center gap-1">
+                    {data?.bug?.keywords?.map((kw: any) => (
+                      <span
+                        key={kw.id}
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono bg-cyan-500/10 text-cyan-300 border border-cyan-500/30"
+                      >
+                        #{kw.name}
+                        <button
+                          onClick={() => handleRemoveKeyword(kw.id)}
+                          className="hover:text-rose-400 text-slate-500 ml-0.5"
+                          title="Remove keyword"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                    {isAddingKeyword ? (
+                      <div className="flex items-center gap-1">
+                        <select
+                          value={selectedKeywordToAdd}
+                          onChange={(e) => setSelectedKeywordToAdd(e.target.value)}
+                          className="bg-surface-200 border border-slate-700 text-slate-200 text-[10px] rounded px-1.5 py-0.5"
+                        >
+                          <option value="">Select keyword...</option>
+                          {allKeywords.map((k) => (
+                            <option key={k.id} value={k.id}>{k.name}</option>
+                          ))}
+                        </select>
+                        <button
+                          onClick={handleAddKeyword}
+                          className="px-1.5 py-0.5 rounded bg-primary-600 text-white text-[10px]"
+                        >
+                          Add
+                        </button>
+                        <button
+                          onClick={() => setIsAddingKeyword(false)}
+                          className="text-slate-500 hover:text-white text-[10px]"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setIsAddingKeyword(true)}
+                        className="px-1.5 py-0.5 rounded border border-dashed border-slate-700 text-slate-500 hover:text-slate-300 text-[10px] flex items-center gap-0.5"
+                      >
+                        <Plus className="w-2.5 h-2.5" /> Tag
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Time Tracking Comparison (§3 Capability) */}
+              <div className="p-3 bg-surface-100/50 rounded-xl border border-slate-800/80 text-xs space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 font-semibold flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-amber-400" />
+                    Time Tracking & Velocity
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-mono">
+                    Estimated: <strong className="text-slate-200">{data?.bug?.estimated_time || 0}h</strong>
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center pt-1 font-mono text-[11px]">
+                  <div className="p-1.5 rounded bg-slate-900/60 border border-slate-800">
+                    <span className="text-slate-500 block text-[9px] uppercase">Logged Work</span>
+                    <span className="text-emerald-400 font-bold">{totalLoggedWorkHours}h</span>
+                  </div>
+                  <div className="p-1.5 rounded bg-slate-900/60 border border-slate-800">
+                    <span className="text-slate-500 block text-[9px] uppercase">Remaining</span>
+                    <span className="text-amber-400 font-bold">{data?.bug?.remaining_time || 0}h</span>
+                  </div>
+                  <div className="p-1.5 rounded bg-slate-900/60 border border-slate-800">
+                    <span className="text-slate-500 block text-[9px] uppercase">Elapsed Flow</span>
+                    <span className="text-slate-300 font-bold">{elapsedFlowHours}h</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -309,6 +495,11 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
                               {c.author?.name || c.author_id}
                             </span>
                             <span className="text-[10px] text-slate-500">@{c.author?.username}</span>
+                            {Number(c.work_time) > 0 && (
+                              <span className="inline-flex items-center gap-0.5 text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.2 rounded">
+                                <Clock className="w-2.5 h-2.5" /> Logged {c.work_time}h
+                              </span>
+                            )}
                             {c.is_private && (
                               <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-red-400 bg-red-500/10 px-1 py-0.2 rounded">
                                 <Lock className="w-2.5 h-2.5" /> Private
@@ -330,7 +521,7 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
                     )}
                   </div>
 
-                  {/* Add comment form */}
+                  {/* Add comment form with work time */}
                   <form onSubmit={handlePostComment} className="p-3.5 rounded-xl bg-surface-100 border border-slate-700/80 space-y-2.5">
                     <textarea
                       rows={3}
@@ -340,16 +531,33 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
                       className="w-full bg-surface-50 border border-slate-700 rounded-lg p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-primary-500"
                     />
 
-                    <div className="flex items-center justify-between">
-                      <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={isPrivateComment}
-                          onChange={(e) => setIsPrivateComment(e.target.checked)}
-                          className="rounded bg-slate-900 border-slate-700 text-primary-600 focus:ring-0"
-                        />
-                        <span>Private comment (visible only to members)</span>
-                      </label>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isPrivateComment}
+                            onChange={(e) => setIsPrivateComment(e.target.checked)}
+                            className="rounded bg-slate-900 border-slate-700 text-primary-600 focus:ring-0"
+                          />
+                          <span>Private</span>
+                        </label>
+
+                        <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                          <Clock className="w-3.5 h-3.5 text-slate-500" />
+                          <span>Work hours spent:</span>
+                          <input
+                            type="number"
+                            step="0.5"
+                            min="0"
+                            placeholder="0"
+                            value={workTime}
+                            onChange={(e) => setWorkTime(e.target.value)}
+                            className="w-16 px-2 py-0.5 bg-surface-50 border border-slate-700 rounded text-xs text-white text-right focus:outline-none focus:border-primary-500"
+                          />
+                          <span>h</span>
+                        </div>
+                      </div>
 
                       <button
                         type="submit"

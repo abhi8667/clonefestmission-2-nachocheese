@@ -16,6 +16,7 @@ import { useAuth } from './context/AuthContext.tsx';
 import { useSSE } from './context/SSEContext.tsx';
 import { Bug } from '@triarc/shared-types';
 import { Loader2 } from 'lucide-react';
+import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 
 export const App: React.FC = () => {
   const { currentUser } = useAuth();
@@ -117,6 +118,14 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-slate-100 font-sans">
+      {/* Skip to Main Content Link (WCAG 2.2 AA) */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[250] focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:font-bold focus:rounded-lg focus:shadow-xl focus:ring-2 focus:ring-primary-400"
+      >
+        Skip to main content
+      </a>
+
       {/* Top Navigation */}
       <Navbar
         activeTab={activeTab}
@@ -125,60 +134,63 @@ export const App: React.FC = () => {
         openWebhookSimulator={() => setIsSimulatorOpen(true)}
         openCommandPalette={() => setIsCmdOpen(true)}
         openKeyboardShortcuts={() => setIsShortcutsOpen(true)}
+        onSelectBug={(id) => setSelectedBugId(id)}
         inboxCount={inboxCount}
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8">
-        {activeTab === 'bugs' && (
-          <div>
-            {/* Notifications Digest Banner (§6.H) */}
-            <DigestBanner onSelectBug={(id) => setSelectedBugId(id)} />
+      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8">
+        <ErrorBoundary fallbackTitle="Application View Error">
+          {activeTab === 'bugs' && (
+            <div>
+              {/* Notifications Digest Banner (§6.H) */}
+              <DigestBanner onSelectBug={(id) => setSelectedBugId(id)} />
 
-            <FilterBar
-              viewMode={viewMode}
-              setViewMode={setViewMode}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              statusFilter={statusFilter}
-              setStatusFilter={setStatusFilter}
-              componentFilter={componentFilter}
-              setComponentFilter={setComponentFilter}
-              priorityFilter={priorityFilter}
-              setPriorityFilter={setPriorityFilter}
-              assigneeFilter={assigneeFilter}
-              setAssigneeFilter={setAssigneeFilter}
-              totalCount={totalCount}
-            />
-
-            {isLoading ? (
-              <div className="p-20 flex flex-col items-center justify-center gap-3 text-slate-400">
-                <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
-                <p className="text-xs font-mono">Loading structured bug reports...</p>
-              </div>
-            ) : viewMode === 'table' ? (
-              <TableView
-                bugs={bugs}
-                onSelectBug={(id) => setSelectedBugId(id)}
-                selectedBugId={selectedBugId}
-                onBugsUpdated={loadBugs}
+              <FilterBar
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+                componentFilter={componentFilter}
+                setComponentFilter={setComponentFilter}
+                priorityFilter={priorityFilter}
+                setPriorityFilter={setPriorityFilter}
+                assigneeFilter={assigneeFilter}
+                setAssigneeFilter={setAssigneeFilter}
+                totalCount={totalCount}
               />
-            ) : (
-              <CardView
-                bugs={bugs}
-                onSelectBug={(id) => setSelectedBugId(id)}
-              />
-            )}
-          </div>
-        )}
 
-        {activeTab === 'inbox' && (
-          <RequestInbox onSelectBug={(id) => setSelectedBugId(id)} />
-        )}
+              {isLoading ? (
+                <div className="p-20 flex flex-col items-center justify-center gap-3 text-slate-400">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+                  <p className="text-xs font-mono">Loading structured bug reports...</p>
+                </div>
+              ) : viewMode === 'table' ? (
+                <TableView
+                  bugs={bugs}
+                  onSelectBug={(id) => setSelectedBugId(id)}
+                  selectedBugId={selectedBugId}
+                  onBugsUpdated={loadBugs}
+                />
+              ) : (
+                <CardView
+                  bugs={bugs}
+                  onSelectBug={(id) => setSelectedBugId(id)}
+                />
+              )}
+            </div>
+          )}
 
-        {activeTab === 'analytics' && (
-          <FlowAnalyticsView onSelectBug={(id) => setSelectedBugId(id)} />
-        )}
+          {activeTab === 'inbox' && (
+            <RequestInbox onSelectBug={(id) => setSelectedBugId(id)} />
+          )}
+
+          {activeTab === 'analytics' && (
+            <FlowAnalyticsView onSelectBug={(id) => setSelectedBugId(id)} />
+          )}
+        </ErrorBoundary>
       </main>
 
       {/* Modals */}

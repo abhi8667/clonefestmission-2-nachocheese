@@ -15,6 +15,8 @@ import {
 import { fetchInbox, resolveFlag } from '../../services/api.ts';
 import { useAuth } from '../../context/AuthContext.tsx';
 import { useSSE } from '../../context/SSEContext.tsx';
+import { TableSkeleton } from '../Common/LoadingSkeleton.tsx';
+import { EmptyState } from '../Common/EmptyState.tsx';
 
 interface RequestInboxProps {
   onSelectBug: (bugId: number) => void;
@@ -147,10 +149,7 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({ onSelectBug }) => {
 
       {/* Inbox Items List */}
       {isLoading ? (
-        <div className="p-16 flex flex-col items-center justify-center gap-3 text-slate-400">
-          <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
-          <p className="text-xs font-mono">Loading request queue...</p>
-        </div>
+        <TableSkeleton rows={5} />
       ) : (
         <div className="space-y-3">
           {items.map((flag) => {
@@ -281,9 +280,17 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({ onSelectBug }) => {
           })}
 
           {items.length === 0 && (
-            <div className="p-16 text-center text-slate-500 text-xs italic bg-surface-50/40 rounded-2xl border border-slate-800/40">
-              No {activeTab} requests in your queue.
-            </div>
+            <EmptyState
+              icon={InboxIcon}
+              title={`No ${activeTab} requests`}
+              description={
+                activeTab === 'incoming'
+                  ? 'Your queue is all clear! No pending review?, approval?, or needinfo? flags are waiting on your action.'
+                  : activeTab === 'outgoing'
+                  ? 'You have no outstanding requests waiting on other team members.'
+                  : 'No request history recorded yet.'
+              }
+            />
           )}
         </div>
       )}
