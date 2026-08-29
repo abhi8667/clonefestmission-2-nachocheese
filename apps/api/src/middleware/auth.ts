@@ -39,7 +39,7 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
   if (isDemoModeEnabled()) {
     const demoUserId = req.headers['x-user-id'] as string;
     if (demoUserId) {
-      const user = db.prepare('SELECT * FROM users WHERE id = ?').get(demoUserId) as User | undefined;
+      const user = db.prepare('SELECT * FROM users WHERE id = ? OR username = ?').get(demoUserId, demoUserId) as User | undefined;
       if (user) {
         req.user = user;
         return next();

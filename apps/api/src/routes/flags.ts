@@ -135,8 +135,8 @@ flagsRouter.post('/bugs/:id/flags', (req: AuthenticatedRequest, res: Response) =
   });
 });
 
-// PATCH /api/flags/:id - One-click resolution (+/-)
-flagsRouter.patch('/flags/:id', (req: AuthenticatedRequest, res: Response) => {
+// PATCH /api/flags/:id or POST /api/flags/:id/resolve - One-click resolution (+/-)
+const resolveHandler = (req: AuthenticatedRequest, res: Response) => {
   const flagId = parseInt(String(req.params.id), 10);
   const { status, comment } = req.body;
 
@@ -198,4 +198,7 @@ flagsRouter.patch('/flags/:id', (req: AuthenticatedRequest, res: Response) => {
     status,
     resolved_at: nowIso
   });
-});
+};
+
+flagsRouter.patch('/flags/:id', resolveHandler);
+flagsRouter.post('/flags/:id/resolve', resolveHandler);

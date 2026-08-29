@@ -1082,7 +1082,18 @@ bugsRouter.get('/bugs/:id/duplicates', (req: AuthenticatedRequest, res: Response
   if (!bug) return res.status(404).json({ error: 'Bug not found' });
 
   const duplicates = findDuplicates(bug.title, bug.description, bugId, req.user);
-  res.json({ duplicates });
+  res.json({ duplicates, matches: duplicates });
+});
+
+// POST /api/duplicates/check or /api/radar/check - Live semantic similarity during bug creation
+bugsRouter.post(['/duplicates/check', '/radar/check'], (req: AuthenticatedRequest, res: Response) => {
+  const { title, description, bugId } = req.body || {};
+  if (!title && !description) {
+    return res.json({ duplicates: [], matches: [] });
+  }
+
+  const duplicates = findDuplicates(title || '', description || '', bugId ? Number(bugId) : undefined, req.user);
+  res.json({ duplicates, matches: duplicates });
 });
 
 // GET /api/bugs/:id/timeline - Unified activity + git events sorted in one lane
