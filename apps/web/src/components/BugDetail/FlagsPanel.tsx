@@ -53,68 +53,66 @@ export const FlagsPanel: React.FC<FlagsPanelProps> = ({ bugId, flags, onRefresh 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case '?':
-        return 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+        return 'bg-[#ea580c] text-background font-bold animate-blink';
       case '+':
-        return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+        return 'bg-emerald-600 text-black font-bold';
       case '-':
-        return 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+        return 'bg-red-600 text-white font-bold';
       default:
-        return 'bg-slate-800 text-slate-400';
+        return 'bg-black text-muted-foreground border-border';
     }
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 font-mono text-xs">
       <div className="flex items-center justify-between">
-        <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-          <FlagIcon className="w-3.5 h-3.5 text-primary-400" />
-          Request & Approval Flags
+        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+          // REQUEST & APPROVAL FLAGS
         </h4>
         <button
           onClick={() => setIsRequesting(!isRequesting)}
-          className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-primary-600/20 text-primary-300 border border-primary-500/30 hover:bg-primary-600/30 flex items-center gap-1 transition-all"
+          className="px-2 py-0.5 border border-border hover:border-foreground text-[10px] uppercase font-bold text-foreground bg-transparent flex items-center gap-1"
         >
-          <Plus className="w-3.5 h-3.5" />
-          Request Flag
+          <Plus className="w-3 h-3" />
+          <span>REQUEST FLAG</span>
         </button>
       </div>
 
       {/* Request Flag Form */}
       {isRequesting && (
-        <form onSubmit={handleCreateFlag} className="p-3.5 rounded-xl bg-surface-100 border border-slate-700/80 space-y-3 animate-slide-up">
-          <p className="text-xs font-bold text-white">Create New Request / Approval</p>
+        <form onSubmit={handleCreateFlag} className="p-3 bg-[#0d0d0d] border-2 border-foreground/30 space-y-2.5 animate-slide-up">
+          <p className="text-xs font-bold text-foreground uppercase">// CREATE NEW CLEARANCE REQUEST</p>
 
           {errorMsg && (
-            <div className="p-2 rounded bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-1.5">
-              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+            <div className="p-2 bg-red-950 border border-red-500 text-red-200 text-[10px] uppercase">
               <span>{errorMsg}</span>
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1">Flag Type:</label>
+              <label className="block text-[9px] uppercase font-bold text-muted-foreground mb-1">FLAG TYPE:</label>
               <select
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
-                className="w-full bg-surface-50 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-primary-500 font-mono"
+                className="w-full bg-black border border-border p-1.5 text-xs text-foreground uppercase focus:outline-none focus:border-foreground"
               >
-                <option value="ft_review">review? (Peer Code Review)</option>
-                <option value="ft_needinfo">needinfo? (Ask for Details)</option>
-                <option value="ft_approval">approval? (Release Sign-off)</option>
+                <option value="ft_review">REVIEW? (CODE REVIEW)</option>
+                <option value="ft_needinfo">NEEDINFO? (ASK DETAILS)</option>
+                <option value="ft_approval">APPROVAL? (RELEASE SIGN-OFF)</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1">Requestee (Assignee):</label>
+              <label className="block text-[9px] uppercase font-bold text-muted-foreground mb-1">REQUESTEE:</label>
               <select
                 value={selectedRequestee}
                 onChange={(e) => setSelectedRequestee(e.target.value)}
-                className="w-full bg-surface-50 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-primary-500 font-sans"
+                className="w-full bg-black border border-border p-1.5 text-xs text-foreground uppercase focus:outline-none focus:border-foreground"
               >
                 {users.map((u) => (
                   <option key={u.id} value={u.id}>
-                    {u.name} (@{u.username} - {u.role})
+                    @{u.username} ({u.role.toUpperCase()})
                   </option>
                 ))}
               </select>
@@ -125,24 +123,24 @@ export const FlagsPanel: React.FC<FlagsPanelProps> = ({ bugId, flags, onRefresh 
             <button
               type="button"
               onClick={() => setIsRequesting(false)}
-              className="px-3 py-1 text-xs text-slate-400 hover:text-white"
+              className="px-2.5 py-1 text-xs uppercase text-muted-foreground hover:text-foreground"
             >
-              Cancel
+              CANCEL
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-3.5 py-1 text-xs font-semibold text-white bg-primary-600 hover:bg-primary-500 rounded-lg shadow-glow-primary flex items-center gap-1"
+              className="px-3 py-1 bg-foreground text-background font-bold text-xs uppercase hover:bg-white flex items-center gap-1"
             >
               {isSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
-              Send Request
+              <span>SEND REQUEST</span>
             </button>
           </div>
         </form>
       )}
 
       {/* Flags List */}
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {flags.map((flag) => {
           const isPending = flag.status === '?';
           const canResolve = isPending && (currentUser?.id === flag.requestee_id || currentUser?.role === 'admin');
@@ -150,27 +148,27 @@ export const FlagsPanel: React.FC<FlagsPanelProps> = ({ bugId, flags, onRefresh 
           return (
             <div
               key={flag.id}
-              className="flex items-center justify-between p-3 rounded-xl bg-surface-100/70 border border-slate-800/80 shadow-sm"
+              className="flex items-center justify-between p-2.5 bg-[#0d0d0d] border-2 border-border"
             >
-              <div className="flex items-center gap-3">
-                <span className={`w-6 h-6 rounded-full flex items-center justify-center font-mono font-bold text-xs border ${getStatusBadge(flag.status)}`}>
+              <div className="flex items-center gap-2.5">
+                <span className={`w-5 h-5 flex items-center justify-center font-mono font-bold text-[10px] ${getStatusBadge(flag.status)}`}>
                   {flag.status}
                 </span>
 
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-200 font-mono">{flag.type_name}</span>
-                    <span className="text-[11px] text-slate-400">
-                      from <strong className="text-slate-300">@{flag.setter?.username || flag.setter_id}</strong>
+                  <div className="flex items-center gap-1.5 font-mono text-xs">
+                    <span className="font-bold text-foreground uppercase">{flag.type_name}</span>
+                    <span className="text-muted-foreground uppercase text-[10px]">
+                      FROM <strong className="text-foreground">@{flag.setter?.username || flag.setter_id}</strong>
                     </span>
                     {flag.requestee && (
-                      <span className="text-[11px] text-slate-400">
-                        to <strong className="text-primary-300">@{flag.requestee.username}</strong>
+                      <span className="text-muted-foreground uppercase text-[10px]">
+                        → <strong className="text-[#ea580c]">@{flag.requestee.username}</strong>
                       </span>
                     )}
                   </div>
-                  <span className="text-[10px] text-slate-500 font-mono">
-                    Requested on {new Date(flag.created_at).toLocaleDateString()}
+                  <span className="text-[9px] text-muted-foreground uppercase font-mono">
+                    REQUESTED {new Date(flag.created_at).toLocaleDateString()}
                   </span>
                 </div>
               </div>
@@ -181,20 +179,20 @@ export const FlagsPanel: React.FC<FlagsPanelProps> = ({ bugId, flags, onRefresh 
                   <>
                     <button
                       onClick={() => handleResolveFlag(flag.id, '+')}
-                      className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/40 flex items-center gap-1 transition-all"
+                      className="px-2 py-0.5 text-[10px] uppercase font-bold bg-foreground text-background hover:bg-white"
                     >
-                      <Check className="w-3 h-3" /> Grant (+)
+                      [+] GRANT
                     </button>
                     <button
                       onClick={() => handleResolveFlag(flag.id, '-')}
-                      className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/40 flex items-center gap-1 transition-all"
+                      className="px-2 py-0.5 text-[10px] uppercase font-bold bg-red-950 border border-red-500 text-red-300 hover:bg-red-900"
                     >
-                      <X className="w-3 h-3" /> Deny (-)
+                      [-] DENY
                     </button>
                   </>
                 ) : (
-                  <span className="text-[10px] font-mono text-slate-500">
-                    {flag.status === '?' ? 'Awaiting response' : `Resolved (${flag.status})`}
+                  <span className="text-[10px] font-mono text-muted-foreground uppercase">
+                    {flag.status === '?' ? 'AWAITING' : `RESOLVED (${flag.status})`}
                   </span>
                 )}
               </div>
@@ -203,8 +201,8 @@ export const FlagsPanel: React.FC<FlagsPanelProps> = ({ bugId, flags, onRefresh 
         })}
 
         {flags.length === 0 && (
-          <div className="p-6 text-center text-slate-500 text-xs italic bg-surface-50/40 rounded-xl border border-slate-800/40">
-            No flags currently attached to this bug.
+          <div className="p-4 text-center text-muted-foreground text-xs uppercase border border-border bg-[#0d0d0d]">
+            // ZERO FLAGS ATTACHED
           </div>
         )}
       </div>

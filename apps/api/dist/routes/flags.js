@@ -116,8 +116,8 @@ flagsRouter.post('/bugs/:id/flags', (req, res) => {
         created_at: nowIso
     });
 });
-// PATCH /api/flags/:id - One-click resolution (+/-)
-flagsRouter.patch('/flags/:id', (req, res) => {
+// PATCH /api/flags/:id or POST /api/flags/:id/resolve - One-click resolution (+/-)
+const resolveHandler = (req, res) => {
     const flagId = parseInt(String(req.params.id), 10);
     const { status, comment } = req.body;
     if (isNaN(flagId) || !status) {
@@ -169,5 +169,7 @@ flagsRouter.patch('/flags/:id', (req, res) => {
         status,
         resolved_at: nowIso
     });
-});
+};
+flagsRouter.patch('/flags/:id', resolveHandler);
+flagsRouter.post('/flags/:id/resolve', resolveHandler);
 //# sourceMappingURL=flags.js.map

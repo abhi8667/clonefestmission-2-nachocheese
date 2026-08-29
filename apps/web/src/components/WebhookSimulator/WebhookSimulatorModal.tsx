@@ -65,7 +65,7 @@ export const WebhookSimulatorModal: React.FC<WebhookSimulatorModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto animate-fade-in font-mono"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto animate-fade-in font-mono"
       onClick={onClose}
     >
       <div
@@ -73,43 +73,39 @@ export const WebhookSimulatorModal: React.FC<WebhookSimulatorModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="webhook-sim-title"
-        className="w-full max-w-2xl bg-slate-950 border border-cyan-500/30 rounded-2xl shadow-2xl overflow-hidden my-6 animate-slide-up flex flex-col cyber-corners"
+        className="w-full max-w-2xl bg-[#080808] border-2 border-foreground shadow-brutalist overflow-hidden my-6 animate-slide-up flex flex-col text-foreground"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header HUD */}
-        <div className="p-5 border-b border-slate-800 bg-slate-950/95 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-cyan-950/80 border border-cyan-500/50 flex items-center justify-center text-cyan-300 shadow-glow-cyan">
-              <GitPullRequest className="w-4 h-4" />
-            </div>
+        {/* Brutalist Header */}
+        <div className="p-3 border-b-2 border-foreground bg-[#121212] flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 bg-[#ea580c]" />
+            <span className="h-2 w-2 bg-foreground" />
             <div>
-              <h2 id="webhook-sim-title" className="text-sm font-bold text-white flex items-center gap-2">
-                <span>GITHUB WEBHOOK & EVENT TELEMETRY REPLAYER</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
-                  automated: true
+              <h2 id="webhook-sim-title" className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+                <span>// REPLAY // GITHUB_WEBHOOK_EVENT</span>
+                <span className="text-[9px] px-1.5 py-0.2 bg-[#ea580c] text-background font-bold uppercase">
+                  AUTOMATED: TRUE
                 </span>
               </h2>
-              <p className="text-[11px] text-slate-400 font-sans">
-                Simulate inbound signed GitHub webhook events and watch the state machine auto-transition live
-              </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
             aria-label="Close dialog"
-            className="p-1.5 rounded-xl text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-all"
+            className="p-1 border border-border hover:border-foreground text-muted-foreground hover:text-foreground bg-[#080808]"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-4">
+        <div className="p-5 space-y-4">
           {/* Quick Demo Preset Buttons */}
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2.5">
-              ONE-CLICK WEBHOOK TELEMETRY PRESETS:
+            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+              // ONE-CLICK WEBHOOK TELEMETRY PRESETS:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <button
@@ -120,14 +116,14 @@ export const WebhookSimulatorModal: React.FC<WebhookSimulatorModalProps> = ({
                   handleSimulate('commit', 'Fixes #412: resolve offline save crash with fallback queue');
                 }}
                 disabled={isExecuting}
-                className="p-3.5 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/50 text-left transition-all group"
+                className="p-3 bg-[#0d0d0d] border-2 border-border hover:border-foreground text-left transition-all group"
               >
-                <div className="flex items-center gap-2 font-bold text-xs text-emerald-300 group-hover:text-emerald-200">
-                  <GitCommit className="w-3.5 h-3.5" />
-                  <span>Push 'Fixes #412' Commit</span>
+                <div className="flex items-center gap-1.5 font-bold text-xs text-foreground uppercase">
+                  <GitCommit className="w-3.5 h-3.5 text-[#ea580c]" />
+                  <span>PUSH 'FIXES #412' COMMIT</span>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1 font-sans">
-                  Auto-transitions Bug #412 to Resolved with automated: true in audit log
+                <p className="text-[9px] text-muted-foreground mt-1 uppercase font-mono">
+                  AUTO-TRANSITIONS BUG #412 TO RESOLVED WITH AUTOMATED: TRUE
                 </p>
               </button>
 
@@ -139,14 +135,14 @@ export const WebhookSimulatorModal: React.FC<WebhookSimulatorModalProps> = ({
                   handleSimulate('pr_review', 'Approve PR #89');
                 }}
                 disabled={isExecuting}
-                className="p-3.5 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-purple-500/50 text-left transition-all group"
+                className="p-3 bg-[#0d0d0d] border-2 border-border hover:border-foreground text-left transition-all group"
               >
-                <div className="flex items-center gap-2 font-bold text-xs text-purple-300 group-hover:text-purple-200">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Approve PR #89 Review</span>
+                <div className="flex items-center gap-1.5 font-bold text-xs text-foreground uppercase">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>APPROVE PR #89 REVIEW</span>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1 font-sans">
-                  Automatically grants open review? flag on Bug #412
+                <p className="text-[9px] text-muted-foreground mt-1 uppercase font-mono">
+                  GRANTS PENDING REVIEW? FLAG ON BUG #412
                 </p>
               </button>
 
@@ -158,14 +154,14 @@ export const WebhookSimulatorModal: React.FC<WebhookSimulatorModalProps> = ({
                   handleSimulate('pr_open', 'Fix crash during offline save (refs #412)');
                 }}
                 disabled={isExecuting}
-                className="p-3.5 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/50 text-left transition-all group"
+                className="p-3 bg-[#0d0d0d] border-2 border-border hover:border-foreground text-left transition-all group"
               >
-                <div className="flex items-center gap-2 font-bold text-xs text-cyan-300 group-hover:text-cyan-200">
-                  <GitPullRequest className="w-3.5 h-3.5" />
-                  <span>Open PR for #412</span>
+                <div className="flex items-center gap-1.5 font-bold text-xs text-foreground uppercase">
+                  <GitPullRequest className="w-3.5 h-3.5 text-[#ea580c]" />
+                  <span>OPEN PR FOR #412</span>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1 font-sans">
-                  Moves bug from In Progress to In Review
+                <p className="text-[9px] text-muted-foreground mt-1 uppercase font-mono">
+                  MOVES BUG FROM IN PROGRESS TO IN REVIEW
                 </p>
               </button>
 
@@ -177,14 +173,14 @@ export const WebhookSimulatorModal: React.FC<WebhookSimulatorModalProps> = ({
                   handleSimulate('pr_merge', 'Merge pull request #89');
                 }}
                 disabled={isExecuting}
-                className="p-3.5 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-amber-500/50 text-left transition-all group"
+                className="p-3 bg-[#0d0d0d] border-2 border-border hover:border-foreground text-left transition-all group"
               >
-                <div className="flex items-center gap-2 font-bold text-xs text-amber-300 group-hover:text-amber-200">
-                  <Bot className="w-3.5 h-3.5" />
-                  <span>Merge PR #89</span>
+                <div className="flex items-center gap-1.5 font-bold text-xs text-foreground uppercase">
+                  <Bot className="w-3.5 h-3.5 text-foreground" />
+                  <span>MERGE PR #89</span>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1 font-sans">
-                  Closes out PR and moves state to Resolved
+                <p className="text-[9px] text-muted-foreground mt-1 uppercase font-mono">
+                  CLOSES OUT PR AND MOVES STATE TO RESOLVED
                 </p>
               </button>
             </div>
@@ -192,23 +188,23 @@ export const WebhookSimulatorModal: React.FC<WebhookSimulatorModalProps> = ({
 
           {/* Execution Log */}
           {resultLog && (
-            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 font-mono text-xs animate-slide-up cyber-corners">
-              <div className="flex items-center justify-between text-slate-400 pb-1.5 border-b border-slate-800">
-                <span className="flex items-center gap-1.5 text-white font-bold">
-                  <Terminal className="w-3.5 h-3.5 text-cyan-400" /> Result Telemetry Log:
+            <div className="p-3 bg-black border-2 border-border space-y-2 font-mono text-xs animate-slide-up">
+              <div className="flex items-center justify-between text-muted-foreground pb-1 border-b border-border">
+                <span className="flex items-center gap-1.5 text-foreground font-bold uppercase">
+                  <Terminal className="w-3.5 h-3.5 text-[#ea580c]" /> RESULT LOG:
                 </span>
                 <button
                   onClick={() => {
                     onClose();
                     onSelectBug(bugId);
                   }}
-                  className="text-cyan-400 hover:underline flex items-center gap-1 text-[11px]"
+                  className="text-[#ea580c] hover:underline flex items-center gap-1 text-[10px] uppercase font-bold"
                 >
-                  <span>Open Incident #{bugId} in Dossier</span>
+                  <span>OPEN INCIDENT #{bugId} DOSSIER</span>
                 </button>
               </div>
 
-              <pre className="text-[11px] text-cyan-300/90 overflow-x-auto whitespace-pre-wrap">
+              <pre className="text-[10px] text-foreground overflow-x-auto whitespace-pre-wrap font-mono">
                 {JSON.stringify(resultLog, null, 2)}
               </pre>
             </div>

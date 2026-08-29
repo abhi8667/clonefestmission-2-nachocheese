@@ -22,19 +22,18 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
   onSelectState
 }) => {
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
-  const [selectedTransition, setSelectedTransition] = useState<WorkflowTransition | null>(null);
 
   // Position nodes in a 2-tier layout
   const nodes: NodeLayout[] = [
-    { id: 'Unconfirmed', x: 70, y: 70, label: 'Unconfirmed', color: '#64748B' },
-    { id: 'Confirmed', x: 230, y: 70, label: 'Confirmed', color: '#00E5FF' },
-    { id: 'In Progress', x: 390, y: 70, label: 'In Progress', color: '#F59E0B' },
-    { id: 'In Review', x: 550, y: 70, label: 'In Review', color: '#A855F7' },
-    { id: 'Resolved', x: 710, y: 70, label: 'Resolved', color: '#00F59B' },
-    { id: 'Verified', x: 870, y: 70, label: 'Verified', color: '#14B8A6' },
-    { id: 'Closed', x: 990, y: 70, label: 'Closed', color: '#475569' },
-    { id: 'Duplicate', x: 450, y: 200, label: 'Duplicate', color: '#71717A' },
-    { id: 'WontFix', x: 650, y: 200, label: 'WontFix', color: '#FF2A55' }
+    { id: 'Unconfirmed', x: 70, y: 70, label: 'UNCONFIRMED', color: '#737373' },
+    { id: 'Confirmed', x: 230, y: 70, label: 'CONFIRMED', color: '#ea580c' },
+    { id: 'In Progress', x: 390, y: 70, label: 'IN PROGRESS', color: '#f59e0b' },
+    { id: 'In Review', x: 550, y: 70, label: 'IN REVIEW', color: '#ea580c' },
+    { id: 'Resolved', x: 710, y: 70, label: 'RESOLVED', color: '#10b981' },
+    { id: 'Verified', x: 870, y: 70, label: 'VERIFIED', color: '#059669' },
+    { id: 'Closed', x: 990, y: 70, label: 'CLOSED', color: '#525252' },
+    { id: 'Duplicate', x: 450, y: 200, label: 'DUPLICATE', color: '#525252' },
+    { id: 'WontFix', x: 650, y: 200, label: 'WONTFIX', color: '#dc2626' }
   ];
 
   const nodeMap = new Map(nodes.map((n) => [n.id, n]));
@@ -65,30 +64,30 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
   };
 
   return (
-    <div className="rounded-2xl bg-slate-950/90 border border-cyan-500/20 p-5 shadow-cyber-card space-y-4 cyber-corners">
+    <div className="bg-[#0d0d0d] border-2 border-foreground p-4 shadow-brutalist space-y-3">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h3 className="text-sm font-bold font-mono text-white flex items-center gap-2">
-            <GitBranch className="w-4 h-4 text-cyan-400" />
-            <span>INTERACTIVE WORKFLOW STATE MACHINE ENGINE</span>
+          <h3 className="text-xs font-bold font-mono text-foreground uppercase tracking-wider flex items-center gap-2">
+            <GitBranch className="w-4 h-4 text-[#ea580c]" />
+            <span>// WORKFLOW FINITE STATE MACHINE ENGINE</span>
           </h3>
-          <p className="text-[11px] font-mono text-slate-400">
-            Declarative state machine schema rendered dynamically with cryptographic guard verification
+          <p className="text-[10px] font-mono text-muted-foreground uppercase">
+            DECLARATIVE STATE MACHINE SCHEMA WITH PERMISSIONED GUARDS & CRYPTO SEALS
           </p>
         </div>
 
-        <div className="flex items-center gap-4 text-[11px] font-mono text-slate-400">
+        <div className="flex items-center gap-4 text-[10px] font-mono text-muted-foreground uppercase">
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-glow-neon" /> Active Channel
+            <span className="w-2 h-2 bg-foreground" /> ACTIVE STATE
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-purple-400 shadow-glow-purple" /> Cryptographic Guard
+            <span className="w-2 h-2 bg-[#ea580c]" /> GUARDED TRANSITION
           </span>
         </div>
       </div>
 
       {/* SVG Canvas */}
-      <div className="w-full overflow-x-auto bg-slate-900/90 rounded-xl p-4 border border-slate-800/80">
+      <div className="w-full overflow-x-auto bg-black p-3 border-2 border-border">
         <svg viewBox="0 0 1080 270" className="w-full min-w-[900px] h-64 select-none">
           <defs>
             <marker
@@ -100,7 +99,7 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
               markerHeight="6"
               orient="auto-start-reverse"
             >
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569" />
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#737373" />
             </marker>
             <marker
               id="arrow-active"
@@ -111,72 +110,37 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
               markerHeight="6"
               orient="auto-start-reverse"
             >
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#00E5FF" />
-            </marker>
-            <marker
-              id="arrow-guard"
-              viewBox="0 0 10 10"
-              refX="6"
-              refY="5"
-              markerWidth="6"
-              markerHeight="6"
-              orient="auto-start-reverse"
-            >
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#A855F7" />
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#ea580c" />
             </marker>
           </defs>
 
-          {/* Transitions (Edges) */}
-          {workflow.transitions.map((t, idx) => {
-            const isWildcard = t.from === '*';
-            const sources = isWildcard
-              ? ['In Progress', 'In Review', 'Confirmed', 'Resolved']
-              : [t.from];
+          {/* Render All Background Transitions */}
+          {workflow.transitions.map((t, i) => {
+            if (t.from === '*') return null;
+            const isHovered = hoveredNode === t.from || hoveredNode === t.to;
+            const path = getPath(t.from, t.to);
+            if (!path) return null;
 
-            return sources.map((src, sIdx) => {
-              const d = getPath(src, t.to);
-              if (!d) return null;
-
-              const isHighlighted =
-                hoveredNode === src || hoveredNode === t.to || (hoveredNode && isWildcard);
-              const hasGuard = !!t.guards;
-
-              return (
-                <g
-                  key={`${idx}-${sIdx}`}
-                  onClick={() => setSelectedTransition(t)}
-                  className="cursor-pointer"
-                >
-                  <path
-                    d={d}
-                    fill="none"
-                    stroke={
-                      isHighlighted
-                        ? hasGuard
-                          ? '#A855F7'
-                          : '#00E5FF'
-                        : '#334155'
-                    }
-                    strokeWidth={isHighlighted ? 2.5 : 1.5}
-                    strokeDasharray={isWildcard ? '4 3' : undefined}
-                    markerEnd={
-                      isHighlighted
-                        ? hasGuard
-                          ? 'url(#arrow-guard)'
-                          : 'url(#arrow-active)'
-                        : 'url(#arrow)'
-                    }
-                    className="transition-all duration-200 hover:stroke-cyan-400 hover:stroke-[3]"
-                  />
-                </g>
-              );
-            });
+            return (
+              <g key={i}>
+                <path
+                  d={path}
+                  fill="none"
+                  stroke={isHovered ? '#ea580c' : '#262626'}
+                  strokeWidth={isHovered ? 2.5 : 1.5}
+                  strokeDasharray={t.guards ? '4 3' : undefined}
+                  markerEnd={isHovered ? 'url(#arrow-active)' : 'url(#arrow)'}
+                  className="transition-all duration-300"
+                />
+              </g>
+            );
           })}
 
-          {/* States (Nodes) */}
+          {/* Render State Nodes */}
           {nodes.map((node) => {
+            const isSelected = activeState === node.id;
             const isHovered = hoveredNode === node.id;
-            const isActive = activeState === node.id;
+            const isConnected = outgoingTransitions.some((t) => t.to === node.id);
 
             return (
               <g
@@ -185,7 +149,7 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
                 onMouseEnter={() => setHoveredNode(node.id)}
                 onMouseLeave={() => setHoveredNode(null)}
                 onClick={() => onSelectState && onSelectState(node.id)}
-                className="cursor-pointer group"
+                className="cursor-pointer transition-all"
               >
                 {/* Node Box */}
                 <rect
@@ -193,30 +157,23 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
                   y="-22"
                   width="110"
                   height="44"
-                  rx="10"
-                  fill={isHovered ? '#0B132B' : '#040711'}
-                  stroke={isActive ? '#00E5FF' : isHovered ? node.color : '#334155'}
-                  strokeWidth={isActive || isHovered ? 2.5 : 1.5}
-                  className="transition-all duration-200"
-                  style={{
-                    filter:
-                      isHovered || isActive
-                        ? `drop-shadow(0 0 12px ${node.color}80)`
-                        : undefined
-                  }}
+                  rx="0"
+                  fill={isHovered || isSelected ? '#080808' : '#0d0d0d'}
+                  stroke={isSelected ? '#F2F1EA' : isHovered ? '#ea580c' : isConnected ? '#ea580c' : '#262626'}
+                  strokeWidth={isSelected || isHovered ? 2.5 : 1.5}
+                  className="transition-all"
                 />
-
-                {/* Status Beacon Dot */}
-                <circle cx="-40" cy="0" r="4.5" fill={node.color} />
 
                 {/* State Label */}
                 <text
-                  x="-30"
+                  x="0"
                   y="4"
-                  fill="#F8FAFC"
-                  fontSize="11"
+                  textAnchor="middle"
+                  fill={isSelected ? '#FFFFFF' : isHovered ? '#ea580c' : '#F2F1EA'}
+                  fontSize="10"
                   fontWeight="bold"
                   fontFamily="JetBrains Mono, monospace"
+                  className="pointer-events-none uppercase tracking-wider"
                 >
                   {node.label}
                 </text>
@@ -226,24 +183,31 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
         </svg>
       </div>
 
-      {/* Selected / Hovered State Inspector */}
+      {/* Selected / Hovered Transition Inspector */}
       {hoveredNode && (
-        <div className="p-3.5 bg-slate-900/90 rounded-xl border border-cyan-500/30 text-xs font-mono flex items-center justify-between gap-4 animate-fade-in cyber-corners">
-          <div>
-            <span className="text-slate-400">STATE INSPECTION: </span>
-            <strong className="text-white">{hoveredNode}</strong>
-            <span className="text-slate-400 ml-4">VALID DESTINATIONS: </span>
-            <span className="text-cyan-300 font-bold">
-              {outgoingTransitions.map((t) => t.to).join(', ') || 'Terminal State'}
-            </span>
-          </div>
-          <div className="text-[11px]">
-            {outgoingTransitions.some((t) => t.guards) && (
-              <span className="text-purple-300 font-semibold flex items-center gap-1.5 shadow-glow-purple">
-                <Lock className="w-3.5 h-3.5 text-purple-400" />
-                <span>Cryptographic clearance guard enforced on transition</span>
-              </span>
-            )}
+        <div className="p-3 bg-black border border-border text-xs font-mono">
+          <span className="text-muted-foreground uppercase font-bold">
+            // ACTIVE NODE: <strong className="text-foreground">{hoveredNode.toUpperCase()}</strong>
+          </span>
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            {outgoingTransitions.map((t, i) => (
+              <div
+                key={i}
+                className="p-1.5 bg-[#0d0d0d] border border-border text-[10px] text-foreground uppercase flex items-center gap-1.5"
+              >
+                <span>→ {t.to}</span>
+                {t.guards && (
+                  <span className="px-1 py-0.2 bg-[#ea580c] text-background font-bold text-[9px]">
+                    GUARDED
+                  </span>
+                )}
+                {t.roles && (
+                  <span className="px-1 py-0.2 bg-[#222] text-foreground text-[9px]">
+                    ROLES: {t.roles.join(', ')}
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}

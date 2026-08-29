@@ -21,7 +21,6 @@ import {
 import { bulkTransitionBugs } from '../../services/api.ts';
 import { useAuth } from '../../context/AuthContext.tsx';
 import { EmptyState } from '../Common/EmptyState.tsx';
-import { ThreatPulseBadge } from '../Cyber/ThreatPulseBadge.tsx';
 
 interface TableViewProps {
   bugs: Bug[];
@@ -100,11 +99,11 @@ export const TableView: React.FC<TableViewProps> = ({
         currentUser?.id
       );
 
-      setBulkResultMsg(`Updated ${res.success_count} of ${res.total} incidents to ${bulkTargetState}`);
+      setBulkResultMsg(`UPDATED ${res.success_count} OF ${res.total} INCIDENTS TO ${bulkTargetState.toUpperCase()}`);
       setSelectedBugIds([]);
       if (onBugsUpdated) onBugsUpdated();
     } catch (err: any) {
-      setBulkResultMsg(`Bulk action failed: ${err.message}`);
+      setBulkResultMsg(`BULK ACTION FAILED: ${err.message}`);
     } finally {
       setIsBulkSubmitting(false);
     }
@@ -113,25 +112,25 @@ export const TableView: React.FC<TableViewProps> = ({
   const getStatusBadge = (status: BugStatus) => {
     switch (status) {
       case 'Unconfirmed':
-        return 'bg-slate-900 text-slate-400 border-slate-700';
+        return 'bg-black text-muted-foreground border-border';
       case 'Confirmed':
-        return 'bg-sky-950/80 text-sky-300 border-sky-500/40 shadow-sm';
+        return 'bg-foreground/10 text-foreground border-foreground/40';
       case 'In Progress':
-        return 'bg-amber-950/80 text-amber-300 border-amber-500/40 shadow-glow-amber';
+        return 'bg-[#ea580c]/15 text-[#ea580c] border-[#ea580c] font-bold';
       case 'In Review':
-        return 'bg-purple-950/80 text-purple-300 border-purple-500/40 shadow-glow-purple';
+        return 'bg-purple-950 text-purple-300 border-purple-500 font-bold';
       case 'Resolved':
-        return 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40 shadow-glow-neon';
+        return 'bg-emerald-950 text-emerald-300 border-emerald-500 font-bold';
       case 'Verified':
-        return 'bg-teal-950/80 text-teal-300 border-teal-500/40';
+        return 'bg-teal-950 text-teal-300 border-teal-500 font-bold';
       case 'Closed':
-        return 'bg-slate-900 text-slate-400 border-slate-800';
+        return 'bg-[#141414] text-muted-foreground border-border';
       case 'Duplicate':
-        return 'bg-zinc-900 text-zinc-400 border-zinc-800';
+        return 'bg-zinc-900 text-zinc-400 border-zinc-700';
       case 'WontFix':
-        return 'bg-red-950/40 text-red-300 border-red-800/40';
+        return 'bg-red-950 text-red-300 border-red-800';
       default:
-        return 'bg-slate-900 text-slate-300 border-slate-800';
+        return 'bg-black text-foreground border-border';
     }
   };
 
@@ -140,24 +139,24 @@ export const TableView: React.FC<TableViewProps> = ({
       case 'blocker':
         return (
           <span title="Blocker - Threat Alert Level 1" className="flex items-center justify-center">
-            <Flame className="w-4 h-4 text-red-500 animate-pulse shadow-glow-red" />
+            <span className="w-2.5 h-2.5 bg-red-600 animate-blink inline-block" />
           </span>
         );
       case 'critical':
         return (
           <span title="Critical Threat" className="flex items-center justify-center">
-            <AlertTriangle className="w-4 h-4 text-red-400" />
+            <span className="w-2.5 h-2.5 bg-[#ea580c] inline-block" />
           </span>
         );
       case 'major':
         return (
           <span title="Major Issue" className="flex items-center justify-center">
-            <AlertCircle className="w-4 h-4 text-amber-400" />
+            <span className="w-2 h-2 bg-amber-400 inline-block" />
           </span>
         );
       default:
         return (
-          <span className="w-2 h-2 rounded-full bg-cyan-500/60 inline-block" title="Normal" />
+          <span className="w-1.5 h-1.5 bg-muted-foreground inline-block" title="Normal" />
         );
     }
   };
@@ -166,30 +165,30 @@ export const TableView: React.FC<TableViewProps> = ({
     switch (prio) {
       case 'highest':
         return (
-          <span className="text-[10px] font-mono font-bold text-red-300 bg-red-950/80 px-1.5 py-0.5 rounded border border-red-500/50 shadow-glow-red">
-            P0
+          <span className="text-[10px] font-mono font-bold text-background bg-[#ea580c] px-1.5 py-0.5 uppercase">
+            P1
           </span>
         );
       case 'high':
         return (
-          <span className="text-[10px] font-mono font-bold text-amber-300 bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-500/50">
-            P1
+          <span className="text-[10px] font-mono font-bold text-foreground bg-[#222222] border border-foreground/40 px-1.5 py-0.5 uppercase">
+            P2
           </span>
         );
       case 'normal':
         return (
-          <span className="text-[10px] font-mono text-cyan-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">
-            P2
+          <span className="text-[10px] font-mono text-muted-foreground bg-[#111111] px-1.5 py-0.5 uppercase">
+            P3
           </span>
         );
       default:
-        return <span className="text-[10px] font-mono text-slate-500">P3</span>;
+        return <span className="text-[10px] font-mono text-muted-foreground/60">P4</span>;
     }
   };
 
   const formatDate = (iso: string) => {
     const d = new Date(iso);
-    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toUpperCase();
   };
 
   const renderSparkline = (sparkline?: number[]) => {
@@ -197,16 +196,15 @@ export const TableView: React.FC<TableViewProps> = ({
     const max = Math.max(...sparkline, 1);
 
     return (
-      <div className="flex items-end gap-0.5 h-3.5 w-14 shrink-0" title="14-day activity pulse">
+      <div className="flex items-end gap-0.5 h-3.5 w-12 shrink-0" title="14-day activity pulse">
         {sparkline.map((val, idx) => {
           const heightPct = Math.max(15, Math.round((val / max) * 100));
           return (
             <div
               key={idx}
               style={{ height: `${heightPct}%` }}
-              className={`w-0.5 rounded-t transition-all ${
-                val > 0 ? 'bg-cyan-400 shadow-glow-cyan' : 'bg-slate-800'
-              }`}
+              className={`w-0.5 transition-all ${val > 0 ? 'bg-[#ea580c]' : 'bg-[#222222]'
+                }`}
             />
           );
         })}
@@ -216,94 +214,106 @@ export const TableView: React.FC<TableViewProps> = ({
 
   return (
     <div className="space-y-4">
+      {/* Section Header */}
+      <div className="flex items-center gap-4">
+        <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">
+          // SECTION: INCIDENT_MATRIX
+        </span>
+        <div className="flex-1 border-t border-border"></div>
+        <span className="inline-block h-2 w-2 bg-[#ea580c] animate-blink"></span>
+        <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">
+          001
+        </span>
+      </div>
+
       {/* Floating Bulk Action Bar */}
       {canTriage && selectedBugIds.length > 0 && (
-        <div className="p-3.5 bg-slate-950/95 border border-cyan-500/50 rounded-2xl shadow-2xl backdrop-blur-xl flex items-center justify-between gap-4 animate-slide-up flex-wrap cyber-corners">
+        <div className="p-3 bg-[#0d0d0d] border-2 border-[#ea580c] shadow-brutalist flex items-center justify-between gap-4 animate-slide-up flex-wrap">
           <div className="flex items-center gap-3">
-            <span className="px-2.5 py-1 rounded-xl bg-cyan-500/20 text-cyan-300 font-mono font-bold text-xs border border-cyan-500/40 shadow-glow-cyan">
-              {selectedBugIds.length} Selected
+            <span className="px-2 py-0.5 bg-[#ea580c] text-background font-mono font-bold text-xs uppercase">
+              {selectedBugIds.length} SELECTED
             </span>
-            <span className="text-xs font-mono text-slate-300">Bulk Workflow Action:</span>
+            <span className="text-xs font-mono uppercase text-foreground">BULK TRANSITION ACTION:</span>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
             <select
               value={bulkTargetState}
               onChange={(e) => setBulkTargetState(e.target.value)}
-              className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
+              className="bg-[#080808] border-2 border-foreground/30 px-3 py-1 text-xs text-foreground font-mono uppercase focus:outline-none focus:border-foreground"
             >
-              <option value="Confirmed">Transition to Confirmed</option>
-              <option value="In Progress">Transition to In Progress</option>
-              <option value="In Review">Transition to In Review</option>
-              <option value="Resolved">Transition to Resolved (FIXED)</option>
-              <option value="Closed">Transition to Closed</option>
+              <option value="Confirmed">TRANSITION TO CONFIRMED</option>
+              <option value="In Progress">TRANSITION TO IN PROGRESS</option>
+              <option value="In Review">TRANSITION TO IN REVIEW</option>
+              <option value="Resolved">TRANSITION TO RESOLVED (FIXED)</option>
+              <option value="Closed">TRANSITION TO CLOSED</option>
             </select>
 
             <button
               onClick={handleBulkTransition}
               disabled={isBulkSubmitting}
-              className="cyber-btn-primary"
+              className="px-4 py-1 bg-foreground text-background font-bold text-xs font-mono uppercase flex items-center gap-1.5 hover:bg-white"
             >
               {isBulkSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArrowRight className="w-3.5 h-3.5" />}
-              <span className="font-mono">Apply Transition</span>
+              <span>EXECUTE</span>
             </button>
 
             <button
               onClick={() => setSelectedBugIds([])}
-              className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white text-xs font-mono transition-all border border-slate-800"
+              className="px-3 py-1 bg-[#141414] hover:bg-[#222] text-muted-foreground hover:text-foreground text-xs font-mono uppercase border border-border"
             >
-              Clear
+              CANCEL
             </button>
           </div>
         </div>
       )}
 
       {bulkResultMsg && (
-        <div className="p-3 rounded-xl bg-cyan-950/60 border border-cyan-500/40 text-xs font-mono text-cyan-200 flex items-center justify-between animate-fade-in shadow-glow-cyan">
+        <div className="p-3 border-2 border-foreground bg-[#141414] text-xs font-mono text-foreground flex items-center justify-between animate-fade-in uppercase">
           <span>{bulkResultMsg}</span>
-          <button onClick={() => setBulkResultMsg(null)} className="text-slate-400 hover:text-white text-xs">✕</button>
+          <button onClick={() => setBulkResultMsg(null)} className="text-muted-foreground hover:text-foreground text-xs">✕</button>
         </div>
       )}
 
       {/* Main Incident Matrix Table */}
-      <div className="w-full overflow-x-auto rounded-2xl border border-cyan-500/15 bg-slate-950/80 backdrop-blur-xl shadow-cyber-card cyber-corners">
+      <div className="w-full overflow-x-auto border-2 border-foreground bg-[#080808] shadow-brutalist">
         <table className="w-full text-left border-collapse text-xs" aria-label="Incident triage matrix">
           <thead>
-            <tr className="border-b border-slate-800/90 bg-slate-950/90 text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">
+            <tr className="border-b-2 border-foreground bg-[#121212] text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">
               {canTriage && (
-                <th scope="col" className="py-3 px-3 w-8 text-center">
+                <th scope="col" className="py-2.5 px-3 w-8 text-center border-r border-border">
                   <button
                     type="button"
                     onClick={handleSelectAll}
-                    className="text-slate-400 hover:text-cyan-400 transition-colors"
+                    className="text-muted-foreground hover:text-foreground transition-colors"
                     aria-label={selectedBugIds.length === bugs.length && bugs.length > 0 ? "Deselect all bugs" : "Select all bugs"}
                   >
                     {selectedBugIds.length === bugs.length && bugs.length > 0 ? (
-                      <CheckSquare className="w-3.5 h-3.5 text-cyan-400" />
+                      <CheckSquare className="w-3.5 h-3.5 text-foreground" />
                     ) : (
                       <Square className="w-3.5 h-3.5" />
                     )}
                   </button>
                 </th>
               )}
-              <th scope="col" className="py-3 px-2 w-14 text-center">ID</th>
-              <th scope="col" className="py-3 px-2 w-12 text-center">SEV</th>
-              <th scope="col" className="py-3 px-2 w-12 text-center">PRIO</th>
-              <th scope="col" className="py-3 px-4">INCIDENT & THREAT VECTOR</th>
-              <th scope="col" className="py-3 px-3 w-32">STATE</th>
-              <th scope="col" className="py-3 px-3 w-28">SUBSYSTEM</th>
-              <th scope="col" className="py-3 px-3 w-36">ASSIGNEE</th>
-              <th scope="col" className="py-3 px-3 w-20 text-center">PULSE</th>
-              <th scope="col" className="py-3 px-3 w-24 text-right">UPDATED</th>
+              <th scope="col" className="py-2.5 px-2 w-14 text-center border-r border-border">ID</th>
+              <th scope="col" className="py-2.5 px-2 w-10 text-center border-r border-border">SEV</th>
+              <th scope="col" className="py-2.5 px-2 w-12 text-center border-r border-border">PRIO</th>
+              <th scope="col" className="py-2.5 px-4 border-r border-border">INCIDENT & THREAT VECTOR</th>
+              <th scope="col" className="py-2.5 px-3 w-32 border-r border-border">STATE</th>
+              <th scope="col" className="py-2.5 px-3 w-28 border-r border-border">SUBSYSTEM</th>
+              <th scope="col" className="py-2.5 px-3 w-36 border-r border-border">ASSIGNEE</th>
+              <th scope="col" className="py-2.5 px-3 w-16 text-center border-r border-border">PULSE</th>
+              <th scope="col" className="py-2.5 px-3 w-24 text-right">UPDATED</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-900/80">
+          <tbody className="divide-y divide-border font-mono">
             {bugs.length === 0 ? (
               <tr>
                 <td colSpan={10} className="p-8">
                   <EmptyState
                     icon={ActivityIcon}
-                    title="No Matching Incidents in Active Telemetry"
+                    title="NO MATCHING INCIDENTS IN ACTIVE TELEMETRY"
                     description="Try adjusting search syntax, clearing filters, or reporting a new incident."
                   />
                 </td>
@@ -331,65 +341,64 @@ export const TableView: React.FC<TableViewProps> = ({
                       }
                     }}
                     aria-label={`Incident #${bug.id}: ${bug.title}`}
-                    className={`group cursor-pointer transition-all duration-200 focus:outline-none ${
-                      isSelected
-                        ? 'bg-cyan-950/40 border-l-4 border-l-cyan-400'
+                    className={`group cursor-pointer transition-colors duration-150 focus:outline-none ${isSelected
+                        ? 'bg-foreground/15 border-l-4 border-l-[#ea580c]'
                         : isChecked
-                        ? 'bg-cyan-950/20'
-                        : isFocused
-                        ? 'bg-slate-900/80'
-                        : isConfidential
-                        ? 'bg-purple-950/15 hover:bg-purple-950/25'
-                        : isBug412Stalled
-                        ? 'bg-red-950/20 hover:bg-red-950/30'
-                        : 'hover:bg-slate-900/60'
-                    }`}
+                          ? 'bg-[#1a1a1a]'
+                          : isFocused
+                            ? 'bg-[#141414]'
+                            : isConfidential
+                              ? 'bg-purple-950/20 hover:bg-purple-950/40'
+                              : isBug412Stalled
+                                ? 'bg-[#ea580c]/10 hover:bg-[#ea580c]/20'
+                                : 'hover:bg-[#111111]'
+                      }`}
                   >
                     {/* Select Checkbox */}
                     {canTriage && (
-                      <td className="py-3 px-3 text-center" onClick={(e) => handleToggleSelect(e, bug.id)}>
+                      <td className="py-2.5 px-3 text-center border-r border-border" onClick={(e) => handleToggleSelect(e, bug.id)}>
                         {isChecked ? (
-                          <CheckSquare className="w-3.5 h-3.5 text-cyan-400 inline-block" />
+                          <CheckSquare className="w-3.5 h-3.5 text-[#ea580c] inline-block" />
                         ) : (
-                          <Square className="w-3.5 h-3.5 text-slate-600 group-hover:text-slate-400 inline-block" />
+                          <Square className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground inline-block" />
                         )}
                       </td>
                     )}
 
                     {/* ID */}
-                    <td className="py-3 px-2 text-center font-mono font-bold text-cyan-400 whitespace-nowrap">
+                    <td className="py-2.5 px-2 text-center font-bold text-foreground whitespace-nowrap border-r border-border tabular-nums">
                       #{bug.id}
                     </td>
 
                     {/* Severity */}
-                    <td className="py-3 px-2 text-center">
+                    <td className="py-2.5 px-2 text-center border-r border-border">
                       <div className="flex justify-center">{getSeverityIcon(bug.severity)}</div>
                     </td>
 
                     {/* Priority */}
-                    <td className="py-3 px-2 text-center">
+                    <td className="py-2.5 px-2 text-center border-r border-border">
                       {getPriorityBadge(bug.priority)}
                     </td>
 
-                    {/* Title + Cyber Badges */}
-                    <td className="py-3 px-4 max-w-lg">
+                    {/* Title + Brutalist Badges */}
+                    <td className="py-2.5 px-4 max-w-lg border-r border-border">
                       <div className="flex items-center gap-2 flex-wrap">
                         {isConfidential && (
                           <span
-                            className="p-1 rounded-md bg-purple-950/80 text-purple-300 border border-purple-500/50 shrink-0 shadow-glow-purple"
-                            title="Confidential Security Core incident (grp_sec)"
+                            className="px-1.5 py-0.2 bg-purple-950 text-purple-300 border border-purple-500 text-[9px] uppercase font-bold shrink-0"
+                            title="Confidential Security Core incident"
                           >
-                            <ShieldAlert className="w-3 h-3 text-purple-400" />
+                            [CONFIDENTIAL]
                           </span>
                         )}
 
-                        <span className="font-semibold text-slate-200 group-hover:text-cyan-200 transition-colors truncate">
+                        <span className="font-bold text-foreground group-hover:text-[#ea580c] transition-colors truncate">
                           {bug.title}
                         </span>
 
                         {/* Milestone Badge */}
                         {bug.target_milestone && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 shrink-0">
+                          <span className="inline-flex items-center px-1.5 py-0.2 text-[9px] uppercase bg-black text-muted-foreground border border-border shrink-0">
                             {bug.target_milestone}
                           </span>
                         )}
@@ -399,7 +408,7 @@ export const TableView: React.FC<TableViewProps> = ({
                           bug.keywords.slice(0, 2).map((k) => (
                             <span
                               key={k.id}
-                              className="text-[10px] font-mono text-cyan-400/90 bg-cyan-950/80 px-1.5 py-0.2 rounded border border-cyan-800/40 shrink-0"
+                              className="text-[9px] uppercase text-muted-foreground bg-[#141414] px-1 py-0.2 border border-border shrink-0"
                             >
                               #{k.name}
                             </span>
@@ -407,60 +416,54 @@ export const TableView: React.FC<TableViewProps> = ({
 
                         {/* Review Stall Badge */}
                         {isBug412Stalled && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-red-950/80 text-red-300 border border-red-500/60 shadow-glow-red animate-pulse whitespace-nowrap shrink-0">
-                            <AlertTriangle className="w-3 h-3 text-red-400" />
-                            REVIEW STALLED (4d)
+                          <span className="inline-flex items-center gap-1 px-2 py-0.2 text-[9px] font-bold bg-[#ea580c] text-background uppercase animate-blink whitespace-nowrap shrink-0">
+                            [STALLED 4D // REVIEW?]
                           </span>
                         )}
 
                         {/* SLA Breach Badge */}
                         {isSlaBreached && !isBug412Stalled && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-red-950/80 text-red-300 border border-red-500/50 whitespace-nowrap shrink-0">
-                            SLA +{bug.sla_status?.breach_hours}h
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.2 text-[9px] font-bold bg-red-950 text-red-300 border border-red-500 uppercase whitespace-nowrap shrink-0">
+                            SLA +{bug.sla_status?.breach_hours}H
                           </span>
                         )}
                       </div>
                     </td>
 
                     {/* Status Pill */}
-                    <td className="py-3 px-3 whitespace-nowrap">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold border ${getStatusBadge(bug.status)}`}>
+                    <td className="py-2.5 px-3 whitespace-nowrap border-r border-border">
+                      <span className={`px-2 py-0.5 text-[9px] uppercase border ${getStatusBadge(bug.status)}`}>
                         {bug.status}
                       </span>
                     </td>
 
                     {/* Subsystem Component */}
-                    <td className="py-3 px-3 whitespace-nowrap">
-                      <span className="px-2 py-0.5 rounded-md bg-slate-900 text-cyan-400 font-mono text-[10px] border border-slate-800">
+                    <td className="py-2.5 px-3 whitespace-nowrap border-r border-border">
+                      <span className="px-1.5 py-0.5 bg-[#121212] text-muted-foreground text-[10px] border border-border uppercase">
                         {bug.component_id}
                       </span>
                     </td>
 
                     {/* Assignee */}
-                    <td className="py-3 px-3 whitespace-nowrap">
+                    <td className="py-2.5 px-3 whitespace-nowrap border-r border-border">
                       {bug.assignee ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[9px] font-bold text-slate-300 overflow-hidden">
-                            {bug.assignee.avatar_url ? (
-                              <img src={bug.assignee.avatar_url} alt={bug.assignee.name} className="w-full h-full object-cover" />
-                            ) : (
-                              bug.assignee.name.charAt(0)
-                            )}
-                          </div>
-                          <span className="text-slate-300 text-xs font-mono truncate max-w-[110px]">{bug.assignee.name}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-foreground text-xs uppercase truncate max-w-[120px]">
+                            @{bug.assignee.username || bug.assignee.name}
+                          </span>
                         </div>
                       ) : (
-                        <span className="text-slate-500 font-mono text-[10px] italic">Unassigned</span>
+                        <span className="text-muted-foreground text-[10px] uppercase">// UNASSIGNED</span>
                       )}
                     </td>
 
                     {/* 14-Day Activity Sparkline */}
-                    <td className="py-3 px-3 text-center">
+                    <td className="py-2.5 px-3 text-center border-r border-border">
                       <div className="flex justify-center">{renderSparkline(bug.activity_sparkline)}</div>
                     </td>
 
                     {/* Last Updated Date */}
-                    <td className="py-3 px-3 text-right font-mono text-[11px] text-slate-400 whitespace-nowrap">
+                    <td className="py-2.5 px-3 text-right text-[10px] text-muted-foreground whitespace-nowrap tabular-nums">
                       {formatDate(bug.updated_at)}
                     </td>
                   </tr>

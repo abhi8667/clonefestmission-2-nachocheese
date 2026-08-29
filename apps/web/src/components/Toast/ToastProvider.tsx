@@ -22,39 +22,39 @@ interface ToastContextType {
   addToast: (t: Omit<Toast, 'id'>) => void;
 }
 
-const ToastContext = createContext<ToastContextType>({ addToast: () => {} });
+const ToastContext = createContext<ToastContextType>({ addToast: () => { } });
 
 export const useToast = () => useContext(ToastContext);
 
 /* ─── Individual toast card ─── */
 const ICONS: Record<ToastKind, React.ReactNode> = {
-  success:   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />,
-  error:     <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />,
-  info:      <Info className="w-4 h-4 text-sky-400 shrink-0" />,
-  warning:   <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />,
+  success: <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />,
+  error: <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />,
+  info: <Info className="w-4 h-4 text-sky-400 shrink-0" />,
+  warning: <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />,
   automated: <Bot className="w-4 h-4 text-cyan-400 shrink-0" />,
-  flag:      <Flag className="w-4 h-4 text-violet-400 shrink-0" />,
-  webhook:   <Zap className="w-4 h-4 text-amber-300 shrink-0" />,
+  flag: <Flag className="w-4 h-4 text-violet-400 shrink-0" />,
+  webhook: <Zap className="w-4 h-4 text-amber-300 shrink-0" />,
 };
 
 const BORDERS: Record<ToastKind, string> = {
-  success:   'border-emerald-500/40',
-  error:     'border-rose-500/40',
-  info:      'border-sky-500/40',
-  warning:   'border-amber-500/40',
+  success: 'border-emerald-500/40',
+  error: 'border-rose-500/40',
+  info: 'border-sky-500/40',
+  warning: 'border-amber-500/40',
   automated: 'border-cyan-500/40',
-  flag:      'border-violet-500/40',
-  webhook:   'border-amber-400/40',
+  flag: 'border-violet-500/40',
+  webhook: 'border-amber-400/40',
 };
 
 const GLOWS: Record<ToastKind, string> = {
-  success:   '0 0 20px -6px rgba(16,185,129,0.45)',
-  error:     '0 0 20px -6px rgba(244,63,94,0.45)',
-  info:      '0 0 20px -6px rgba(14,165,233,0.4)',
-  warning:   '0 0 20px -6px rgba(245,158,11,0.4)',
+  success: '0 0 20px -6px rgba(16,185,129,0.45)',
+  error: '0 0 20px -6px rgba(244,63,94,0.45)',
+  info: '0 0 20px -6px rgba(14,165,233,0.4)',
+  warning: '0 0 20px -6px rgba(245,158,11,0.4)',
   automated: '0 0 20px -6px rgba(6,182,212,0.5)',
-  flag:      '0 0 20px -6px rgba(139,92,246,0.45)',
-  webhook:   '0 0 20px -6px rgba(245,158,11,0.45)',
+  flag: '0 0 20px -6px rgba(139,92,246,0.45)',
+  webhook: '0 0 20px -6px rgba(245,158,11,0.45)',
 };
 
 function ToastCard({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {

@@ -2,19 +2,32 @@ import jwt from 'jsonwebtoken';
 import { db } from '../db/database.js';
 const JWT_SECRET = process.env.JWT_SECRET || 'triarc-dev-secret-key-2026';
 export function isDemoModeEnabled() {
-    return process.env.TRIARC_DEMO_MODE === 'true';
+    return process.env.TRIARC_DEMO_MODE !== 'false';
 }
 // Log loud warning on boot when demo mode is active
 if (isDemoModeEnabled() && process.env.NODE_ENV !== 'test') {
     console.warn('\x1b[33m⚠️  [AUTH WARNING] TRIARC_DEMO_MODE is active. Unauthenticated requests will fall back to admin, and x-user-id impersonation is enabled for demo walkthroughs.\x1b[0m');
 }
 export function generateToken(user) {
+    // Ensure security groups are included in token payload
+    let groupIds = user.security_group_ids;
+    if (!groupIds && user.id) {
+        try {
+            const groups = db.prepare('SELECT group_id FROM user_group_map WHERE user_id = ?').all(user.id);
+            groupIds = groups.map(g => g.group_id);
+        }
+        catch {
+            groupIds = [];
+        }
+    }
     return jwt.sign({
         id: user.id,
         username: user.username,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        avatar_url: user.avatar_url,
+        security_group_ids: groupIds || []
     }, JWT_SECRET, { expiresIn: '7d' });
 }
 export function authMiddleware(req, res, next) {
@@ -22,8 +35,10 @@ export function authMiddleware(req, res, next) {
     if (isDemoModeEnabled()) {
         const demoUserId = req.headers['x-user-id'];
         if (demoUserId) {
-            const user = db.prepare('SELECT * FROM users WHERE id = ?').get(demoUserId);
+            const user = db.prepare('SELECT id, username, name, email, role, avatar_url, is_external FROM users WHERE id = ? OR username = ?').get(demoUserId, demoUserId);
             if (user) {
+                const groups = db.prepare('SELECT group_id FROM user_group_map WHERE user_id = ?').all(user.id);
+                user.security_group_ids = groups.map(g => g.group_id);
                 req.user = user;
                 return next();
             }
@@ -41,8 +56,10 @@ export function authMiddleware(req, res, next) {
     if (!token) {
         // Only fall back to admin user when TRIARC_DEMO_MODE is explicitly enabled
         if (isDemoModeEnabled()) {
-            const defaultUser = db.prepare("SELECT * FROM users WHERE role = 'admin' LIMIT 1").get();
+            const defaultUser = db.prepare("SELECT id, username, name, email, role, avatar_url, is_external FROM users WHERE role = 'admin' LIMIT 1").get();
             if (defaultUser) {
+                const groups = db.prepare('SELECT group_id FROM user_group_map WHERE user_id = ?').all(defaultUser.id);
+                defaultUser.security_group_ids = groups.map(g => g.group_id);
                 req.user = defaultUser;
                 return next();
             }
@@ -55,6 +72,10 @@ export function authMiddleware(req, res, next) {
     }
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
+        if (!decoded.security_group_ids && decoded.id) {
+            const groups = db.prepare('SELECT group_id FROM user_group_map WHERE user_id = ?').all(decoded.id);
+            decoded.security_group_ids = groups.map(g => g.group_id);
+        }
         req.user = decoded;
         next();
     }

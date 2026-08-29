@@ -93,7 +93,7 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
     if (bugId) {
       setIsLoading(true);
       loadData();
-      fetchKeywords().then((res) => setAllKeywords(res.keywords || [])).catch(() => {});
+      fetchKeywords().then((res) => setAllKeywords(res.keywords || [])).catch(() => { });
     }
   }, [bugId, currentUser?.id]);
 
@@ -127,7 +127,7 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
         await watchBug(bugId, currentUser?.id);
       }
       loadData();
-    } catch (err) {}
+    } catch (err) { }
   };
 
   const handleAddKeyword = async () => {
@@ -137,14 +137,14 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
       setIsAddingKeyword(false);
       setSelectedKeywordToAdd('');
       loadData();
-    } catch (err) {}
+    } catch (err) { }
   };
 
   const handleRemoveKeyword = async (keywordId: string) => {
     try {
       await removeBugKeyword(bugId, keywordId, currentUser?.id);
       loadData();
-    } catch (err) {}
+    } catch (err) { }
   };
 
   const handlePostComment = async (e: React.FormEvent) => {
@@ -153,43 +153,78 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
 
     setIsPostingComment(true);
     try {
-      const parsedWork = workTime ? parseFloat(workTime) : 0;
-      await addComment(bugId, newComment, isPrivateComment, parsedWork, currentUser?.id);
+      await addComment(
+        bugId,
+        newComment.trim(),
+        isPrivateComment,
+        workTime ? parseFloat(workTime) : 0,
+        currentUser?.id
+      );
       setNewComment('');
       setWorkTime('');
+      setIsPrivateComment(false);
       loadData();
-    } catch (err: any) {
-      alert(err.message || 'Failed to post comment');
+    } catch (err) {
+      console.error('Failed to post comment:', err);
     } finally {
       setIsPostingComment(false);
     }
   };
 
-  // Compute total logged work time from comments
-  const totalLoggedWorkHours = (data?.comments || []).reduce((acc: number, c: any) => acc + (Number(c.work_time) || 0), 0);
-  const elapsedFlowHours = Math.round((data?.flow_metrics?.total_lead_time_ms || 0) / (3600 * 1000));
+  const totalLoggedWorkHours = (data?.comments || []).reduce(
+    (acc: number, c: any) => acc + (Number(c.work_time) || 0),
+    0
+  );
+
+  const elapsedFlowHours = data?.bug?.created_at
+    ? Math.max(1, Math.round((Date.now() - new Date(data.bug.created_at).getTime()) / (3600 * 1000)))
+    : 0;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto animate-fade-in"
-      onClick={onClose}
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 animate-fade-in"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="bug-detail-modal-title"
     >
       <div
         ref={trapRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="bug-detail-modal-title"
-        className="w-full max-w-5xl bg-slate-950 border border-cyan-500/30 rounded-2xl shadow-2xl overflow-hidden my-6 animate-slide-up flex flex-col max-h-[92vh] cyber-corners"
-        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-5xl bg-[#080808] border-2 border-foreground shadow-brutalist max-h-[92vh] flex flex-col overflow-hidden text-foreground font-mono"
       >
-        {/* Header HUD */}
-        <div className="p-4 lg:p-6 border-b border-slate-800 bg-slate-950/95 flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-2.5 flex-wrap">
-              <span className="font-mono text-base font-extrabold text-cyan-400">
-                #{data?.bug?.id || bugId}
+        {/* Brutalist Window Header */}
+        <div className="flex items-center justify-between px-4 py-2 bg-[#121212] border-b-2 border-foreground">
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 bg-[#ea580c]" />
+            <span className="h-2.5 w-2.5 bg-foreground" />
+            <span className="h-2.5 w-2.5 border border-foreground" />
+            <span className="ml-2 text-xs font-mono font-bold uppercase tracking-widest text-foreground">
+              MANIFEST: INCIDENT_#{bugId}.LOG // v3.1.0
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-muted-foreground uppercase hidden sm:inline">
+              [ESC TO CLOSE]
+            </span>
+            <button
+              onClick={onClose}
+              className="p-1 border border-border hover:border-foreground text-muted-foreground hover:text-foreground bg-[#080808] transition-colors"
+              aria-label="Close dossier modal"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Modal Banner & Title */}
+        <div className="p-4 lg:p-6 border-b-2 border-border bg-[#0d0d0d] flex flex-wrap items-start justify-between gap-4">
+          <div className="flex-1 min-w-[280px]">
+            <div className="flex items-center gap-2 flex-wrap mb-2">
+              <span className="px-2 py-0.5 bg-foreground text-background font-bold text-xs">
+                INCIDENT #{bugId}
               </span>
 
+              {/* Status Transition Guard Dropdown */}
               {data?.bug && (
                 <StatusTransitionDropdown
                   bugId={data.bug.id}
@@ -200,25 +235,24 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
               )}
 
               {data?.bug?.security_group_id && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-purple-950/80 text-purple-300 border border-purple-500/50 text-xs font-mono font-semibold shadow-glow-purple">
-                  <ShieldAlert className="w-3.5 h-3.5 text-purple-400" />
-                  <span>CLASSIFIED SECURITY DOSSIER</span>
+                <span className="px-2 py-0.5 bg-purple-950 text-purple-300 border border-purple-500 text-xs font-bold uppercase">
+                  [CLASSIFIED SECURITY DOSSIER]
                 </span>
               )}
 
               {/* Live Presence Viewers */}
               {data?.viewers && data.viewers.length > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-300">
-                  <Radio className="w-3 h-3 text-emerald-400 animate-pulse" />
+                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-black border border-border text-[10px] text-muted-foreground">
+                  <span className="w-1.5 h-1.5 bg-emerald-400 animate-blink" />
                   <span>
-                    Operators in dossier: <strong className="text-cyan-300">@{data.viewers.map((v: any) => v.username).join(', @')}</strong>
+                    VIEWERS: <strong className="text-foreground">@{data.viewers.map((v: any) => v.username).join(', @')}</strong>
                   </span>
                 </div>
               )}
             </div>
 
-            <h2 id="bug-detail-modal-title" className="text-lg lg:text-xl font-bold text-white leading-snug">
-              {data?.bug?.title || 'Decrypting incident dossier...'}
+            <h2 id="bug-detail-modal-title" className="text-lg lg:text-xl font-bold text-foreground leading-snug uppercase">
+              {data?.bug?.title || 'DECRYPTING INCIDENT DOSSIER...'}
             </h2>
           </div>
 
@@ -227,36 +261,26 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
             {data?.bug && (
               <button
                 onClick={handleToggleWatch}
-                className={`px-3 py-1.5 rounded-xl text-xs font-mono font-semibold border flex items-center gap-1.5 transition-all shadow-sm ${
-                  data.bug.is_watched
-                    ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-glow-cyan'
-                    : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
-                }`}
-                title={data.bug.is_watched ? 'Watching incident. Click to unwatch' : 'Click to watch and receive telemetry updates'}
+                className={`px-3 py-1.5 text-xs font-mono uppercase font-bold border-2 transition-all ${data.bug.is_watched
+                    ? 'bg-foreground text-background border-foreground'
+                    : 'bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground'
+                  }`}
+                title={data.bug.is_watched ? 'Watching incident' : 'Click to watch'}
               >
-                {data.bug.is_watched ? <Eye className="w-3.5 h-3.5 text-cyan-400" /> : <EyeOff className="w-3.5 h-3.5" />}
-                <span>{data.bug.is_watched ? 'Telemetry Active' : 'Watch'} ({data.bug.watchers?.length || 0})</span>
+                {data.bug.is_watched ? '✓ WATCHING' : '+ WATCH'} ({data.bug.watchers?.length || 0})
               </button>
             )}
 
             {data?.bug && (
               <button
                 onClick={() => exportFlowReportAsHtml(data)}
-                className="px-3 py-1.5 rounded-xl text-xs font-mono font-semibold text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 flex items-center gap-1.5 transition-all shadow-sm"
-                title="Download Standalone Flow & Post-Mortem HTML Report"
+                className="px-3 py-1.5 text-xs font-mono uppercase font-bold border-2 border-border hover:border-foreground text-foreground bg-transparent transition-all flex items-center gap-1.5"
+                title="Download Standalone HTML Report"
               >
-                <Download className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="hidden sm:inline">Export Dossier</span>
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">EXPORT HTML</span>
               </button>
             )}
-
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-all"
-              aria-label="Close dossier modal"
-            >
-              <X className="w-5 h-5" />
-            </button>
           </div>
         </div>
 
@@ -278,69 +302,67 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
             )}
 
             {/* Core Metadata Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-900/90 p-4 rounded-2xl border border-slate-800 text-xs font-mono">
-              <div>
-                <span className="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">Reporter / Origin</span>
-                <span className="font-semibold text-slate-200 mt-0.5 block">
-                  {data?.bug?.reporter?.name || data?.bug?.reporter_id} (@{data?.bug?.reporter?.username || 'reporter'})
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-0 border-2 border-border bg-[#0d0d0d] text-xs font-mono">
+              <div className="p-3 border-r border-b sm:border-b-0 border-border">
+                <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">// REPORTER</span>
+                <span className="font-bold text-foreground mt-1 block uppercase">
+                  @{data?.bug?.reporter?.username || 'reporter'}
                 </span>
               </div>
-              <div>
-                <span className="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">Assigned Operator</span>
-                <span className="font-semibold text-cyan-300 mt-0.5 block">
-                  {data?.bug?.assignee?.name || 'Unassigned'}
+              <div className="p-3 border-r border-b sm:border-b-0 border-border">
+                <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">// ASSIGNEE</span>
+                <span className="font-bold text-[#ea580c] mt-1 block uppercase">
+                  {data?.bug?.assignee ? `@${data.bug.assignee.username}` : '// UNASSIGNED'}
                 </span>
               </div>
-              <div>
-                <span className="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">Subsystem Vector</span>
-                <span className="text-white font-bold uppercase mt-0.5 block">
-                  {data?.bug?.component_id} ({data?.bug?.component_name || 'Core'})
+              <div className="p-3 border-r border-border">
+                <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">// SUBSYSTEM</span>
+                <span className="text-foreground font-bold uppercase mt-1 block">
+                  {data?.bug?.component_id}
                 </span>
               </div>
-              <div>
-                <span className="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">Threat Level</span>
-                <span className="font-semibold text-amber-300 uppercase mt-0.5 block">
-                  {data?.bug?.severity} / {data?.bug?.priority}
+              <div className="p-3">
+                <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">// PRIORITY / SEV</span>
+                <span className="font-bold text-foreground uppercase mt-1 block">
+                  {data?.bug?.priority} / {data?.bug?.severity}
                 </span>
               </div>
             </div>
 
             {/* Capability Bar: Milestone, Version, Keywords & Time Tracking */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* Milestone & Keywords */}
-              <div className="p-4 bg-slate-900/90 rounded-2xl border border-slate-800 text-xs space-y-2.5">
+              <div className="p-3.5 bg-[#0d0d0d] border-2 border-border text-xs space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400 font-mono font-semibold flex items-center gap-1.5">
-                    <MilestoneIcon className="w-3.5 h-3.5 text-cyan-400" />
-                    Target Milestone & Version
+                  <span className="text-muted-foreground font-mono font-bold uppercase flex items-center gap-1.5">
+                    // TARGET MILESTONE
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono px-2.5 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[11px] font-bold">
-                      {data?.bug?.target_milestone || 'None'}
+                    <span className="px-2 py-0.5 bg-foreground text-background text-[10px] font-bold uppercase">
+                      {data?.bug?.target_milestone || 'NONE'}
                     </span>
                     {data?.bug?.version && (
-                      <span className="font-mono px-2 py-0.5 rounded-md bg-slate-950 text-slate-300 border border-slate-700 text-[10px]">
+                      <span className="px-1.5 py-0.5 border border-border text-muted-foreground text-[10px] uppercase">
                         v{data.bug.version}
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-slate-800">
-                  <span className="text-slate-400 font-mono font-semibold flex items-center gap-1.5">
-                    <Tag className="w-3.5 h-3.5 text-cyan-400" />
-                    Keywords & Tactical Tags
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <span className="text-muted-foreground font-mono font-bold uppercase flex items-center gap-1.5">
+                    // TAGS
                   </span>
                   <div className="flex flex-wrap items-center gap-1.5">
                     {data?.bug?.keywords?.map((kw: any) => (
                       <span
                         key={kw.id}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono bg-cyan-950/80 text-cyan-300 border border-cyan-500/40"
+                        className="inline-flex items-center gap-1 px-1.5 py-0.2 text-[10px] font-mono bg-black text-foreground border border-border uppercase"
                       >
                         #{kw.name}
                         <button
                           onClick={() => handleRemoveKeyword(kw.id)}
-                          className="hover:text-red-400 text-slate-500 ml-0.5"
+                          className="hover:text-red-400 text-muted-foreground ml-0.5"
                           title="Remove tag"
                         >
                           ×
@@ -348,36 +370,36 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
                       </span>
                     ))}
                     {isAddingKeyword ? (
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1">
                         <select
                           value={selectedKeywordToAdd}
                           onChange={(e) => setSelectedKeywordToAdd(e.target.value)}
-                          className="bg-slate-950 border border-slate-700 text-slate-200 text-[10px] font-mono rounded-lg px-2 py-0.5"
+                          className="bg-black border border-border text-foreground text-[10px] font-mono px-1.5 py-0.5 uppercase"
                         >
-                          <option value="">Select tag...</option>
+                          <option value="">SELECT...</option>
                           {allKeywords.map((k) => (
-                            <option key={k.id} value={k.id}>{k.name}</option>
+                            <option key={k.id} value={k.id}>{k.name.toUpperCase()}</option>
                           ))}
                         </select>
                         <button
                           onClick={handleAddKeyword}
-                          className="px-2 py-0.5 rounded-lg bg-cyan-600 text-slate-950 font-mono font-bold text-[10px]"
+                          className="px-2 py-0.5 bg-foreground text-background text-[10px] font-bold uppercase"
                         >
-                          Add
+                          ADD
                         </button>
                         <button
                           onClick={() => setIsAddingKeyword(false)}
-                          className="text-slate-500 hover:text-white text-[10px] font-mono"
+                          className="text-muted-foreground hover:text-foreground text-[10px]"
                         >
-                          Cancel
+                          CANCEL
                         </button>
                       </div>
                     ) : (
                       <button
                         onClick={() => setIsAddingKeyword(true)}
-                        className="px-2 py-0.5 rounded-lg border border-dashed border-slate-700 text-slate-400 hover:text-cyan-300 text-[10px] font-mono flex items-center gap-1"
+                        className="px-1.5 py-0.2 border border-dashed border-border text-muted-foreground hover:text-foreground text-[10px] uppercase"
                       >
-                        <Plus className="w-3 h-3" /> Add Tag
+                        + ADD TAG
                       </button>
                     )}
                   </div>
@@ -385,39 +407,37 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
               </div>
 
               {/* Time Tracking Comparison */}
-              <div className="p-4 bg-slate-900/90 rounded-2xl border border-slate-800 text-xs space-y-2">
+              <div className="p-3.5 bg-[#0d0d0d] border-2 border-border text-xs space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400 font-mono font-semibold flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-amber-400" />
-                    Time Telemetry & Flow Duration
+                  <span className="text-muted-foreground font-mono font-bold uppercase flex items-center gap-1.5">
+                    // TIME TRACKING
                   </span>
-                  <span className="text-[10px] text-slate-400 font-mono">
-                    Estimated: <strong className="text-slate-200">{data?.bug?.estimated_time || 0}h</strong>
+                  <span className="text-[10px] text-muted-foreground uppercase">
+                    ESTIMATED: <strong className="text-foreground">{data?.bug?.estimated_time || 0}H</strong>
                   </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center pt-1 font-mono text-[11px]">
-                  <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
-                    <span className="text-slate-500 block text-[9px] uppercase font-bold">Logged Work</span>
-                    <span className="text-emerald-400 font-bold text-sm">{totalLoggedWorkHours}h</span>
+                  <div className="p-2 border border-border bg-black">
+                    <span className="text-muted-foreground block text-[9px] uppercase font-bold">LOGGED</span>
+                    <span className="text-[#ea580c] font-bold text-sm">{totalLoggedWorkHours}H</span>
                   </div>
-                  <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
-                    <span className="text-slate-500 block text-[9px] uppercase font-bold">Remaining</span>
-                    <span className="text-amber-400 font-bold text-sm">{data?.bug?.remaining_time || 0}h</span>
+                  <div className="p-2 border border-border bg-black">
+                    <span className="text-muted-foreground block text-[9px] uppercase font-bold">REMAINING</span>
+                    <span className="text-foreground font-bold text-sm">{data?.bug?.remaining_time || 0}H</span>
                   </div>
-                  <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
-                    <span className="text-slate-500 block text-[9px] uppercase font-bold">Elapsed Flow</span>
-                    <span className="text-cyan-300 font-bold text-sm">{elapsedFlowHours}h</span>
+                  <div className="p-2 border border-border bg-black">
+                    <span className="text-muted-foreground block text-[9px] uppercase font-bold">ELAPSED</span>
+                    <span className="text-foreground font-bold text-sm">{elapsedFlowHours}H</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Description */}
-            <div className="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 text-xs leading-relaxed text-slate-300 whitespace-pre-wrap font-sans">
-              <h4 className="text-[10px] font-mono font-bold text-cyan-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                <FileCode className="w-3.5 h-3.5" />
-                <span>INCIDENT REPRODUCTION STEPS & LOGS</span>
+            <div className="bg-[#0d0d0d] p-4 border-2 border-border text-xs leading-relaxed text-foreground whitespace-pre-wrap font-mono">
+              <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-2">
+                // REPRODUCTION DETAILS & RAW LOGS
               </h4>
               {data?.bug?.description}
             </div>
@@ -425,65 +445,55 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
             {/* Tabbed Panels */}
             <div>
               {/* Tab Navigation */}
-              <div className="flex items-center gap-2 border-b border-slate-800 pb-3 mb-4 font-mono text-xs overflow-x-auto">
+              <div className="flex items-center gap-1 border-b-2 border-border pb-2 mb-4 font-mono text-xs overflow-x-auto">
                 <button
                   onClick={() => setActiveTab('comments')}
-                  className={`px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-2 transition-all shrink-0 ${
-                    activeTab === 'comments'
-                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-glow-cyan'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
+                  className={`px-3 py-1 text-xs uppercase font-bold transition-all shrink-0 border ${activeTab === 'comments'
+                      ? 'bg-foreground text-background border-foreground'
+                      : 'text-muted-foreground hover:text-foreground border-transparent'
+                    }`}
                 >
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  Security Notes ({data?.comments?.length || 0})
+                  NOTES ({data?.comments?.length || 0})
                 </button>
 
                 <button
                   onClick={() => setActiveTab('relationships')}
-                  className={`px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-2 transition-all shrink-0 ${
-                    activeTab === 'relationships'
-                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-glow-cyan'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
+                  className={`px-3 py-1 text-xs uppercase font-bold transition-all shrink-0 border ${activeTab === 'relationships'
+                      ? 'bg-foreground text-background border-foreground'
+                      : 'text-muted-foreground hover:text-foreground border-transparent'
+                    }`}
                 >
-                  <GitFork className="w-3.5 h-3.5" />
-                  Relationships ({data?.relationships?.length || 0})
+                  RELATIONSHIPS ({data?.relationships?.length || 0})
                 </button>
 
                 <button
                   onClick={() => setActiveTab('flags')}
-                  className={`px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-2 transition-all shrink-0 ${
-                    activeTab === 'flags'
-                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-glow-cyan'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
+                  className={`px-3 py-1 text-xs uppercase font-bold transition-all shrink-0 border ${activeTab === 'flags'
+                      ? 'bg-foreground text-background border-foreground'
+                      : 'text-muted-foreground hover:text-foreground border-transparent'
+                    }`}
                 >
-                  <FlagIcon className="w-3.5 h-3.5" />
-                  Clearance Flags ({data?.flags?.length || 0})
+                  FLAGS ({data?.flags?.length || 0})
                 </button>
 
                 <button
                   onClick={() => setActiveTab('git')}
-                  className={`px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-2 transition-all shrink-0 ${
-                    activeTab === 'git'
-                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-glow-cyan'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
+                  className={`px-3 py-1 text-xs uppercase font-bold transition-all shrink-0 border ${activeTab === 'git'
+                      ? 'bg-foreground text-background border-foreground'
+                      : 'text-muted-foreground hover:text-foreground border-transparent'
+                    }`}
                 >
-                  <GitBranch className="w-3.5 h-3.5" />
-                  Git Linkages ({data?.git_links?.length || 0})
+                  GIT ARTIFACTS ({data?.git_links?.length || 0})
                 </button>
 
                 <button
                   onClick={() => setActiveTab('activity')}
-                  className={`px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-2 transition-all shrink-0 ${
-                    activeTab === 'activity'
-                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-glow-cyan'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
+                  className={`px-3 py-1 text-xs uppercase font-bold transition-all shrink-0 border ${activeTab === 'activity'
+                      ? 'bg-foreground text-background border-foreground'
+                      : 'text-muted-foreground hover:text-foreground border-transparent'
+                    }`}
                 >
-                  <History className="w-3.5 h-3.5" />
-                  Audit Log ({data?.activity?.length || 0})
+                  AUDIT LOG ({data?.activity?.length || 0})
                 </button>
               </div>
 
@@ -491,73 +501,70 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
               {activeTab === 'comments' && (
                 <div className="space-y-4">
                   {/* Conversation thread */}
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {data?.comments?.map((c: any) => (
                       <div
                         key={c.id}
-                        className={`p-4 rounded-2xl border text-xs space-y-2 transition-all ${
-                          c.is_private
-                            ? 'bg-red-950/30 border-red-500/40 text-red-200 shadow-glow-red'
-                            : 'bg-slate-900/80 border-slate-800'
-                        }`}
+                        className={`p-3 border-2 text-xs space-y-1.5 transition-all ${c.is_private
+                            ? 'bg-red-950/20 border-red-500 text-red-200'
+                            : 'bg-[#0d0d0d] border-border'
+                          }`}
                       >
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 flex-wrap font-mono">
-                            <span className="font-bold text-slate-200">
-                              {c.author?.name || c.author_id}
+                          <div className="flex items-center gap-2 flex-wrap font-mono text-[10px]">
+                            <span className="font-bold text-foreground uppercase">
+                              @{c.author?.username || c.author_id}
                             </span>
-                            <span className="text-[10px] text-slate-500">@{c.author?.username}</span>
                             {Number(c.work_time) > 0 && (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-2 py-0.5 rounded-md">
-                                <Clock className="w-2.5 h-2.5" /> Logged {c.work_time}h
+                              <span className="px-1 py-0.2 bg-[#ea580c] text-background font-bold uppercase">
+                                +{c.work_time}H WORK
                               </span>
                             )}
                             {c.is_private && (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-red-400 bg-red-950/80 border border-red-500/40 px-2 py-0.5 rounded-md">
-                                <Lock className="w-2.5 h-2.5" /> CLASSIFIED NOTE
+                              <span className="px-1 py-0.2 bg-red-950 text-red-300 border border-red-500 font-bold uppercase">
+                                [CLASSIFIED]
                               </span>
                             )}
                           </div>
-                          <span className="text-[10px] font-mono text-slate-500">
+                          <span className="text-[10px] font-mono text-muted-foreground">
                             {new Date(c.created_at).toLocaleString()}
                           </span>
                         </div>
-                        <p className="text-slate-300 whitespace-pre-wrap leading-relaxed font-sans">{c.body}</p>
+                        <p className="text-foreground whitespace-pre-wrap leading-relaxed font-mono">{c.body}</p>
                       </div>
                     ))}
 
                     {(!data?.comments || data.comments.length === 0) && (
-                      <div className="p-8 text-center text-slate-500 text-xs font-mono italic bg-slate-900/40 rounded-2xl border border-slate-800">
-                        No security notes or investigation entries logged.
+                      <div className="p-6 text-center text-muted-foreground text-xs font-mono uppercase border border-border bg-[#0d0d0d]">
+                        // ZERO AUDIT ENTRIES LOGGED
                       </div>
                     )}
                   </div>
 
                   {/* Add comment form with work time */}
-                  <form onSubmit={handlePostComment} className="p-4 rounded-2xl bg-slate-900/90 border border-cyan-500/20 space-y-3 cyber-corners">
+                  <form onSubmit={handlePostComment} className="p-3 bg-[#0d0d0d] border-2 border-foreground/30 space-y-3">
                     <textarea
                       rows={3}
-                      placeholder="Add investigation note or update telemetry status..."
+                      placeholder="ENTER AUDIT NOTE OR INCIDENT LOG..."
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-3 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                      className="w-full bg-[#080808] border-2 border-border p-2.5 text-xs font-mono text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground uppercase"
                     />
 
-                    <div className="flex flex-wrap items-center justify-between gap-3 font-mono">
+                    <div className="flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
                       <div className="flex items-center gap-4">
-                        <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                        <label className="flex items-center gap-2 text-muted-foreground hover:text-foreground cursor-pointer uppercase text-[11px]">
                           <input
                             type="checkbox"
                             checked={isPrivateComment}
                             onChange={(e) => setIsPrivateComment(e.target.checked)}
-                            className="rounded bg-slate-950 border-slate-700 text-cyan-500 focus:ring-0"
+                            className="rounded-none bg-black border-border text-foreground focus:ring-0"
                           />
-                          <span>Private to Core Security Team</span>
+                          <span>RESTRICT TO CORE TEAM</span>
                         </label>
 
-                        <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                          <Clock className="w-3.5 h-3.5 text-slate-500" />
-                          <span>Work hours:</span>
+                        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase">
+                          <span>LOG HOURS:</span>
                           <input
                             type="number"
                             step="0.5"
@@ -565,19 +572,19 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
                             placeholder="0"
                             value={workTime}
                             onChange={(e) => setWorkTime(e.target.value)}
-                            className="w-16 px-2 py-0.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white text-right focus:outline-none focus:border-cyan-500"
+                            className="w-14 px-1.5 py-0.5 bg-black border border-border text-xs text-foreground text-right focus:outline-none focus:border-foreground"
                           />
-                          <span>h</span>
+                          <span>H</span>
                         </div>
                       </div>
 
                       <button
                         type="submit"
                         disabled={isPostingComment || !newComment.trim()}
-                        className="cyber-btn-primary"
+                        className="px-4 py-1.5 bg-foreground text-background font-bold text-xs uppercase flex items-center gap-1.5 hover:bg-white disabled:opacity-50"
                       >
                         {isPostingComment ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                        <span>Submit Note</span>
+                        <span>SUBMIT NOTE</span>
                       </button>
                     </div>
                   </form>
@@ -604,8 +611,8 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
               {activeTab === 'git' && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider">
-                      Connected Git Artifacts (Branches, Commits, PRs)
+                    <h4 className="text-xs font-mono font-bold text-muted-foreground uppercase tracking-wider">
+                      // CONNECTED GIT ARTIFACTS
                     </h4>
                   </div>
 
@@ -613,15 +620,15 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
                     {data?.git_links?.map((g: any) => (
                       <div
                         key={g.id}
-                        className="flex items-center justify-between p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-mono"
+                        className="flex items-center justify-between p-3 border-2 border-border bg-[#0d0d0d] text-xs font-mono"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-cyan-950 text-cyan-300 border border-cyan-800">
+                          <span className="px-2 py-0.5 bg-[#ea580c] text-background text-[10px] font-bold uppercase">
                             {g.kind}
                           </span>
                           <div>
-                            <span className="font-semibold text-slate-200">{g.ref}</span>
-                            <p className="text-[10px] text-slate-500">State: {g.state}</p>
+                            <span className="font-bold text-foreground">{g.ref}</span>
+                            <p className="text-[10px] text-muted-foreground uppercase">STATE: {g.state}</p>
                           </div>
                         </div>
 
@@ -629,17 +636,17 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
                           href={g.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="px-3 py-1.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-[11px] text-cyan-300 border border-slate-800 flex items-center gap-1.5 transition-all"
+                          className="px-3 py-1 border border-border hover:border-foreground text-[10px] text-foreground uppercase flex items-center gap-1.5 transition-all"
                         >
-                          <span>Inspect</span>
-                          <ExternalLink className="w-3 h-3 text-slate-500" />
+                          <span>INSPECT</span>
+                          <ExternalLink className="w-3 h-3 text-muted-foreground" />
                         </a>
                       </div>
                     ))}
 
                     {(!data?.git_links || data.git_links.length === 0) && (
-                      <div className="p-8 text-center text-slate-500 text-xs font-mono italic bg-slate-900/40 rounded-2xl border border-slate-800">
-                        Zero linked git branches or pull requests. Link commits via 'Fixes #{data.bug.id}'.
+                      <div className="p-6 text-center text-muted-foreground text-xs font-mono uppercase border border-border bg-[#0d0d0d]">
+                        // ZERO LINKED GIT ARTIFACTS. LINK COMMITS VIA 'Fixes #{data.bug.id}'.
                       </div>
                     )}
                   </div>

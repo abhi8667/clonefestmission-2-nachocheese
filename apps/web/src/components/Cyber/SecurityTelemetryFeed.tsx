@@ -149,17 +149,17 @@ export const SecurityTelemetryFeed: React.FC<SecurityTelemetryFeedProps> = ({ on
     switch (type) {
       case 'SECURE':
       case 'AUTH':
-        return 'text-emerald-400 bg-emerald-950/80 border-emerald-800/80';
+        return 'text-emerald-300 bg-emerald-950 border border-emerald-500';
       case 'SCAN':
       case 'TRAFFIC':
-        return 'text-cyan-400 bg-cyan-950/80 border-cyan-800/80';
+        return 'text-foreground bg-[#141414] border border-border';
       case 'WARN':
-        return 'text-amber-400 bg-amber-950/80 border-amber-800/80';
+        return 'text-[#ea580c] bg-black border border-[#ea580c]';
       case 'THREAT':
       case 'ANOMALY':
-        return 'text-red-400 bg-red-950/80 border-red-800/80';
+        return 'text-red-300 bg-red-950 border border-red-500';
       default:
-        return 'text-slate-400 bg-slate-900 border-slate-700';
+        return 'text-muted-foreground bg-black border border-border';
     }
   };
 
@@ -168,32 +168,30 @@ export const SecurityTelemetryFeed: React.FC<SecurityTelemetryFeedProps> = ({ on
   return (
     <aside
       aria-label="Security Telemetry and Activity Terminal"
-      className="fixed bottom-4 right-4 z-40 max-w-lg w-full transition-all duration-300 pointer-events-auto"
+      className="fixed bottom-3 right-3 z-40 max-w-lg w-full transition-all duration-300 pointer-events-auto font-mono"
     >
-      <div className="bg-slate-950/95 border border-cyan-500/30 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-2xl cyber-corners">
+      <div className="bg-[#080808] border-2 border-foreground shadow-brutalist overflow-hidden">
         {/* Terminal Header */}
         <div
           onClick={() => setIsExpanded(!isExpanded)}
-          className="px-3.5 py-2 bg-gradient-to-r from-slate-950 via-slate-900 to-cyan-950/40 border-b border-cyan-500/20 flex items-center justify-between cursor-pointer select-none hover:bg-slate-900/90 transition-colors"
+          className="px-3 py-2 bg-[#121212] border-b-2 border-foreground flex items-center justify-between cursor-pointer select-none hover:bg-[#1a1a1a] transition-colors"
         >
-          <div className="flex items-center space-x-2.5">
-            <div className="p-1 rounded bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
-              <Terminal className="w-3.5 h-3.5" />
-            </div>
+          <div className="flex items-center space-x-2">
+            <span className="h-2 w-2 bg-[#ea580c]" />
+            <span className="h-2 w-2 bg-foreground" />
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-mono font-bold text-white tracking-wider">
-                SOC TELEMETRY STREAM
+              <span className="text-xs font-mono font-bold text-foreground tracking-wider uppercase">
+                // TERMINAL.SYS // SOC_STREAM
               </span>
-              <span className="flex items-center space-x-1 px-1.5 py-0.2 rounded bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-mono text-emerald-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span>LIVE</span>
+              <span className="px-1.5 py-0.2 bg-[#ea580c] text-background text-[9px] font-mono font-bold animate-blink">
+                LIVE
               </span>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
             {!isExpanded && latestLog && (
-              <span className="text-[10px] font-mono text-slate-400 truncate max-w-[180px] hidden sm:inline">
+              <span className="text-[10px] font-mono text-muted-foreground truncate max-w-[160px] hidden sm:inline uppercase">
                 [{latestLog.timestamp.split('.')[0]}] {latestLog.message}
               </span>
             )}
@@ -202,7 +200,7 @@ export const SecurityTelemetryFeed: React.FC<SecurityTelemetryFeedProps> = ({ on
                 e.stopPropagation();
                 setIsExpanded(!isExpanded);
               }}
-              className="p-1 text-slate-400 hover:text-cyan-300 rounded hover:bg-slate-800 transition-colors"
+              className="p-0.5 text-muted-foreground hover:text-foreground transition-colors"
               aria-label={isExpanded ? 'Collapse terminal' : 'Expand terminal'}
             >
               {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
@@ -212,39 +210,38 @@ export const SecurityTelemetryFeed: React.FC<SecurityTelemetryFeedProps> = ({ on
 
         {/* Expanded Console Window */}
         {isExpanded && (
-          <div className="p-3 space-y-2.5 animate-slide-up">
+          <div className="p-3 space-y-2 animate-slide-up bg-[#080808]">
             {/* Filter Toolbar */}
-            <div className="flex items-center justify-between text-xs pb-1 border-b border-slate-800/80 flex-wrap gap-2">
+            <div className="flex items-center justify-between text-xs pb-1.5 border-b border-border flex-wrap gap-2">
               <div className="flex items-center space-x-1">
                 {(['ALL', 'THREAT', 'SCAN', 'SECURE'] as const).map((f) => (
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
-                    className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold transition-all ${
-                      filter === f
-                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                    }`}
+                    className={`px-2 py-0.5 text-[9px] font-mono font-bold uppercase transition-all border ${filter === f
+                        ? 'bg-foreground text-background border-foreground'
+                        : 'text-muted-foreground hover:text-foreground border-transparent'
+                      }`}
                   >
                     {f}
                   </button>
                 ))}
               </div>
 
-              <div className="flex items-center space-x-2 text-slate-400 text-[10px] font-mono">
+              <div className="flex items-center space-x-2 text-muted-foreground text-[10px] font-mono uppercase">
                 <button
                   onClick={() => setIsPaused(!isPaused)}
-                  className="flex items-center space-x-1 hover:text-white transition-colors"
+                  className="flex items-center space-x-1 hover:text-foreground transition-colors"
                 >
-                  {isPaused ? <Play className="w-3 h-3 text-emerald-400" /> : <Pause className="w-3 h-3 text-amber-400" />}
-                  <span>{isPaused ? 'Resume' : 'Pause'}</span>
+                  {isPaused ? <Play className="w-3 h-3 text-emerald-400" /> : <Pause className="w-3 h-3 text-[#ea580c]" />}
+                  <span>{isPaused ? 'RESUME' : 'PAUSE'}</span>
                 </button>
                 <button
                   onClick={() => setLogs([])}
                   className="flex items-center space-x-1 hover:text-red-400 transition-colors"
                 >
                   <Trash2 className="w-3 h-3" />
-                  <span>Clear</span>
+                  <span>CLEAR</span>
                 </button>
               </div>
             </div>
@@ -255,32 +252,32 @@ export const SecurityTelemetryFeed: React.FC<SecurityTelemetryFeedProps> = ({ on
               tabIndex={0}
               role="log"
               aria-label="Real-time SOC telemetry terminal log output"
-              className="h-56 overflow-y-auto space-y-1.5 pr-1 font-mono text-[11px] select-text focus:outline-none focus:ring-1 focus:ring-cyan-500/40 rounded-lg"
+              className="h-56 overflow-y-auto space-y-1 pr-1 font-mono text-[10px] select-text focus:outline-none bg-black p-2 border border-border"
             >
               {filteredLogs.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-slate-500 text-xs">
-                  No telemetry events matching filter
+                <div className="h-full flex items-center justify-center text-muted-foreground text-xs uppercase">
+                  // ZERO TELEMETRY EVENTS
                 </div>
               ) : (
                 filteredLogs.map((log) => (
                   <div
                     key={log.id}
-                    className="flex items-start space-x-2 py-0.5 hover:bg-slate-900/60 rounded px-1 transition-colors leading-relaxed"
+                    className="flex items-start space-x-2 py-0.2 hover:bg-[#141414] px-1 transition-colors leading-relaxed"
                   >
-                    <span className="text-slate-500 flex-shrink-0 text-[10px] select-none">
+                    <span className="text-muted-foreground flex-shrink-0 text-[9px] select-none">
                       [{log.timestamp}]
                     </span>
                     <span
-                      className={`px-1 py-0.2 rounded text-[9px] font-bold border flex-shrink-0 select-none ${getBadgeStyle(
+                      className={`px-1 py-0.2 text-[8px] font-bold flex-shrink-0 select-none uppercase ${getBadgeStyle(
                         log.type
                       )}`}
                     >
                       {log.type}
                     </span>
-                    <span className="text-slate-200 break-all flex-1">
+                    <span className="text-foreground break-all flex-1 uppercase">
                       {log.message}
                       {log.details && (
-                        <span className="text-slate-400 text-[10px] ml-1.5 bg-slate-900 px-1 py-0.2 rounded border border-slate-800">
+                        <span className="text-muted-foreground text-[9px] ml-1.5 border border-border px-1 py-0.2">
                           {log.details}
                         </span>
                       )}
@@ -289,9 +286,9 @@ export const SecurityTelemetryFeed: React.FC<SecurityTelemetryFeedProps> = ({ on
                 ))
               )}
               {/* Blinking Terminal Prompt Cursor */}
-              <div className="flex items-center space-x-1.5 text-cyan-400 pt-1 text-xs">
-                <span className="text-emerald-400 select-none">triarc@soc-node-01:~$</span>
-                <span className="w-2 h-3.5 bg-cyan-400 animate-terminal-blink" />
+              <div className="flex items-center space-x-1.5 text-foreground pt-1 text-[11px]">
+                <span className="text-muted-foreground select-none">triarc@soc-node-01:~$</span>
+                <span className="w-2 h-3.5 bg-[#ea580c] animate-blink inline-block" />
               </div>
             </div>
           </div>

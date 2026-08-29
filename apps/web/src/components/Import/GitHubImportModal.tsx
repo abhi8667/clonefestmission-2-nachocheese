@@ -45,7 +45,7 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
     if (isOpen) {
       fetchImportFixtures()
         .then(data => setFixtures(data.fixtures || []))
-        .catch(() => {});
+        .catch(() => { });
       setProgress(null);
       setResult(null);
       setError(null);
@@ -82,7 +82,7 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
     setError(null);
     setIsImporting(true);
     setResult(null);
-    setProgress({ current: 0, total: 100, message: 'Connecting to repository gateway...', stage: 'fetching' });
+    setProgress({ current: 0, total: 100, message: 'CONNECTING TO REPOSITORY GATEWAY...', stage: 'fetching' });
 
     try {
       let res;
@@ -110,58 +110,52 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto font-mono"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto font-mono"
       role="dialog"
       aria-modal="true"
       aria-labelledby="import-dialog-title"
     >
       <div
         ref={modalRef}
-        className="w-full max-w-2xl bg-slate-950 border border-cyan-500/30 rounded-2xl shadow-2xl overflow-hidden my-8 cyber-corners"
+        className="w-full max-w-2xl bg-[#080808] border-2 border-foreground shadow-brutalist overflow-hidden my-8 text-foreground"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/95">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-cyan-400 shadow-glow-cyan">
-              <Github className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 id="import-dialog-title" className="text-sm font-bold text-white tracking-wide">
-                INGEST GITHUB REPOSITORY TELEMETRY
-              </h2>
-              <p className="text-[11px] text-slate-400 font-sans">Reconstruct issues, PR branch linkages, review bottlenecks & flow timelines</p>
-            </div>
+        {/* Brutalist Window Header */}
+        <div className="flex items-center justify-between px-4 py-2 bg-[#121212] border-b-2 border-foreground text-[10px]">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 bg-[#ea580c]" />
+            <span className="h-2 w-2 bg-foreground" />
+            <span className="font-bold uppercase tracking-wider">// INGEST // GITHUB_TELEMETRY</span>
           </div>
           <button
             onClick={onClose}
             aria-label="Close import dialog"
-            className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-900 border border-slate-800 transition-colors"
+            className="p-1 border border-border hover:border-foreground text-muted-foreground hover:text-foreground bg-[#080808]"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="p-6 space-y-5">
+        <div className="p-5 space-y-4">
           {error && (
-            <div className="p-3.5 bg-red-950/80 border border-red-500/50 rounded-xl flex items-center gap-3 text-red-200 text-xs shadow-glow-red">
+            <div className="p-3 bg-red-950 border-2 border-red-500 flex items-center gap-2 text-red-200 text-xs font-mono uppercase">
               <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
               <span>{error}</span>
             </div>
           )}
 
           {/* 1-Click Offline Demo Fixtures */}
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-950/40 to-slate-950 border border-purple-500/40 space-y-3 cyber-corners">
+          <div className="p-4 bg-[#0d0d0d] border-2 border-[#ea580c] space-y-3 shadow-brutalist">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-purple-300 text-xs font-bold uppercase tracking-wider">
-                <Zap className="w-4 h-4 text-purple-400" />
-                <span>Instant Offline Datasets (Zero API Rate Limits)</span>
+              <div className="flex items-center gap-2 text-[#ea580c] text-xs font-bold uppercase tracking-wider">
+                <Zap className="w-4 h-4" />
+                <span>// OFFLINE BENCHMARK DATASETS (RATE-LIMIT FREE)</span>
               </div>
-              <span className="text-[10px] bg-purple-950 text-purple-300 border border-purple-500/40 px-2 py-0.5 rounded-md font-mono">
-                1.5s Load
+              <span className="text-[9px] bg-[#ea580c] text-background px-1.5 py-0.2 font-mono font-bold uppercase">
+                &lt; 1.5S LOAD
               </span>
             </div>
-            <p className="text-xs text-slate-400 font-sans">
-              Pre-bundled real GitHub datasets with linked pull requests, review comments, and activity audit histories:
+            <p className="text-[11px] text-muted-foreground uppercase font-mono">
+              PRE-BUNDLED REAL GITHUB DATASETS WITH LINKED PRS, REVIEWS, AND AUDIT EVENTS:
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
@@ -169,17 +163,16 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
                 type="button"
                 onClick={() => handleStartImport(true, 'facebook/react')}
                 disabled={isImporting}
-                className="flex items-center justify-between p-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-purple-500/60 transition-all text-left group"
+                className="p-3 bg-black border-2 border-border hover:border-foreground flex items-center justify-between text-left transition-all"
               >
                 <div>
-                  <div className="text-xs font-bold text-white group-hover:text-purple-300 transition-colors flex items-center gap-1.5">
+                  <div className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase">
                     <span>facebook/react</span>
-                    <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
                   </div>
-                  <div className="text-[10px] text-slate-400 font-sans mt-0.5">Concurrent mode & compiler issues + PRs</div>
+                  <div className="text-[9px] text-muted-foreground uppercase mt-0.5">COMPILER & CONCURRENT ISSUES + PRS</div>
                 </div>
-                <span className="text-[10px] text-purple-300 font-mono bg-purple-950 px-2.5 py-1 rounded-md border border-purple-800">
-                  Ingest
+                <span className="px-2 py-0.5 bg-foreground text-background text-[9px] font-bold uppercase">
+                  INGEST
                 </span>
               </button>
 
@@ -187,44 +180,44 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
                 type="button"
                 onClick={() => handleStartImport(true, 'expressjs/express')}
                 disabled={isImporting}
-                className="flex items-center justify-between p-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-purple-500/60 transition-all text-left group"
+                className="p-3 bg-black border-2 border-border hover:border-foreground flex items-center justify-between text-left transition-all"
               >
                 <div>
-                  <div className="text-xs font-bold text-white group-hover:text-purple-300 transition-colors">
+                  <div className="text-xs font-bold text-foreground uppercase">
                     expressjs/express
                   </div>
-                  <div className="text-[10px] text-slate-400 font-sans mt-0.5">Router engine & middleware pull request flow</div>
+                  <div className="text-[9px] text-muted-foreground uppercase mt-0.5">ROUTER & MIDDLEWARE PRS</div>
                 </div>
-                <span className="text-[10px] text-purple-300 font-mono bg-purple-950 px-2.5 py-1 rounded-md border border-purple-800">
-                  Ingest
+                <span className="px-2 py-0.5 bg-foreground text-background text-[9px] font-bold uppercase">
+                  INGEST
                 </span>
               </button>
             </div>
           </div>
 
           {/* Live Public Repo Form */}
-          <div className="space-y-4 pt-2">
-            <div className="text-xs font-bold text-slate-300 uppercase tracking-widest">
-              Or Ingest Any Public GitHub Repository
+          <div className="space-y-3 pt-1">
+            <div className="text-xs font-bold text-foreground uppercase tracking-widest">
+              // OR INGEST ANY PUBLIC REPOSITORY
             </div>
 
             <div>
-              <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Repository URL or shorthand</label>
+              <label className="block text-[9px] uppercase font-bold text-muted-foreground mb-1">REPOSITORY URL</label>
               <input
                 type="text"
                 value={repoUrl}
                 onChange={(e) => setRepoUrl(e.target.value)}
-                placeholder="https://github.com/owner/repo or owner/repo"
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
+                placeholder="https://github.com/owner/repo"
+                className="w-full bg-[#0d0d0d] border-2 border-border p-2 text-xs text-foreground focus:outline-none focus:border-foreground font-mono"
                 disabled={isImporting}
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="text-[10px] uppercase font-bold text-slate-400">Max Issues to Ingest</label>
-                  <span className="text-xs font-mono text-cyan-400 font-bold">{maxIssues}</span>
+                  <label className="text-[9px] uppercase font-bold text-muted-foreground">MAX ISSUES</label>
+                  <span className="text-xs font-mono text-foreground font-bold">{maxIssues}</span>
                 </div>
                 <input
                   type="range"
@@ -233,19 +226,19 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
                   step="10"
                   value={maxIssues}
                   onChange={(e) => setMaxIssues(Number(e.target.value))}
-                  className="w-full accent-cyan-500"
+                  className="w-full accent-[#ea580c]"
                   disabled={isImporting}
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">GitHub Personal Access Token (Optional)</label>
+                <label className="block text-[9px] uppercase font-bold text-muted-foreground mb-1">PERSONAL ACCESS TOKEN (OPTIONAL)</label>
                 <input
                   type="password"
                   value={githubToken}
                   onChange={(e) => setGithubToken(e.target.value)}
-                  placeholder="ghp_•••••••••••• (avoids rate limits)"
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
+                  placeholder="ghp_••••••••••••"
+                  className="w-full bg-[#0d0d0d] border-2 border-border p-1.5 text-xs text-foreground focus:outline-none focus:border-foreground font-mono"
                   disabled={isImporting}
                 />
               </div>
@@ -254,57 +247,61 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
 
           {/* Real-time Progress Bar */}
           {progress && (
-            <div className="p-4 rounded-2xl bg-slate-900/90 border border-cyan-500/30 space-y-2.5">
+            <div className="p-3 bg-[#0d0d0d] border-2 border-foreground space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-cyan-300 flex items-center gap-2">
+                <span className="font-bold text-foreground flex items-center gap-1.5 uppercase">
                   <RefreshCw className={`w-3.5 h-3.5 ${isImporting ? 'animate-spin' : ''}`} />
-                  <span>{progress.stage === 'complete' ? 'Ingestion Complete' : 'Synchronizing Repository Data...'}</span>
+                  <span>{progress.stage === 'complete' ? 'INGESTION COMPLETE' : 'SYNCHRONIZING TELEMETRY...'}</span>
                 </span>
-                <span className="font-mono text-slate-400 font-bold">{progressPercent}%</span>
+                <span className="font-mono text-foreground font-bold">{progressPercent}%</span>
               </div>
 
-              <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div className="w-full bg-black border border-border h-2 overflow-hidden">
                 <div
-                  className="bg-gradient-to-r from-cyan-500 to-emerald-400 h-full rounded-full transition-all duration-300 shadow-glow-neon"
+                  className="bg-[#ea580c] h-full transition-all duration-300"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
 
-              <p className="text-[11px] text-slate-400 font-mono truncate">{progress.message}</p>
+              <p className="text-[10px] text-muted-foreground font-mono truncate uppercase">{progress.message}</p>
             </div>
           )}
 
           {/* Success Summary */}
           {result && (
-            <div className="p-4 rounded-2xl bg-emerald-950/60 border border-emerald-500/50 space-y-2 text-xs text-emerald-200 shadow-glow-neon">
-              <div className="flex items-center gap-2 font-bold text-emerald-300">
+            <div className="p-3 bg-emerald-950 border-2 border-emerald-500 space-y-1.5 text-xs text-emerald-200 uppercase">
+              <div className="flex items-center gap-1.5 font-bold text-emerald-300">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>Successfully Ingested {result.total_issues || result.imported_count} Issues from {result.repo_name}!</span>
+                <span>INGESTED {result.total_issues || result.imported_count} ISSUES FROM {result.repo_name}!</span>
               </div>
-              <p className="text-[11px] text-emerald-300/80 font-sans">
-                All issues, PR branch associations, review history, and labels are now fully integrated into the Incident Matrix, Flow Timeline, and Analytics CFD.
+              <p className="text-[10px] text-emerald-300 font-mono">
+                INTEGRATED INTO INCIDENT MATRIX, TIMELINE, AND ANALYTICS CFD.
               </p>
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+          <div className="flex justify-end gap-2 pt-2 border-t-2 border-border">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-mono border border-slate-800 transition-colors"
+              className="px-3 py-1.5 border-2 border-border text-muted-foreground hover:text-foreground text-xs uppercase font-bold"
             >
-              {result ? 'Done' : 'Cancel'}
+              {result ? 'DONE' : 'CANCEL'}
             </button>
             {!result && (
               <button
                 type="button"
                 onClick={() => handleStartImport(false)}
                 disabled={isImporting || !repoUrl.trim()}
-                className="cyber-btn-primary !px-5 !py-2 text-xs font-bold"
+                className="brutalist-btn disabled:opacity-50"
               >
-                <DownloadCloud className="w-4 h-4" />
-                <span>{isImporting ? 'Ingesting...' : 'Start Repository Ingest'}</span>
+                <span className="btn-icon-block">
+                  <DownloadCloud className="w-3.5 h-3.5" />
+                </span>
+                <span className="btn-text-block">
+                  {isImporting ? 'INGESTING...' : 'START INGEST'}
+                </span>
               </button>
             )}
           </div>

@@ -61,9 +61,9 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      fetchMilestones().then((r) => setMilestones(r.milestones || [])).catch(() => {});
-      fetchVersions().then((r) => setVersions(r.versions || [])).catch(() => {});
-      fetchKeywords().then((r) => setKeywords(r.keywords || [])).catch(() => {});
+      fetchMilestones().then((r) => setMilestones(r.milestones || [])).catch(() => { });
+      fetchVersions().then((r) => setVersions(r.versions || [])).catch(() => { });
+      fetchKeywords().then((r) => setKeywords(r.keywords || [])).catch(() => { });
     }
   }, [isOpen]);
 
@@ -140,7 +140,7 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto animate-fade-in"
       onClick={onClose}
     >
       <div
@@ -148,38 +148,33 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="new-bug-modal-title"
-        className="w-full max-w-3xl bg-slate-950 border border-cyan-500/30 rounded-2xl shadow-2xl overflow-hidden my-6 animate-slide-up flex flex-col max-h-[92vh] cyber-corners"
+        className="w-full max-w-3xl bg-[#080808] border-2 border-foreground shadow-brutalist overflow-hidden my-6 animate-slide-up flex flex-col max-h-[92vh] text-foreground font-mono"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header HUD */}
-        <div className="p-5 border-b border-slate-800 bg-slate-950/95 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-cyan-950/80 border border-cyan-500/50 flex items-center justify-center text-cyan-300 shadow-glow-cyan">
-              <Plus className="w-5 h-5 stroke-[2.5]" />
-            </div>
-            <div>
-              <h2 id="new-bug-modal-title" className="text-base font-bold font-mono text-white">
-                FILE SECURITY INCIDENT / DEFECT REPORT
-              </h2>
-              <p className="text-[11px] font-mono text-slate-400">
-                Auditable telemetry intake with live AI duplicate radar
-              </p>
-            </div>
+        {/* Brutalist Window Header */}
+        <div className="flex items-center justify-between px-4 py-2 bg-[#121212] border-b-2 border-foreground">
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 bg-[#ea580c]" />
+            <span className="h-2.5 w-2.5 bg-foreground" />
+            <span className="h-2.5 w-2.5 border border-foreground" />
+            <span className="ml-2 text-xs font-mono font-bold uppercase tracking-widest text-foreground">
+              INTAKE: FILE_INCIDENT.SYS // v3.1.0
+            </span>
           </div>
 
           <button
             onClick={onClose}
             aria-label="Close dialog"
-            className="p-1.5 rounded-xl text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-all"
+            className="p-1 border border-border hover:border-foreground text-muted-foreground hover:text-foreground bg-[#080808] transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4">
           {errorMsg && (
-            <div className="p-3.5 rounded-xl bg-red-950/80 border border-red-500/50 text-red-300 text-xs font-mono flex items-center gap-2 shadow-glow-red">
+            <div className="p-3 border-2 border-red-500 bg-red-950/80 text-red-200 text-xs font-mono flex items-center gap-2 uppercase">
               <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
               <span>{errorMsg}</span>
             </div>
@@ -187,17 +182,17 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
 
           {/* Title */}
           <div>
-            <label htmlFor="new-bug-title" className="block text-xs font-mono font-bold text-slate-300 mb-1.5">
-              SUMMARY / INCIDENT TITLE <span className="text-red-400">*</span>
+            <label htmlFor="new-bug-title" className="block text-xs font-mono font-bold text-foreground mb-1.5 uppercase">
+              // SUMMARY / INCIDENT TITLE <span className="text-[#ea580c]">*</span>
             </label>
             <input
               id="new-bug-title"
               type="text"
               required
-              placeholder="e.g. Memory corruption during parallel TLS handshake in AuthEngine"
+              placeholder="e.g. MEMORY CORRUPTION IN PARALLEL TLS HANDSHAKE"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-all shadow-inner"
+              className="w-full bg-[#0d0d0d] border-2 border-border p-2.5 text-xs font-mono text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground uppercase transition-all"
             />
           </div>
 
@@ -207,19 +202,19 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
               role="region"
               aria-live="polite"
               aria-label="Duplicate radar suggestions"
-              className="p-4 rounded-xl bg-slate-900/90 border border-amber-500/40 shadow-glow-amber space-y-3 animate-slide-up cyber-corners"
+              className="p-3.5 bg-[#0d0d0d] border-2 border-[#ea580c] shadow-brutalist space-y-2.5 animate-slide-up"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Radar className={`w-4 h-4 text-amber-400 ${isCheckingDuplicates ? 'animate-spin' : 'animate-pulse'}`} />
-                  <span className="text-xs font-bold font-mono text-amber-300">
-                    LIVE RADAR MATCHES FOUND ({duplicates.length})
+                  <Radar className={`w-4 h-4 text-[#ea580c] ${isCheckingDuplicates ? 'animate-spin' : 'animate-blink'}`} />
+                  <span className="text-xs font-bold font-mono text-foreground uppercase">
+                    // RADAR VECTOR MATCHES ({duplicates.length})
                   </span>
                 </div>
-                <span className="text-[10px] text-slate-400 font-mono">Semantic Vector Cosine Telemetry</span>
+                <span className="text-[9px] text-muted-foreground uppercase font-mono">384-DIM COSINE PROJECTION</span>
               </div>
 
-              <div className="space-y-2 max-h-48 overflow-y-auto pr-0.5">
+              <div className="space-y-1.5 max-h-40 overflow-y-auto pr-0.5">
                 {duplicates.map((dup) => {
                   const matchPct = Math.round(dup.similarity_score * 100);
                   const isHighMatch = matchPct >= 70;
@@ -227,20 +222,19 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
                   return (
                     <div
                       key={dup.bug_id}
-                      className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-3 text-xs"
+                      className="p-2 border border-border bg-[#080808] flex items-center justify-between gap-3 text-xs"
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0 font-mono">
                         <span
-                          className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold border ${
-                            isHighMatch
-                              ? 'bg-red-950 text-red-300 border-red-500/50 shadow-glow-red'
-                              : 'bg-amber-950 text-amber-300 border-amber-500/50'
-                          }`}
+                          className={`px-1.5 py-0.2 text-[9px] font-bold uppercase ${isHighMatch
+                              ? 'bg-[#ea580c] text-background'
+                              : 'bg-foreground text-background'
+                            }`}
                         >
-                          {matchPct}% match
+                          {matchPct}% MATCH
                         </span>
-                        <span className="font-mono text-cyan-400 font-bold shrink-0">#{dup.bug_id}</span>
-                        <span className="text-slate-200 font-medium truncate">{dup.title}</span>
+                        <span className="font-bold text-foreground">#{dup.bug_id}</span>
+                        <span className="text-foreground truncate">{dup.title}</span>
                       </div>
 
                       <button
@@ -249,10 +243,10 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
                           onClose();
                           onSelectBug(dup.bug_id);
                         }}
-                        className="px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-[11px] font-mono text-cyan-300 border border-slate-700 flex items-center gap-1 shrink-0 transition-all"
+                        className="px-2 py-0.5 border border-border hover:border-foreground text-[10px] uppercase font-bold text-foreground bg-transparent flex items-center gap-1 shrink-0"
                       >
-                        <span>View</span>
-                        <ArrowRight className="w-3 h-3 text-slate-500" />
+                        <span>VIEW</span>
+                        <ArrowRight className="w-3 h-3" />
                       </button>
                     </div>
                   );
@@ -263,190 +257,190 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-mono font-bold text-slate-300 mb-1.5">
-              REPRODUCTION STEPS & LOGS <span className="text-red-400">*</span>
+            <label className="block text-xs font-mono font-bold text-foreground mb-1.5 uppercase">
+              // REPRODUCTION STEPS & LOGS <span className="text-[#ea580c]">*</span>
             </label>
             <textarea
               required
               rows={4}
-              placeholder="Provide exact vector payload, steps to reproduce, and captured stack trace..."
+              placeholder="PROVIDE EXACT VECTOR PAYLOAD, REPRO STEPS, AND STACK TRACE..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl p-3.5 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-all shadow-inner"
+              className="w-full bg-[#0d0d0d] border-2 border-border p-2.5 text-xs font-mono text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground uppercase transition-all"
             />
           </div>
 
           {/* Metadata Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 font-mono">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 font-mono text-xs">
             <div>
-              <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Subsystem:</label>
+              <label className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">// SUBSYSTEM:</label>
               <select
                 value={componentId}
                 onChange={(e) => setComponentId(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-cyan-500"
+                className="w-full bg-[#0d0d0d] border-2 border-border p-2 text-xs text-foreground focus:outline-none focus:border-foreground uppercase"
               >
-                <option value="core">Core Engine</option>
-                <option value="auth">Auth & Security</option>
-                <option value="ui">Web Client</option>
-                <option value="api">REST & SSE Gateway</option>
-                <option value="db">Storage & Persistence</option>
-                <option value="git">GitHub Integration</option>
+                <option value="core">CORE ENGINE</option>
+                <option value="auth">AUTH & SECURITY</option>
+                <option value="ui">WEB CLIENT</option>
+                <option value="api">REST & SSE GATEWAY</option>
+                <option value="db">STORAGE & DB</option>
+                <option value="git">GITHUB INTEGRATION</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Severity:</label>
+              <label className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">// SEVERITY:</label>
               <select
                 value={severity}
                 onChange={(e) => setSeverity(e.target.value as BugSeverity)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-cyan-500"
+                className="w-full bg-[#0d0d0d] border-2 border-border p-2 text-xs text-foreground focus:outline-none focus:border-foreground uppercase"
               >
-                <option value="blocker">Blocker (Level 1)</option>
-                <option value="critical">Critical (Level 2)</option>
-                <option value="major">Major (Level 3)</option>
-                <option value="normal">Normal (Level 4)</option>
-                <option value="minor">Minor (Level 5)</option>
-                <option value="trivial">Trivial</option>
-                <option value="enhancement">Enhancement</option>
+                <option value="blocker">BLOCKER // S1</option>
+                <option value="critical">CRITICAL // S2</option>
+                <option value="major">MAJOR // S3</option>
+                <option value="normal">NORMAL // S4</option>
+                <option value="minor">MINOR // S5</option>
+                <option value="trivial">TRIVIAL // S6</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Priority:</label>
+              <label className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">// PRIORITY:</label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as BugPriority)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-cyan-500"
+                className="w-full bg-[#0d0d0d] border-2 border-border p-2 text-xs text-foreground focus:outline-none focus:border-foreground uppercase"
               >
-                <option value="highest">P0 (Highest)</option>
-                <option value="high">P1 (High)</option>
-                <option value="normal">P2 (Normal)</option>
-                <option value="low">P3 (Low)</option>
-                <option value="lowest">P4 (Lowest)</option>
+                <option value="highest">P1 // HIGHEST</option>
+                <option value="high">P2 // HIGH</option>
+                <option value="normal">P3 // NORMAL</option>
+                <option value="low">P4 // LOW</option>
+                <option value="lowest">P5 // LOWEST</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Assign Operator:</label>
+              <label className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">// ASSIGNEE:</label>
               <select
                 value={assigneeId}
                 onChange={(e) => setAssigneeId(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-cyan-500"
+                className="w-full bg-[#0d0d0d] border-2 border-border p-2 text-xs text-foreground focus:outline-none focus:border-foreground uppercase"
               >
-                <option value="">Unassigned</option>
+                <option value="">// UNASSIGNED</option>
                 {users.map((u) => (
                   <option key={u.id} value={u.id}>
-                    {u.name} (@{u.username})
+                    @{u.username} ({u.name})
                   </option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Milestone, Version, Estimate Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 font-mono">
+          {/* Additional Capability Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 font-mono text-xs">
             <div>
-              <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1">
-                <MilestoneIcon className="w-3 h-3 text-cyan-400" /> Target Milestone:
-              </label>
+              <label className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">// TARGET MILESTONE:</label>
               <select
                 value={targetMilestone}
                 onChange={(e) => setTargetMilestone(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-cyan-500"
+                className="w-full bg-[#0d0d0d] border-2 border-border p-2 text-xs text-foreground focus:outline-none focus:border-foreground uppercase"
               >
-                <option value="">None (Backlog)</option>
+                <option value="">// NONE</option>
                 {milestones.map((m) => (
-                  <option key={m.id} value={m.name}>{m.name}</option>
+                  <option key={m.id} value={m.name}>
+                    {m.name.toUpperCase()}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Found in Version:</label>
+              <label className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">// VERSION:</label>
               <select
                 value={version}
                 onChange={(e) => setVersion(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-cyan-500"
+                className="w-full bg-[#0d0d0d] border-2 border-border p-2 text-xs text-foreground focus:outline-none focus:border-foreground uppercase"
               >
-                <option value="">None / Unspecified</option>
+                <option value="">// NONE</option>
                 {versions.map((v) => (
-                  <option key={v.id} value={v.name}>{v.name}</option>
+                  <option key={v.id} value={v.name}>
+                    v{v.name}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1">
-                <Clock className="w-3 h-3 text-amber-400" /> Estimated Hours:
-              </label>
+              <label className="block text-[10px] uppercase font-bold text-muted-foreground mb-1">// ESTIMATE (HOURS):</label>
               <input
                 type="number"
-                min="0"
                 step="0.5"
-                placeholder="e.g. 4.0"
+                min="0"
+                placeholder="0"
                 value={estimatedTime}
                 onChange={(e) => setEstimatedTime(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
-              />
+                className="w-full bg-[#0d0d0d] border-2 border-border p-2 text-xs text-foreground focus:outline-none focus:border-foreground uppercase"
+              >
+              </input>
             </div>
           </div>
 
-          {/* Keywords / Labels Selection */}
-          <div>
-            <label className="block text-[10px] uppercase font-mono font-bold text-slate-400 mb-1.5 flex items-center gap-1">
-              <Tag className="w-3 h-3 text-cyan-400" /> Keywords & Labels:
-            </label>
+          {/* Keywords & Security Group Row */}
+          <div className="p-3 bg-[#0d0d0d] border-2 border-border space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-bold text-muted-foreground">// TACTICAL TAGS:</span>
+            </div>
             <div className="flex flex-wrap gap-1.5">
               {keywords.map((kw) => {
-                const isSelected = selectedKeywords.includes(kw.id);
+                const isSel = selectedKeywords.includes(kw.id);
                 return (
                   <button
                     key={kw.id}
                     type="button"
                     onClick={() => toggleKeyword(kw.id)}
-                    className={`px-2.5 py-1 rounded-xl text-xs font-mono border transition-all ${
-                      isSelected
-                        ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 font-bold shadow-glow-cyan'
-                        : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
-                    }`}
+                    className={`px-2 py-0.5 text-[10px] font-mono uppercase border transition-all ${isSel
+                        ? 'bg-foreground text-background border-foreground font-bold'
+                        : 'bg-black text-muted-foreground border-border hover:border-foreground hover:text-foreground'
+                      }`}
                   >
                     #{kw.name}
                   </button>
                 );
               })}
             </div>
+
+            <div className="pt-2 border-t border-border flex items-center justify-between">
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-mono uppercase">
+                <input
+                  type="checkbox"
+                  checked={isConfidential}
+                  onChange={(e) => setIsConfidential(e.target.checked)}
+                  className="rounded-none bg-black border-border text-foreground focus:ring-0"
+                />
+                <span className="font-bold text-foreground">RESTRICT ACCESS (grp_sec SECURITY GROUP)</span>
+              </label>
+            </div>
           </div>
 
-          {/* Security Group Toggle */}
-          <div className="pt-1">
-            <label className="flex items-center gap-2.5 text-xs font-mono text-slate-300 cursor-pointer p-3 rounded-xl bg-purple-950/20 border border-purple-500/30 hover:border-purple-500/60 transition-all">
-              <input
-                type="checkbox"
-                checked={isConfidential}
-                onChange={(e) => setIsConfidential(e.target.checked)}
-                className="rounded bg-slate-950 border-purple-500/50 text-purple-500 focus:ring-0"
-              />
-              <ShieldAlert className="w-4 h-4 text-purple-400" />
-              <span>Restricted Confidential Incident (Lock visibility to Security Core Team)</span>
-            </label>
-          </div>
-
-          {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800 font-mono">
+          {/* Form Actions */}
+          <div className="pt-2 flex items-center justify-end gap-2 border-t-2 border-border">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl"
+              className="px-4 py-2 border-2 border-border hover:border-foreground text-xs uppercase font-bold text-muted-foreground hover:text-foreground transition-all"
             >
-              Cancel
+              CANCEL
             </button>
+
             <button
               type="submit"
               disabled={isSubmitting}
-              className="cyber-btn-primary !px-5 !py-2 text-xs"
+              className="brutalist-btn disabled:opacity-50"
             >
-              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-              <span>Submit Incident Dossier</span>
+              <span className="btn-icon-block">
+                {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5 stroke-[3]" />}
+              </span>
+              <span className="btn-text-block">SUBMIT REPORT</span>
             </button>
           </div>
         </form>

@@ -8,7 +8,19 @@ export function initializeDatabase() {
       name TEXT NOT NULL,
       email TEXT NOT NULL,
       role TEXT NOT NULL,
-      avatar_url TEXT
+      avatar_url TEXT,
+      password_hash TEXT,
+      is_external INTEGER DEFAULT 0
+    );
+
+    -- Imported GitHub Repositories (W9)
+    CREATE TABLE IF NOT EXISTS imported_repos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      url TEXT UNIQUE NOT NULL,
+      owner TEXT NOT NULL,
+      name TEXT NOT NULL,
+      issue_count INTEGER DEFAULT 0,
+      imported_at TEXT NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS groups (
@@ -232,7 +244,9 @@ export function initializeDatabase() {
         { table: 'bugs', col: 'target_milestone', def: 'TEXT' },
         { table: 'bugs', col: 'estimated_time', def: 'REAL DEFAULT 0' },
         { table: 'bugs', col: 'remaining_time', def: 'REAL DEFAULT 0' },
-        { table: 'comments', col: 'work_time', def: 'REAL DEFAULT 0' }
+        { table: 'comments', col: 'work_time', def: 'REAL DEFAULT 0' },
+        { table: 'users', col: 'password_hash', def: 'TEXT' },
+        { table: 'users', col: 'is_external', def: 'INTEGER DEFAULT 0' }
     ];
     for (const { table, col, def } of alterColumns) {
         try {

@@ -80,7 +80,7 @@ export const App: React.FC = () => {
       .then((res) => {
         setInboxCount(res.counts?.incoming || 0);
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   useEffect(() => {
@@ -134,16 +134,16 @@ export const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#040711] text-slate-100 font-sans relative selection:bg-cyan-500/30 selection:text-cyan-200">
-      {/* Interactive Matrix Background Network */}
+    <div className="min-h-screen flex flex-col bg-[#080808] text-foreground font-mono relative selection:bg-[#ea580c] selection:text-black">
+      {/* Mathematical Dot Grid and Crosshairs Background */}
       <CyberBackground />
 
       {/* Skip to Main Content Link (WCAG 2.2 AA) */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[250] focus:px-4 focus:py-2 focus:bg-cyan-600 focus:text-slate-950 focus:font-bold focus:rounded-lg focus:shadow-glow-cyan focus:ring-2 focus:ring-cyan-400"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[250] focus:px-3 focus:py-1.5 focus:bg-foreground focus:text-background focus:font-bold focus:border-2 focus:border-foreground"
       >
-        Skip to main content
+        [SKIP TO MAIN CONTENT]
       </a>
 
       {/* Top Navigation HUD */}
@@ -160,8 +160,8 @@ export const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 relative z-10">
-        <ErrorBoundary fallbackTitle="Application View Error">
+      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 relative z-10">
+        <ErrorBoundary fallbackTitle="APPLICATION COMPONENT FAULT">
           {activeTab === 'bugs' && (
             <div>
               {/* Notifications Digest Threat Briefing */}
@@ -184,9 +184,9 @@ export const App: React.FC = () => {
               />
 
               {isLoading ? (
-                <div className="p-20 flex flex-col items-center justify-center gap-3 text-slate-400">
-                  <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
-                  <p className="text-xs font-mono">Synchronizing incident telemetry...</p>
+                <div className="p-16 flex flex-col items-center justify-center gap-2 text-muted-foreground font-mono uppercase border-2 border-border bg-[#0d0d0d]">
+                  <Loader2 className="w-6 h-6 animate-spin text-foreground" />
+                  <p className="text-xs">// SYNCHRONIZING INCIDENT TELEMETRY...</p>
                 </div>
               ) : viewMode === 'table' ? (
                 <TableView

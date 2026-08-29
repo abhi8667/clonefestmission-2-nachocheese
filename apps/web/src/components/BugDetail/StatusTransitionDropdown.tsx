@@ -28,15 +28,15 @@ export const StatusTransitionDropdown: React.FC<StatusTransitionDropdownProps> =
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Unconfirmed': return 'bg-slate-700 text-slate-200 border-slate-600';
-      case 'Confirmed': return 'bg-sky-500/20 text-sky-300 border-sky-500/40';
-      case 'In Progress': return 'bg-amber-500/20 text-amber-300 border-amber-500/40';
-      case 'In Review': return 'bg-purple-500/20 text-purple-300 border-purple-500/40';
-      case 'Resolved': return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
-      case 'Verified': return 'bg-teal-500/20 text-teal-300 border-teal-500/40';
-      case 'Closed': return 'bg-slate-800 text-slate-400 border-slate-700';
-      case 'Duplicate': return 'bg-zinc-800 text-zinc-300 border-zinc-700';
-      default: return 'bg-slate-800 text-slate-300 border-slate-700';
+      case 'Unconfirmed': return 'bg-[#141414] text-muted-foreground border-border';
+      case 'Confirmed': return 'bg-[#ea580c]/20 text-[#ea580c] border-[#ea580c]';
+      case 'In Progress': return 'bg-amber-950 text-amber-300 border-amber-500';
+      case 'In Review': return 'bg-[#ea580c] text-background border-[#ea580c] font-bold';
+      case 'Resolved': return 'bg-emerald-950 text-emerald-300 border-emerald-500 font-bold';
+      case 'Verified': return 'bg-foreground text-background border-foreground font-bold';
+      case 'Closed': return 'bg-black text-muted-foreground border-border';
+      case 'Duplicate': return 'bg-[#1a1a1a] text-muted-foreground border-border';
+      default: return 'bg-black text-foreground border-border';
     }
   };
 
@@ -82,51 +82,51 @@ export const StatusTransitionDropdown: React.FC<StatusTransitionDropdownProps> =
   };
 
   return (
-    <div className="relative">
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-slate-400 font-medium">Status:</span>
+    <div className="relative font-mono">
+      <div className="flex items-center gap-1.5">
+        <span className="text-[10px] text-muted-foreground font-bold uppercase">STATUS:</span>
 
         {/* Current status button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`px-3 py-1 rounded-lg text-xs font-semibold border flex items-center gap-1.5 shadow-sm transition-all hover:scale-105 active:scale-95 ${getStatusColor(
+          className={`px-2.5 py-0.5 text-xs font-bold uppercase border-2 flex items-center gap-1 shadow-brutalist transition-all ${getStatusColor(
             currentStatus
           )}`}
         >
           <span>{currentStatus}</span>
-          <ChevronDown className="w-3.5 h-3.5 opacity-75" />
+          <ChevronDown className="w-3 h-3" />
         </button>
       </div>
 
-      {/* Dropdown of valid transitions computed by engine */}
+      {/* Dropdown of valid transitions */}
       {isOpen && (
-        <div className="absolute left-0 mt-2 w-56 rounded-xl bg-surface-100 border border-slate-700 shadow-2xl p-2 z-50 animate-slide-up">
-          <div className="px-2 py-1.5 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-            Engine Transitions for @{currentUser?.role || 'dev'}
+        <div className="absolute left-0 mt-1 w-64 bg-[#080808] border-2 border-foreground shadow-brutalist p-1.5 z-50 animate-slide-up">
+          <div className="px-2 py-1 border-b border-border text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+            // TRANSITIONS FOR @{currentUser?.role?.toUpperCase() || 'DEV'}
           </div>
 
-          <div className="space-y-1 mt-1">
+          <div className="space-y-0.5 mt-1">
             {availableTransitions.map((t, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSelectTransition(t)}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-slate-200 hover:bg-surface-200 hover:text-white transition-all text-left group"
+                className="w-full flex items-center justify-between px-2 py-1 text-xs text-foreground hover:bg-foreground hover:text-background uppercase transition-all text-left group"
               >
-                <div className="flex items-center gap-2">
-                  <ArrowRight className="w-3.5 h-3.5 text-primary-400 group-hover:translate-x-0.5 transition-transform" />
-                  <span className="font-semibold">{t.to}</span>
+                <div className="flex items-center gap-1.5 font-bold">
+                  <span>→</span>
+                  <span>{t.to}</span>
                 </div>
                 {t.guards && (
-                  <span className="text-[10px] text-amber-400 bg-amber-500/10 px-1 py-0.2 rounded border border-amber-500/20">
-                    Guarded
+                  <span className="text-[9px] text-[#ea580c] bg-black px-1 py-0.2 border border-[#ea580c]">
+                    GUARDED
                   </span>
                 )}
               </button>
             ))}
 
             {availableTransitions.length === 0 && (
-              <div className="p-3 text-center text-[11px] text-slate-500 italic">
-                No next transitions permitted for role '{currentUser?.role || 'user'}'
+              <div className="p-2 text-center text-[10px] text-muted-foreground uppercase">
+                // ZERO NEXT TRANSITIONS PERMITTED
               </div>
             )}
           </div>
@@ -135,20 +135,20 @@ export const StatusTransitionDropdown: React.FC<StatusTransitionDropdownProps> =
 
       {/* Modal / Dialog when transition requires guard input */}
       {selectedTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="w-full max-w-md bg-surface-100 border border-slate-700 rounded-2xl shadow-2xl p-5 animate-slide-up space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <span>Transition Bug #{bugId} to</span>
-                <span className={`px-2 py-0.5 rounded text-xs border ${getStatusColor(selectedTarget.to)}`}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="w-full max-w-md bg-[#080808] border-2 border-foreground shadow-brutalist p-5 animate-slide-up space-y-3 font-mono text-xs text-foreground">
+            <div className="flex items-center justify-between border-b-2 border-border pb-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                <span>TRANSITION #{bugId} →</span>
+                <span className={`px-1.5 py-0.2 border ${getStatusColor(selectedTarget.to)}`}>
                   {selectedTarget.to}
                 </span>
               </h3>
             </div>
 
             {errorMsg && (
-              <div className="p-3 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+              <div className="p-2 bg-red-950 border border-red-500 text-red-200 text-[10px] uppercase flex items-start gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
                 <span>{errorMsg}</span>
               </div>
             )}
@@ -156,11 +156,11 @@ export const StatusTransitionDropdown: React.FC<StatusTransitionDropdownProps> =
             {/* Resolution selector for Resolved */}
             {selectedTarget.to === 'Resolved' && (
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Resolution Reason:</label>
+                <label className="block text-[9px] uppercase font-bold text-muted-foreground mb-1">RESOLUTION REASON:</label>
                 <select
                   value={resolution}
                   onChange={(e) => setResolution(e.target.value)}
-                  className="w-full bg-surface-50 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-primary-500"
+                  className="w-full bg-black border-2 border-border p-1.5 text-xs text-foreground uppercase focus:outline-none focus:border-foreground font-mono"
                 >
                   <option value="FIXED">FIXED</option>
                   <option value="WORKSFORME">WORKSFORME</option>
@@ -173,46 +173,46 @@ export const StatusTransitionDropdown: React.FC<StatusTransitionDropdownProps> =
             {/* Duplicate ID input for Duplicate */}
             {selectedTarget.to === 'Duplicate' && (
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Duplicate of Bug ID:</label>
+                <label className="block text-[9px] uppercase font-bold text-muted-foreground mb-1">DUPLICATE OF BUG ID:</label>
                 <input
                   type="number"
                   placeholder="e.g. 102"
                   value={duplicateOf}
                   onChange={(e) => setDuplicateOf(e.target.value)}
-                  className="w-full bg-surface-50 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-primary-500"
+                  className="w-full bg-black border-2 border-border p-1.5 text-xs text-foreground uppercase focus:outline-none focus:border-foreground font-mono"
                 />
               </div>
             )}
 
-            {/* Comment field (Guarded if requireComment is true) */}
+            {/* Comment field */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Comment {selectedTarget.guards?.requireComment ? '(Required by workflow guard)' : '(Optional)'}:
+              <label className="block text-[9px] uppercase font-bold text-muted-foreground mb-1">
+                AUDIT NOTE {selectedTarget.guards?.requireComment ? '(REQUIRED BY WORKFLOW GUARD)' : '(OPTIONAL)'}:
               </label>
               <textarea
                 rows={3}
-                placeholder="Explain the reason for this transition..."
+                placeholder="EXPLAIN THE REASON FOR THIS TRANSITION..."
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                className="w-full bg-surface-50 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-primary-500"
+                className="w-full bg-black border-2 border-border p-2 text-xs text-foreground uppercase focus:outline-none focus:border-foreground font-mono"
               />
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
               <button
                 onClick={() => setSelectedTarget(null)}
-                className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-800 border border-slate-700"
+                className="px-3 py-1 border-2 border-border text-muted-foreground hover:text-foreground text-xs uppercase font-bold"
               >
-                Cancel
+                CANCEL
               </button>
               <button
                 onClick={handleExecuteTransition}
                 disabled={isSubmitting}
-                className="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-primary-600 hover:bg-primary-500 shadow-glow-primary flex items-center gap-1.5 disabled:opacity-50"
+                className="px-3 py-1 bg-foreground text-background font-bold text-xs uppercase hover:bg-white flex items-center gap-1.5 disabled:opacity-50"
               >
-                {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-                <span>Confirm Transition</span>
+                {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                <span>CONFIRM TRANSITION</span>
               </button>
             </div>
           </div>
