@@ -16,6 +16,8 @@ build/
 *.db
 *.db-wal
 *.db-shm
+data/
+apps/api/data/
 
 # Logs
 logs/
