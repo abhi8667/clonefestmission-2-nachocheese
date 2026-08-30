@@ -24,6 +24,7 @@ import {
   Filter
 } from 'lucide-react';
 import GlowCursor from '../components/Cyber/GlowCursor.tsx';
+import { SplitFlapText } from '../components/Cyber/SplitFlapText.tsx';
 
 export const LandingView: React.FC = () => {
   const navigate = useNavigate();
@@ -101,7 +102,7 @@ export const LandingView: React.FC = () => {
 
       <main id="landing-main" className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-16 space-y-20 sm:space-y-28">
         {/* ========================================================================= */}
-        {/* SECTION 1: FULL SCREEN CENTERED HERO                                      */}
+        {/* SECTION 1: FULL SCREEN CENTERED HERO WITH SPLIT-FLAP DISPLAY             */}
         {/* ========================================================================= */}
         <section
           aria-labelledby="hero-heading"
@@ -119,6 +120,22 @@ export const LandingView: React.FC = () => {
             >
               TRIARC
             </h1>
+
+            {/* Split-Flap Departure Board Status Indicator */}
+            <div className="py-2 overflow-x-auto max-w-full">
+              <SplitFlapText
+                words={['CODE LINKED', 'ZERO STALL', 'LIVE FLOW', 'GIT SYNCED', 'TRIARC CORE']}
+                fontSize="clamp(22px, 4.5vw, 42px)"
+                tileColor="#0c0c0c"
+                textColor="#F2F1EA"
+                tileRadius={4}
+                gap={4}
+                padTo={11}
+                flipsPerChar={5}
+                flipDuration={0.1}
+                cycleDelay={2800}
+              />
+            </div>
 
             <p className="text-sm sm:text-base md:text-lg text-muted-foreground uppercase leading-relaxed max-w-2xl font-mono">
               Bugzilla tracked where a bug is.{' '}
