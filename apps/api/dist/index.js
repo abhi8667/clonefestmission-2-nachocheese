@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 import { initializeDatabase } from './db/schema.js';
 import { db } from './db/database.js';
 import { authRouter } from './routes/auth.js';
@@ -105,14 +106,19 @@ app.use('/api/import', authMiddleware, importRouter);
 // the `state` it minted, so the router is mounted without authMiddleware.
 app.use('/api/github', githubRouter);
 // Serve static web app bundle if built dist folder exists (e.g. all-in-one container)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const staticDistCandidates = [
     process.env.STATIC_DIST_PATH,
     path.resolve(process.cwd(), '../web/dist'),
     path.resolve(process.cwd(), 'apps/web/dist'),
+    path.resolve(__dirname, '../../web/dist'),
+    path.resolve(__dirname, '../../../apps/web/dist'),
     path.resolve(process.cwd(), 'public')
 ].filter(Boolean);
 for (const candidatePath of staticDistCandidates) {
     if (fs.existsSync(candidatePath)) {
+        console.log(`📦 Serving static web bundle from: ${candidatePath}`);
         app.use(express.static(candidatePath));
         app.get('*', (req, res, next) => {
             if (req.path.startsWith('/api'))
@@ -134,9 +140,28 @@ app.use((err, req, res, next) => {
 });
 const isDirectEntry = process.argv[1] && (process.argv[1].endsWith('index.ts') || process.argv[1].endsWith('index.js'));
 if (isDirectEntry && process.env.NODE_ENV !== 'test') {
-    app.listen(PORT, () => {
-        console.log(`🚀 Triarc API listening on http://localhost:${PORT}`);
-        console.log(`📡 SSE Stream active on http://localhost:${PORT}/api/stream`);
+    app.listen(Number(PORT), '0.0.0.0', () => {
+        console.log(`🚀 Triarc API listening on port ${PORT} (0.0.0.0)`);
+        console.log(`📡 SSE Stream active on http://0.0.0.0:${PORT}/api/stream`);
+        // Render / Cloud Free-Tier Keep-Alive Self-Pinger
+        // Automatically pings the public URL every 10 minutes to prevent Render from spinning down
+        const publicUrl = process.env.RENDER_EXTERNAL_URL || process.env.PUBLIC_URL || process.env.RENDER_URL;
+        if (publicUrl) {
+            const pingIntervalMs = 10 * 60 * 1000; // 10 minutes (Render spins down after 15 min inactivity)
+            console.log(`⏱️ Keep-alive background daemon enabled for: ${publicUrl}`);
+            setInterval(async () => {
+                try {
+                    const pingUrl = `${publicUrl.replace(/\/$/, '')}/api/health`;
+                    const res = await fetch(pingUrl);
+                    if (res.ok) {
+                        console.log(`💓 [Render Keep-Alive] Ping successfully sent to ${pingUrl} (Instance kept active)`);
+                    }
+                }
+                catch (err) {
+                    console.warn(`⚠️ [Render Keep-Alive] Ping failed: ${err.message}`);
+                }
+            }, pingIntervalMs);
+        }
     });
 }
 export default app;

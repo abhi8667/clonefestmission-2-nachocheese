@@ -2,7 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 import { initializeDatabase } from './db/schema.js';
+
 
 import { db } from './db/database.js';
 import { authRouter } from './routes/auth.js';
@@ -118,15 +120,21 @@ app.use('/api/import', authMiddleware, importRouter);
 app.use('/api/github', githubRouter);
 
 // Serve static web app bundle if built dist folder exists (e.g. all-in-one container)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const staticDistCandidates = [
   process.env.STATIC_DIST_PATH,
   path.resolve(process.cwd(), '../web/dist'),
   path.resolve(process.cwd(), 'apps/web/dist'),
+  path.resolve(__dirname, '../../web/dist'),
+  path.resolve(__dirname, '../../../apps/web/dist'),
   path.resolve(process.cwd(), 'public')
 ].filter(Boolean) as string[];
 
 for (const candidatePath of staticDistCandidates) {
   if (fs.existsSync(candidatePath)) {
+    console.log(`📦 Serving static web bundle from: ${candidatePath}`);
     app.use(express.static(candidatePath));
     app.get('*', (req, res, next) => {
       if (req.path.startsWith('/api')) return next();
@@ -149,9 +157,9 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 const isDirectEntry = process.argv[1] && (process.argv[1].endsWith('index.ts') || process.argv[1].endsWith('index.js'));
 if (isDirectEntry && process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
-    console.log(`🚀 Triarc API listening on http://localhost:${PORT}`);
-    console.log(`📡 SSE Stream active on http://localhost:${PORT}/api/stream`);
+  app.listen(Number(PORT), '0.0.0.0', () => {
+    console.log(`🚀 Triarc API listening on port ${PORT} (0.0.0.0)`);
+    console.log(`📡 SSE Stream active on http://0.0.0.0:${PORT}/api/stream`);
 
     // Render / Cloud Free-Tier Keep-Alive Self-Pinger
     // Automatically pings the public URL every 10 minutes to prevent Render from spinning down
@@ -173,6 +181,7 @@ if (isDirectEntry && process.env.NODE_ENV !== 'test') {
     }
   });
 }
+
 
 export default app;
 
