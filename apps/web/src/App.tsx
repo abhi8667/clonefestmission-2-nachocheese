@@ -129,25 +129,10 @@ export const App: React.FC = () => {
     };
   }, []);
 
-<<<<<<< HEAD
-  const isLandingPage = location.pathname === '/' || location.pathname === '/landing';
+  const isLandingPage =
+    location.pathname === '/' || location.pathname === '/landing';
   const isLoginPage = location.pathname === '/login';
   const isPublicPage = isLandingPage || isLoginPage;
-=======
-
-  // --------------------------------------------------
-  // Route state
-  // --------------------------------------------------
-
-const isLandingPage =
-  location.pathname === '/' || location.pathname === '/landing';
-
-const isLoginPage = location.pathname === '/login';
-
-const isPublicPage = isLandingPage || isLoginPage;
->>>>>>> 4a521e3 (UI Changes)
-
-
 
   return (
     <div
@@ -164,15 +149,13 @@ const isPublicPage = isLandingPage || isLoginPage;
       "
       style={{
         background:
-  'linear-gradient(135deg, #080512 0%, #10091D 50%, #080512 100%)',
+          'linear-gradient(135deg, #080512 0%, #10091D 50%, #080512 100%)',
       }}
     >
-
       {/* ==================================================
           GLOBAL LIQUID ETHER BACKGROUND
           Stays active on landing + every app page
       ================================================== */}
-
       <div
         className="
           fixed
@@ -223,13 +206,10 @@ const isPublicPage = isLandingPage || isLoginPage;
         />
       </div>
 
-
       {/* ==================================================
           APPLICATION CONTENT
       ================================================== */}
-
       <div className="relative z-10 min-h-screen flex flex-col">
-
         {/* Top Navbar */}
         {!isPublicPage && (
           <Navbar
@@ -242,11 +222,9 @@ const isPublicPage = isLandingPage || isLoginPage;
           />
         )}
 
-
         {/* ==================================================
             MAIN VIEWPORT
         ================================================== */}
-
         <div
           className={
             isPublicPage
@@ -254,60 +232,76 @@ const isPublicPage = isLandingPage || isLoginPage;
               : 'flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6'
           }
         >
-
           <ErrorBoundary>
             <AppRoutes />
           </ErrorBoundary>
-
         </div>
 
+        {/* ==================================================
+            SECURITY TELEMETRY
+        ================================================== */}
+        {!isPublicPage && <SecurityTelemetryFeed />}
 
         {/* ==================================================
-    SECURITY TELEMETRY
-================================================== */}
+            GLOBAL MODALS & DIALOGS
+        ================================================== */}
+        <NewBugModal
+          isOpen={isNewBugOpen}
+          onClose={() => setIsNewBugOpen(false)}
+          onBugCreated={(newBugId) => {
+            loadRecentBugs();
+            navigate(`/projects/CORE/issues/${newBugId}`);
+          }}
+          onSelectBug={(id) => navigate(`/projects/CORE/issues/${id}`)}
+        />
 
-{!isPublicPage && (
-  <SecurityTelemetryFeed />
-)}
+        <GitHubImportModal
+          isOpen={isImportModalOpen}
+          onClose={() => setIsImportModalOpen(false)}
+          onImportComplete={() => {
+            loadRecentBugs();
+            navigate('/projects/CORE');
+          }}
+        />
 
+        <WebhookSimulatorModal
+          isOpen={isSimulatorOpen}
+          onClose={() => setIsSimulatorOpen(false)}
+          onSelectBug={(bugId) => {
+            loadRecentBugs();
+            loadInboxCount();
+            navigate(`/projects/CORE/issues/${bugId}`);
+          }}
+        />
 
-{/* ==================================================
-    GLOBAL MODALS
-================================================== */}
+        <CommandPalette
+          isOpen={isCmdOpen}
+          onClose={() => setIsCmdOpen(false)}
+          bugs={recentBugs}
+          openNewBugModal={() => setIsNewBugOpen(true)}
+          openWebhookSimulator={() => setIsSimulatorOpen(true)}
+        />
 
-<NewBugModal 
-  isOpen={isNewBugOpen} 
-  onClose={() => setIsNewBugOpen(false)} 
-  onBugCreated={(newBugId) => { 
-    loadRecentBugs(); 
-    navigate(`/projects/CORE/issues/${newBugId}`); 
-  }} 
-  onSelectBug={(id) => 
-    navigate(`/projects/CORE/issues/${id}`) 
-  } 
-/>
+        <KeyboardShortcutsModal
+          isOpen={isShortcutsOpen}
+          onClose={() => setIsShortcutsOpen(false)}
+        />
 
-{/* ...other modals... */}
+        {/* ==================================================
+            CYBER PET + AI ASSISTANT
+            Only visible when logged in
+        ================================================== */}
+        {currentUser && !isPublicPage && (
+          <>
+            <TomLizardPet />
+            <CyberAssistantDrawer />
+          </>
+        )}
 
-
-{/* ==================================================
-    CYBER PET + AI ASSISTANT
-    Only visible when logged in
-================================================== */}
-
-{currentUser && !isPublicPage && (
-  <>
-    <TomLizardPet />
-    <CyberAssistantDrawer />
-  </>
-)}
-
-
-{/* ==================================================
-    LOGIN
-================================================== */}
-
-<LoginModal />
+        {/* ==================================================
+            LOGIN
+        ================================================== */}
+        <LoginModal />
       </div>
     </div>
   );

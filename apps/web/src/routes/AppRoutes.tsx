@@ -70,12 +70,8 @@ export const AppRoutes: React.FC = () => {
   return (
     <Routes>
       {/* Public Landing & Login Routes */}
-<<<<<<< HEAD
-      <Route path="/" element={<LandingView />} />
-      <Route path="/landing" element={<LandingView />} />
-=======
       <Route path="/" element={<LandingPage />} />
->>>>>>> 4a521e3 (UI Changes)
+      <Route path="/landing" element={<LandingPage />} />
       <Route path="/login" element={<LoginView />} />
 
       {/* Workspace fork: organization tracker vs personal repo view */}
