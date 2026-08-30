@@ -313,7 +313,7 @@ Duplicate bug reports waste hundreds of engineering hours. Triarc catches duplic
 - **Row-Level Security Group Isolation**: Strictly filters out confidential security bugs from duplicate suggestions if the filing user does not belong to the authorized security group.
 
 <div align="center">
-  <img src="readme_images/04_incident_intake_modal.png" alt="High-Velocity Incident Intake & Duplicate Detection" width="85%" />
+  <img src="readme_images/05_incident_intake_modal.png" alt="High-Velocity Incident Intake & Duplicate Detection" width="85%" />
 </div>
 
 ---
