@@ -23,12 +23,24 @@ import {
   ChevronRight,
   Filter
 } from 'lucide-react';
+import GlowCursor from '../components/Cyber/GlowCursor.tsx';
 
 export const LandingView: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#080808] text-[#F2F1EA] font-mono selection:bg-[#ea580c] selection:text-[#080808] relative overflow-x-hidden">
+    <GlowCursor
+      color="#ea580c"
+      secondaryColor="#f59e0b"
+      trailLength={40}
+      trailWidth={8}
+      glowIntensity={1.85}
+      glowSpread={1.25}
+      hotspot={0.7}
+      brightness={1.25}
+      blendMode="screen"
+      className="min-h-screen bg-[#080808] text-[#F2F1EA] font-mono selection:bg-[#ea580c] selection:text-[#080808] relative overflow-x-hidden"
+    >
       {/* Top Header / Navigation Bar */}
       <header className="sticky top-0 z-40 bg-[#080808]/90 backdrop-blur-md border-b-2 border-border/40 px-4 sm:px-8 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -612,6 +624,6 @@ export const LandingView: React.FC = () => {
           </div>
         </footer>
       </main>
-    </div>
+    </GlowCursor>
   );
 };
