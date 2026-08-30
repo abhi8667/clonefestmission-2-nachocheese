@@ -1,12 +1,12 @@
 # ===================================================
 # Stage 1: Build Packages and Web Application
 # ===================================================
-FROM node:20-bookworm-slim AS builder
+FROM node:22-bookworm-slim AS builder
 
 WORKDIR /app
 
 # Copy package manifests across monorepo for caching
-COPY package.json tsconfig.base.json ./
+COPY package.json package-lock.json* tsconfig.base.json ./
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/engine/package.json ./packages/engine/
 COPY apps/api/package.json ./apps/api/

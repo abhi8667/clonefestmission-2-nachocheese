@@ -1,7 +1,7 @@
 # ===================================================
 # Stage 1: Build All Packages & Web Frontend
 # ===================================================
-FROM node:20-bookworm-slim AS builder
+FROM node:22-bookworm-slim AS builder
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy workspace package manifests
-COPY package.json tsconfig.base.json ./
+COPY package.json package-lock.json* tsconfig.base.json ./
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/engine/package.json ./packages/engine/
 COPY apps/api/package.json ./apps/api/
@@ -34,7 +34,7 @@ RUN npm run build
 # ===================================================
 # Stage 2: Production All-in-One Container
 # ===================================================
-FROM node:20-bookworm-slim AS runner
+FROM node:22-bookworm-slim AS runner
 
 WORKDIR /app
 
