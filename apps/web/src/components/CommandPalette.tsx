@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Layers, Inbox, Activity, Plus, GitPullRequest, ArrowRight, UserCheck, Shield, Key } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Bug } from '@triarc/shared-types';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useFocusTrap } from '../hooks/useFocusTrap.ts';
@@ -7,9 +8,9 @@ import { useFocusTrap } from '../hooks/useFocusTrap.ts';
 interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
-  bugs: Bug[];
-  onSelectBug: (bugId: number) => void;
-  setActiveTab: (tab: 'bugs' | 'inbox' | 'analytics' | 'admin') => void;
+  bugs?: Bug[];
+  onSelectBug?: (bugId: number) => void;
+  setActiveTab?: (tab: 'bugs' | 'inbox' | 'analytics' | 'admin') => void;
   openNewBugModal: () => void;
   openWebhookSimulator: () => void;
 }
@@ -17,12 +18,12 @@ interface CommandPaletteProps {
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
   isOpen,
   onClose,
-  bugs,
+  bugs = [],
   onSelectBug,
-  setActiveTab,
   openNewBugModal,
   openWebhookSimulator
 }) => {
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -45,10 +46,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   // Static actions
   const staticActions = [
+    { id: 'act_projects', label: 'GO TO PROJECT WORKSPACES LIST', icon: Layers, action: () => { onClose(); navigate('/projects'); } },
     { id: 'act_new', label: 'FILE A NEW BUG / INCIDENT REPORT', icon: Plus, action: () => { onClose(); openNewBugModal(); } },
-    { id: 'act_inbox', label: 'GO TO CLEARANCE & APPROVAL INBOX', icon: Inbox, action: () => { onClose(); setActiveTab('inbox'); } },
-    { id: 'act_cfd', label: 'GO TO THREAT FLOW ANALYTICS & CFD', icon: Activity, action: () => { onClose(); setActiveTab('analytics'); } },
-    ...(currentUser?.role === 'admin' ? [{ id: 'act_admin', label: 'GO TO ADMINISTRATION & GOVERNANCE CONSOLE', icon: Key, action: () => { onClose(); setActiveTab('admin'); } }] : []),
+    { id: 'act_inbox', label: 'GO TO CLEARANCE & APPROVAL INBOX', icon: Inbox, action: () => { onClose(); navigate('/inbox'); } },
+    { id: 'act_core', label: 'OPEN PROJECT: CORE PLATFORM', icon: Layers, action: () => { onClose(); navigate('/projects/CORE'); } },
+    { id: 'act_pay', label: 'OPEN PROJECT: PAYMENT GATEWAY (PAY)', icon: Layers, action: () => { onClose(); navigate('/projects/PAY'); } },
+    { id: 'act_sec', label: 'OPEN PROJECT: ZERO TRUST SECURITY (SEC)', icon: Shield, action: () => { onClose(); navigate('/projects/SEC'); } },
+    ...(currentUser?.role === 'admin' ? [{ id: 'act_admin', label: 'GO TO ADMINISTRATION & GOVERNANCE CONSOLE', icon: Key, action: () => { onClose(); navigate('/admin'); } }] : []),
     { id: 'act_sim', label: 'OPEN GITHUB WEBHOOK TELEMETRY SIMULATOR', icon: GitPullRequest, action: () => { onClose(); openWebhookSimulator(); } },
   ];
 
@@ -95,7 +99,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         if (current.type === 'action') {
           (current.data as any).action();
         } else {
-          onSelectBug((current.data as Bug).id);
+          const b = current.data as Bug;
+          if (onSelectBug) {
+            onSelectBug(b.id);
+          } else {
+            navigate(`/projects/${b.project_key || 'CORE'}/issues/${b.id}`);
+          }
           onClose();
         }
       }
@@ -189,7 +198,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 aria-selected={isSelected}
                 key={bug.id}
                 onClick={() => {
-                  onSelectBug(bug.id);
+                  if (onSelectBug) {
+                    onSelectBug(bug.id);
+                  } else {
+                    navigate(`/projects/${bug.project_key || 'CORE'}/issues/${bug.id}`);
+                  }
                   onClose();
                 }}
                 className={`w-full text-left flex items-center justify-between px-3 py-2 text-xs cursor-pointer transition-all border ${isSelected

@@ -4,6 +4,7 @@ import { fetchUsers, loginUser, quickLoginUser, fetchCurrentProfile, setAuthToke
 
 interface AuthContextType {
   currentUser: User | null;
+  isAuthenticated: boolean;
   users: User[];
   setCurrentUser: (user: User) => void;
   switchUserById: (userId: string) => Promise<void>;
@@ -119,6 +120,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider
       value={{
         currentUser,
+        isAuthenticated: !!currentUser,
         users,
         setCurrentUser: (u) => setCurrentUser(u),
         switchUserById,

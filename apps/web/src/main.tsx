@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import { App } from './App.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
 import { SSEProvider } from './context/SSEContext.tsx';
@@ -22,7 +23,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <ToastProvider>
           <SSEProvider>
-            <App />
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
           </SSEProvider>
         </ToastProvider>
       </AuthProvider>

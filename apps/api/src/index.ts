@@ -12,6 +12,7 @@ import { savedSearchesRouter } from './routes/saved-searches.js';
 import { notificationsRouter } from './routes/notifications.js';
 import { adminRouter } from './routes/admin.js';
 import { importRouter } from './routes/import.js';
+import { projectsRouter } from './routes/projects.js';
 import { authMiddleware } from './middleware/auth.js';
 import { createRateLimiter } from './middleware/rate-limit.js';
 import { runSeed } from './scripts/seed.js';
@@ -44,6 +45,9 @@ app.get('/api/openapi.json', (req, res) => {
     openapi: '3.0.0',
     info: { title: 'Triarc API', version: '1.0.0', description: 'Flow-first bug tracker REST API' },
     paths: {
+      '/api/projects': { get: { summary: 'List projects' }, post: { summary: 'Create project' } },
+      '/api/projects/attention': { get: { summary: 'Get attention summary counts' } },
+      '/api/projects/{key}': { get: { summary: 'Get project details' } },
       '/api/bugs': { get: { summary: 'List bugs' }, post: { summary: 'Create bug' } },
       '/api/bugs/{id}': { get: { summary: 'Get bug details' } },
       '/api/bugs/{id}/transition': { patch: { summary: 'Transition bug status' } },
@@ -70,6 +74,7 @@ app.use('/api/webhooks', webhooksRouter);
 app.use('/api', streamRouter);
 
 // Protected routes
+app.use('/api/projects', authMiddleware, projectsRouter);
 app.use('/api', authMiddleware, bugsRouter);
 app.use('/api', authMiddleware, flagsRouter);
 app.use('/api', authMiddleware, analyticsRouter);
@@ -89,7 +94,8 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-if (process.env.NODE_ENV !== 'test') {
+const isDirectEntry = process.argv[1] && (process.argv[1].endsWith('index.ts') || process.argv[1].endsWith('index.js'));
+if (isDirectEntry && process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
     console.log(`🚀 Triarc API listening on http://localhost:${PORT}`);
     console.log(`📡 SSE Stream active on http://localhost:${PORT}/api/stream`);

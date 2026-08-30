@@ -23,9 +23,10 @@ import { AnimatedCounter } from '../Cyber/AnimatedCounter.tsx';
 
 interface FlowAnalyticsViewProps {
   onSelectBug: (bugId: number) => void;
+  project?: string;
 }
 
-export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBug }) => {
+export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBug, project }) => {
   const { currentUser } = useAuth();
   const [days, setDays] = useState(30);
   const [data, setData] = useState<any | null>(null);
@@ -33,7 +34,7 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
 
   const loadAnalytics = () => {
     setIsLoading(true);
-    fetchFlowAnalytics(days, currentUser?.id)
+    fetchFlowAnalytics(days, currentUser?.id, project)
       .then((res) => {
         setData(res);
       })
@@ -47,7 +48,7 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
 
   useEffect(() => {
     loadAnalytics();
-  }, [days, currentUser?.id]);
+  }, [days, currentUser?.id, project]);
 
   const stateColors: Record<string, string> = {
     'Unconfirmed': '#525252',

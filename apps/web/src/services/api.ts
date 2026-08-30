@@ -11,6 +11,11 @@ import {
   TimelineItem,
   DuplicateMatch,
   User,
+  Project,
+  ProjectMember,
+  ProjectAttentionSummary,
+  CreateProjectInput,
+  Component,
   CreateBugInput,
   TransitionBugInput,
   CreateFlagInput,
@@ -57,7 +62,121 @@ export async function fetchUsers(): Promise<User[]> {
   return data.users;
 }
 
+// Projects API
+export async function fetchProjects(userId?: string): Promise<Project[]> {
+  const res = await fetch(`${API_BASE}/projects`, {
+    headers: getHeaders(undefined, userId)
+  });
+  if (!res.ok) throw new Error('Failed to fetch projects');
+  const data = await res.json();
+  return data.projects || [];
+}
+
+export async function fetchAttentionCounts(userId?: string): Promise<ProjectAttentionSummary> {
+  const res = await fetch(`${API_BASE}/projects/attention`, {
+    headers: getHeaders(undefined, userId)
+  });
+  if (!res.ok) throw new Error('Failed to fetch attention counts');
+  return res.json();
+}
+
+export async function fetchProjectByKey(key: string, userId?: string): Promise<{
+  project: Project;
+  components: Component[];
+  members: ProjectMember[];
+}> {
+  const res = await fetch(`${API_BASE}/projects/${key}`, {
+    headers: getHeaders(undefined, userId)
+  });
+  if (!res.ok) throw new Error(`Failed to fetch project ${key}`);
+  return res.json();
+}
+
+export async function createProject(input: CreateProjectInput, userId?: string): Promise<Project> {
+  const res = await fetch(`${API_BASE}/projects`, {
+    method: 'POST',
+    headers: getHeaders(undefined, userId),
+    body: JSON.stringify(input)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to create project');
+  }
+  const data = await res.json();
+  return data.project;
+}
+
+export async function updateProject(
+  key: string,
+  data: { name?: string; description?: string; repo_url?: string },
+  userId?: string
+): Promise<Project> {
+  const res = await fetch(`${API_BASE}/projects/${key}`, {
+    method: 'PATCH',
+    headers: getHeaders(undefined, userId),
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to update project');
+  }
+  const result = await res.json();
+  return result.project;
+}
+
+export async function addProjectComponent(
+  key: string,
+  data: { id: string; name: string; description?: string },
+  userId?: string
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/projects/${key}/components`, {
+    method: 'POST',
+    headers: getHeaders(undefined, userId),
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to add component');
+  }
+  return res.json();
+}
+
+export async function updateProjectMember(
+  key: string,
+  data: { user_id: string; member_role: string },
+  userId?: string
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/projects/${key}/members`, {
+    method: 'POST',
+    headers: getHeaders(undefined, userId),
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to update project member');
+  }
+  return res.json();
+}
+
+export async function removeProjectMember(
+  key: string,
+  userIdToRemove: string,
+  userId?: string
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/projects/${key}/members/${userIdToRemove}`, {
+    method: 'DELETE',
+    headers: getHeaders(undefined, userId)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to remove project member');
+  }
+  return res.json();
+}
+
 export async function fetchBugs(params?: {
+  project?: string;
+  project_id?: string;
   query?: string;
   status?: string;
   priority?: string;
@@ -67,6 +186,8 @@ export async function fetchBugs(params?: {
   userId?: string;
 }): Promise<{ bugs: Bug[]; count: number }> {
   const url = new URL(`${window.location.origin}${API_BASE}/bugs`);
+  if (params?.project) url.searchParams.set('project', params.project);
+  if (params?.project_id) url.searchParams.set('project_id', params.project_id);
   if (params?.query) url.searchParams.set('query', params.query);
   if (params?.status) url.searchParams.set('status', params.status);
   if (params?.priority) url.searchParams.set('priority', params.priority);
@@ -81,7 +202,7 @@ export async function fetchBugs(params?: {
   return res.json();
 }
 
-export async function fetchBugDetail(bugId: number, userId?: string): Promise<{
+export async function fetchBugDetail(bugId: number | string, userId?: string): Promise<{
   bug: Bug;
   flags: Flag[];
   relationships: Relationship[];
@@ -309,8 +430,12 @@ export async function resolveFlag(flagId: number, input: ResolveFlagInput, userI
   return res.json();
 }
 
-export async function fetchFlowAnalytics(days: number = 30, userId?: string): Promise<any> {
-  const res = await fetch(`${API_BASE}/analytics/flow?days=${days}`, {
+export async function fetchFlowAnalytics(days: number = 30, userId?: string, project?: string): Promise<any> {
+  const url = new URL(`${window.location.origin}${API_BASE}/analytics/flow`);
+  url.searchParams.set('days', String(days));
+  if (project) url.searchParams.set('project', project);
+
+  const res = await fetch(url.toString(), {
     headers: getHeaders(undefined, userId)
   });
   if (!res.ok) throw new Error('Failed to fetch flow analytics');

@@ -114,18 +114,39 @@ analyticsRouter.get('/analytics/activity-heatmap', (req: AuthenticatedRequest, r
 // GET /api/analytics/flow - Cumulative flow & stage metrics & sleeper branches & SLA compliance
 analyticsRouter.get('/analytics/flow', (req: AuthenticatedRequest, res: Response) => {
   const days = parseInt(req.query.days as string || '30', 10);
+  const projectParam = (req.query.project || req.query.project_id) as string | undefined;
   const endDate = new Date();
   const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
 
-  const bugs = db.prepare('SELECT * FROM bugs').all() as Bug[];
-  const activities = db.prepare("SELECT * FROM activity WHERE field = 'status' ORDER BY created_at ASC").all() as Activity[];
-  const flags = db.prepare(`
-    SELECT f.*, ft.name as type_name, u.name as requestee_name
-    FROM flags f
-    JOIN flag_types ft ON f.type_id = ft.id
-    LEFT JOIN users u ON f.requestee_id = u.id
-  `).all() as any[];
-  const gitLinks = db.prepare('SELECT * FROM git_links').all() as GitLink[];
+  let bugsQuery = 'SELECT * FROM bugs';
+  let params: any[] = [];
+
+  if (projectParam) {
+    bugsQuery += ' WHERE project_id = ? OR project_id = (SELECT id FROM projects WHERE UPPER(key) = UPPER(?))';
+    params.push(projectParam, projectParam);
+  }
+
+  const bugs = db.prepare(bugsQuery).all(...params) as Bug[];
+  const bugIds = bugs.map((b) => b.id);
+  const bugIdPlaceholders = bugIds.length > 0 ? bugIds.map(() => '?').join(',') : 'NULL';
+
+  const activities = (bugIds.length > 0
+    ? db.prepare(`SELECT * FROM activity WHERE field = 'status' AND bug_id IN (${bugIdPlaceholders}) ORDER BY created_at ASC`).all(...bugIds)
+    : []) as Activity[];
+
+  const flags = (bugIds.length > 0
+    ? db.prepare(`
+        SELECT f.*, ft.name as type_name, u.name as requestee_name
+        FROM flags f
+        JOIN flag_types ft ON f.type_id = ft.id
+        LEFT JOIN users u ON f.requestee_id = u.id
+        WHERE f.bug_id IN (${bugIdPlaceholders})
+      `).all(...bugIds)
+    : []) as any[];
+
+  const gitLinks = (bugIds.length > 0
+    ? db.prepare(`SELECT * FROM git_links WHERE bug_id IN (${bugIdPlaceholders})`).all(...bugIds)
+    : []) as GitLink[];
 
   // 1. Cumulative flow diagram
   const cfd = computeCumulativeFlow(

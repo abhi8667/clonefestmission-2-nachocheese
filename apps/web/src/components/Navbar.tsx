@@ -24,13 +24,14 @@ import {
   Lock,
   ArrowRight
 } from 'lucide-react';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useSSE } from '../context/SSEContext.tsx';
 import { fetchNotifications, markNotificationRead, markAllNotificationsRead } from '../services/api.ts';
 
 interface NavbarProps {
-  activeTab: 'bugs' | 'inbox' | 'analytics' | 'admin';
-  setActiveTab: (tab: 'bugs' | 'inbox' | 'analytics' | 'admin') => void;
+  activeTab?: 'bugs' | 'inbox' | 'analytics' | 'admin';
+  setActiveTab?: (tab: 'bugs' | 'inbox' | 'analytics' | 'admin') => void;
   openNewBugModal: () => void;
   openWebhookSimulator: () => void;
   openImportModal: () => void;
@@ -41,8 +42,6 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  activeTab,
-  setActiveTab,
   openNewBugModal,
   openWebhookSimulator,
   openImportModal,
@@ -51,12 +50,18 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectBug,
   inboxCount = 0
 }) => {
-  const { currentUser, users, switchUserById } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { currentUser, users, switchUserById, logout } = useAuth();
   const { isConnected, lastEvent } = useSSE();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+
+  const isProjectsActive = location.pathname === '/' || location.pathname.startsWith('/projects');
+  const isInboxActive = location.pathname.startsWith('/inbox');
+  const isAdminActive = location.pathname.startsWith('/admin');
 
   const loadNotifications = async () => {
     try {
@@ -91,8 +96,8 @@ export const Navbar: React.FC<NavbarProps> = ({
       await markNotificationRead(notif.id, currentUser?.id);
       setNotifications((prev) => prev.map((n) => (n.id === notif.id ? { ...n, read: 1 } : n)));
       setUnreadNotifCount((prev) => Math.max(0, prev - 1));
-      if (notif.bug_id && onSelectBug) {
-        onSelectBug(notif.bug_id);
+      if (notif.bug_id) {
+        navigate(`/projects/CORE/issues/${notif.bug_id}`);
       }
       setIsNotifOpen(false);
     } catch (err) { }
@@ -114,33 +119,17 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'bg-[#ea580c]/20 text-[#ea580c] border-[#ea580c]';
-      case 'security':
-        return 'bg-red-950/80 text-red-300 border-red-500/40';
-      case 'triager':
-        return 'bg-amber-950/80 text-amber-300 border-amber-500/40';
-      case 'developer':
-        return 'bg-white/10 text-foreground border-foreground/40';
-      default:
-        return 'bg-black text-muted-foreground border-border';
-    }
-  };
-
   const clearance = getClearanceLevel(currentUser?.role);
 
   return (
-    <header className="sticky top-0 z-40 bg-[#080808]/95 backdrop-blur-md border-b border-border px-4 lg:px-8 py-3 transition-all">
+    <header className="sticky top-0 z-40 bg-[#080808]/95 backdrop-blur-md border-b border-border px-4 lg:px-8 py-3 transition-all font-mono">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-5">
         {/* Left: Brand + Navigation Tabs */}
         <div className="flex items-center gap-6">
-          <button
-            type="button"
-            aria-label="Triarc - Go to Incident Matrix"
+          <Link
+            to="/projects"
+            aria-label="Triarc - Go to Projects"
             className="flex items-center gap-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ea580c] p-1 group transition-all"
-            onClick={() => setActiveTab('bugs')}
           >
             <div className="relative w-8 h-8 bg-foreground flex items-center justify-center border border-foreground group-hover:bg-[#ea580c] transition-colors rounded-sm">
               <Cpu className="w-4 h-4 text-background" />
@@ -148,34 +137,34 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="font-bold font-mono tracking-[0.12em] text-sm text-foreground uppercase">
+                <span className="font-bold tracking-[0.12em] text-sm text-foreground uppercase">
                   TRIARC
                 </span>
-                <span className="text-[9px] uppercase font-mono font-bold px-1.5 py-0.5 bg-foreground/10 text-foreground border border-foreground/30 tracking-wider">
+                <span className="text-[9px] uppercase font-bold px-1.5 py-0.5 bg-foreground/10 text-foreground border border-foreground/30 tracking-wider">
                   FLOW
                 </span>
               </div>
-              <span className="text-[9px] font-mono text-muted-foreground tracking-wider uppercase hidden sm:inline">
+              <span className="text-[9px] text-muted-foreground tracking-wider uppercase hidden sm:inline">
                 INCIDENT LIFECYCLE
               </span>
             </div>
-          </button>
+          </Link>
 
           <nav aria-label="Main Navigation" className="flex items-center gap-1.5 ml-2">
-            <button
-              onClick={() => setActiveTab('bugs')}
-              className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider flex items-center gap-2 transition-all border ${activeTab === 'bugs'
+            <Link
+              to="/projects"
+              className={`px-3 py-1.5 text-xs uppercase tracking-wider flex items-center gap-2 transition-all border rounded-xs ${isProjectsActive
                   ? 'bg-foreground text-background border-foreground font-bold'
                   : 'text-muted-foreground hover:text-foreground border-transparent hover:border-border'
                 }`}
             >
               <Layers className="w-3.5 h-3.5" />
-              <span>INCIDENTS</span>
-            </button>
+              <span>PROJECTS</span>
+            </Link>
 
-            <button
-              onClick={() => setActiveTab('inbox')}
-              className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider flex items-center gap-2 transition-all border relative ${activeTab === 'inbox'
+            <Link
+              to="/inbox"
+              className={`px-3 py-1.5 text-xs uppercase tracking-wider flex items-center gap-2 transition-all border rounded-xs relative ${isInboxActive
                   ? 'bg-foreground text-background border-foreground font-bold'
                   : 'text-muted-foreground hover:text-foreground border-transparent hover:border-border'
                 }`}
@@ -183,34 +172,23 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Inbox className="w-3.5 h-3.5" />
               <span>INBOX</span>
               {inboxCount > 0 && (
-                <span className="px-1.5 py-0.2 text-[10px] font-mono font-bold bg-[#ea580c] text-foreground">
+                <span className="px-1.5 py-0.2 text-[10px] font-bold bg-[#ea580c] text-foreground">
                   {inboxCount}
                 </span>
               )}
-            </button>
-
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider flex items-center gap-2 transition-all border ${activeTab === 'analytics'
-                  ? 'bg-foreground text-background border-foreground font-bold'
-                  : 'text-muted-foreground hover:text-foreground border-transparent hover:border-border'
-                }`}
-            >
-              <Activity className="w-3.5 h-3.5" />
-              <span>ANALYTICS</span>
-            </button>
+            </Link>
 
             {currentUser?.role === 'admin' && (
-              <button
-                onClick={() => setActiveTab('admin')}
-                className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider flex items-center gap-2 transition-all border ${activeTab === 'admin'
+              <Link
+                to="/admin"
+                className={`px-3 py-1.5 text-xs uppercase tracking-wider flex items-center gap-2 transition-all border rounded-xs ${isAdminActive
                     ? 'bg-[#ea580c] text-foreground border-[#ea580c] font-bold'
                     : 'text-[#ea580c]/80 hover:text-[#ea580c] border-transparent hover:border-[#ea580c]/30'
                   }`}
               >
                 <Settings className="w-3.5 h-3.5" />
                 <span>ADMIN</span>
-              </button>
+              </Link>
             )}
           </nav>
         </div>
@@ -427,17 +405,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
                 </div>
 
-                {/* Authentication Dialog Button */}
-                <div className="pt-2 border-t-2 border-foreground/20">
+                {/* Authentication & Sign Out */}
+                <div className="pt-2 border-t-2 border-foreground/20 flex flex-col gap-1.5">
                   <button
                     onClick={() => {
                       setIsUserMenuOpen(false);
-                      document.dispatchEvent(new CustomEvent('triarc:open-login-modal'));
+                      logout();
+                      navigate('/login');
                     }}
-                    className="w-full flex items-center justify-center gap-2 py-1.5 bg-[#141414] hover:bg-foreground hover:text-background border-2 border-foreground/30 text-xs font-mono uppercase tracking-wider transition-all"
+                    className="w-full flex items-center justify-center gap-2 py-1.5 bg-[#141414] hover:bg-red-950 hover:text-red-300 border border-border text-xs uppercase tracking-wider transition-all"
                   >
-                    <Shield className="w-3.5 h-3.5" />
-                    <span>AUTH DIALOG</span>
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>SIGN OUT</span>
                   </button>
                 </div>
               </div>

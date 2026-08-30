@@ -85,6 +85,7 @@ bugsRouter.get('/versions', (req: AuthenticatedRequest, res: Response) => {
 // GET /api/bugs - List and search bugs
 bugsRouter.get('/bugs', (req: AuthenticatedRequest, res: Response) => {
   const queryParam = req.query.query as string | undefined;
+  const projectParam = (req.query.project || req.query.project_id) as string | undefined;
   const statusParam = req.query.status as string | undefined;
   const priorityParam = req.query.priority as string | undefined;
   const severityParam = req.query.severity as string | undefined;
@@ -96,6 +97,11 @@ bugsRouter.get('/bugs', (req: AuthenticatedRequest, res: Response) => {
   const security = getSecurityFilterSQL(req.user);
   let whereClauses: string[] = [security.sql];
   let params: any[] = [...security.params];
+
+  if (projectParam) {
+    whereClauses.push(`(bugs.project_id = ? OR bugs.project_id = (SELECT id FROM projects WHERE UPPER(key) = UPPER(?)))`);
+    params.push(projectParam, projectParam);
+  }
 
   if (queryParam) {
     const parsed = parseSearchQuery(queryParam);
@@ -251,11 +257,14 @@ bugsRouter.get('/bugs', (req: AuthenticatedRequest, res: Response) => {
     SELECT
       bugs.*,
       c.name as component_name,
+      p.key as project_key,
+      p.name as project_name,
       u_reporter.id as rep_id, u_reporter.username as rep_username, u_reporter.name as rep_name, u_reporter.email as rep_email, u_reporter.role as rep_role, u_reporter.avatar_url as rep_avatar,
       u_assignee.id as ass_id, u_assignee.username as ass_username, u_assignee.name as ass_name, u_assignee.email as ass_email, u_assignee.role as ass_role, u_assignee.avatar_url as ass_avatar,
       (SELECT COUNT(*) FROM comments WHERE comments.bug_id = bugs.id) as comments_count
     FROM bugs
     LEFT JOIN components c ON bugs.component_id = c.id
+    LEFT JOIN projects p ON bugs.project_id = p.id
     LEFT JOIN users u_reporter ON bugs.reporter_id = u_reporter.id
     LEFT JOIN users u_assignee ON bugs.assignee_id = u_assignee.id
     WHERE ${whereClauses.join(' AND ')}
@@ -308,6 +317,8 @@ bugsRouter.get('/bugs', (req: AuthenticatedRequest, res: Response) => {
       priority: r.priority,
       component_id: r.component_id,
       component_name: r.component_name || r.component_id,
+      project_id: r.project_id || 'prj_core',
+      project_key: r.project_key || 'CORE',
       reporter_id: r.reporter_id,
       assignee_id: r.assignee_id,
       resolution: r.resolution,
@@ -360,6 +371,7 @@ bugsRouter.post('/bugs', (req: AuthenticatedRequest, res: Response) => {
     severity = 'normal',
     priority = 'normal',
     component_id,
+    project_id,
     assignee_id = null,
     security_group_id = null,
     version = null,
@@ -372,14 +384,21 @@ bugsRouter.post('/bugs', (req: AuthenticatedRequest, res: Response) => {
     return res.status(400).json({ error: 'Title, description, and component_id are required' });
   }
 
+  // Resolve project_id
+  let resolvedProjectId = 'prj_core';
+  if (project_id) {
+    const proj = db.prepare('SELECT id FROM projects WHERE id = ? OR UPPER(key) = UPPER(?)').get(project_id, project_id) as { id: string } | undefined;
+    if (proj) resolvedProjectId = proj.id;
+  }
+
   const reporterId = req.user ? req.user.id : 'u_alex';
   const initialStatus = 'Unconfirmed';
   const nowIso = new Date().toISOString();
 
   const insertStmt = db.prepare(`
     INSERT INTO bugs (
-      title, description, status, severity, priority, component_id, reporter_id, assignee_id, security_group_id, version, target_milestone, estimated_time, remaining_time, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      title, description, status, severity, priority, component_id, project_id, reporter_id, assignee_id, security_group_id, version, target_milestone, estimated_time, remaining_time, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = insertStmt.run(
@@ -389,6 +408,7 @@ bugsRouter.post('/bugs', (req: AuthenticatedRequest, res: Response) => {
     severity,
     priority,
     component_id,
+    resolvedProjectId,
     reporterId,
     assignee_id,
     security_group_id,
@@ -443,7 +463,9 @@ bugsRouter.post('/bugs', (req: AuthenticatedRequest, res: Response) => {
 
 // GET /api/bugs/:id - Full details + relationships + flags + flow metrics + keywords + watchers
 bugsRouter.get('/bugs/:id', (req: AuthenticatedRequest, res: Response) => {
-  const bugId = parseInt(String(req.params.id), 10);
+  const rawId = String(req.params.id);
+  const idStr = rawId.includes('-') ? rawId.split('-').pop()! : rawId;
+  const bugId = parseInt(idStr, 10);
   if (isNaN(bugId)) return res.status(400).json({ error: 'Invalid bug ID' });
 
   if (!canUserViewBug(req.user, bugId)) {
@@ -454,10 +476,13 @@ bugsRouter.get('/bugs/:id', (req: AuthenticatedRequest, res: Response) => {
     SELECT
       bugs.*,
       c.name as component_name,
+      p.key as project_key,
+      p.name as project_name,
       u_reporter.id as rep_id, u_reporter.username as rep_username, u_reporter.name as rep_name, u_reporter.email as rep_email, u_reporter.role as rep_role, u_reporter.avatar_url as rep_avatar,
       u_assignee.id as ass_id, u_assignee.username as ass_username, u_assignee.name as ass_name, u_assignee.email as ass_email, u_assignee.role as ass_role, u_assignee.avatar_url as ass_avatar
     FROM bugs
     LEFT JOIN components c ON bugs.component_id = c.id
+    LEFT JOIN projects p ON bugs.project_id = p.id
     LEFT JOIN users u_reporter ON bugs.reporter_id = u_reporter.id
     LEFT JOIN users u_assignee ON bugs.assignee_id = u_assignee.id
     WHERE bugs.id = ?
@@ -492,6 +517,8 @@ bugsRouter.get('/bugs/:id', (req: AuthenticatedRequest, res: Response) => {
     priority: bugRow.priority,
     component_id: bugRow.component_id,
     component_name: bugRow.component_name || bugRow.component_id,
+    project_id: bugRow.project_id || 'prj_core',
+    project_key: bugRow.project_key || 'CORE',
     reporter_id: bugRow.reporter_id,
     assignee_id: bugRow.assignee_id,
     resolution: bugRow.resolution,

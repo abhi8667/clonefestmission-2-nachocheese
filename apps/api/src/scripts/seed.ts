@@ -29,10 +29,12 @@ export function runSeed() {
     DELETE FROM milestones;
     DELETE FROM versions;
     DELETE FROM groups;
+    DELETE FROM project_members;
+    DELETE FROM projects;
     DELETE FROM users;
   `);
   db.pragma('foreign_keys = ON');
-  console.log('  Cleaned tables. Seeding users, groups, milestones, and keywords...');
+  console.log('  Cleaned tables. Seeding users, projects, groups, milestones, and keywords...');
 
   // 1. Seed Users with bcrypt hashed passwords (password123)
   const defaultPasswordHash = bcrypt.hashSync('password123', 10);
@@ -47,6 +49,41 @@ export function runSeed() {
   insertUser.run('u_marcus', 'marcus', 'Marcus Vance', 'marcus@triarc.dev', 'admin', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100', defaultPasswordHash);
   insertUser.run('u_sarah', 'sarah', 'Sarah Connor', 'sarah@triarc.dev', 'security', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100', defaultPasswordHash);
   insertUser.run('u_chen', 'chen', 'Chen Wei', 'chen@triarc.dev', 'reporter', 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100', defaultPasswordHash);
+
+  // 1b. Seed Projects
+  const insertProject = db.prepare(`
+    INSERT INTO projects (id, key, name, description, department_id, repo_url, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+  `);
+  insertProject.run('prj_core', 'CORE', 'Triarc Core Platform', 'Central system engine, workflow telemetry, zero-I/O state machines, and real-time streaming services', 'dept_eng', 'https://github.com/triarc/core-engine');
+  insertProject.run('prj_pay', 'PAY', 'Payment Gateway & Settlement', 'High-throughput payment orchestration, double-entry ledger consistency, and multi-currency billing pipeline', 'dept_fintech', 'https://github.com/triarc/payment-gateway');
+  insertProject.run('prj_sec', 'SEC', 'Security & Zero Trust Auth', 'Identity provider, OAuth/JWT verification, confidential dossiers, and RBAC enforcement', 'dept_secops', 'https://github.com/triarc/zero-trust-auth');
+
+  // 1c. Seed Project Members with Per-Project Roles
+  const insertProjectMember = db.prepare(`
+    INSERT INTO project_members (project_id, user_id, role)
+    VALUES (?, ?, ?)
+  `);
+  // Core: Alex=developer, Sam=developer, Priya=triager, Marcus=admin, Sarah=developer, Chen=reporter
+  insertProjectMember.run('prj_core', 'u_alex', 'developer');
+  insertProjectMember.run('prj_core', 'u_sam', 'developer');
+  insertProjectMember.run('prj_core', 'u_priya', 'triager');
+  insertProjectMember.run('prj_core', 'u_marcus', 'admin');
+  insertProjectMember.run('prj_core', 'u_sarah', 'developer');
+  insertProjectMember.run('prj_core', 'u_chen', 'reporter');
+
+  // Pay: Alex=triager, Sam=developer, Priya=developer, Marcus=admin, Chen=reporter
+  insertProjectMember.run('prj_pay', 'u_alex', 'triager');
+  insertProjectMember.run('prj_pay', 'u_sam', 'developer');
+  insertProjectMember.run('prj_pay', 'u_priya', 'developer');
+  insertProjectMember.run('prj_pay', 'u_marcus', 'admin');
+  insertProjectMember.run('prj_pay', 'u_chen', 'reporter');
+
+  // Sec: Marcus=admin, Sarah=admin, Priya=triager, Alex=developer
+  insertProjectMember.run('prj_sec', 'u_marcus', 'admin');
+  insertProjectMember.run('prj_sec', 'u_sarah', 'admin');
+  insertProjectMember.run('prj_sec', 'u_priya', 'triager');
+  insertProjectMember.run('prj_sec', 'u_alex', 'developer');
 
   // 2. Seed Groups
   const insertGroup = db.prepare('INSERT INTO groups (id, name, description) VALUES (?, ?, ?)');
@@ -88,8 +125,8 @@ export function runSeed() {
   const bug412CreatedAt = new Date(now - 14 * DAY_MS).toISOString();
   const insertBug = db.prepare(`
     INSERT INTO bugs (
-      id, title, description, status, severity, priority, component_id, reporter_id, assignee_id, version, target_milestone, estimated_time, remaining_time, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      id, title, description, status, severity, priority, component_id, project_id, reporter_id, assignee_id, version, target_milestone, estimated_time, remaining_time, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   insertBug.run(
@@ -100,6 +137,7 @@ export function runSeed() {
     'critical',
     'highest',
     'core',
+    'prj_core',
     'u_sam',
     'u_sam',
     '2.1.0-beta',
@@ -169,6 +207,7 @@ export function runSeed() {
     'major',
     'high',
     'auth',
+    'prj_sec',
     'u_chen',
     'u_sam',
     '2.0.4',
@@ -199,6 +238,7 @@ export function runSeed() {
     'critical',
     'high',
     'core',
+    'prj_core',
     'u_chen',
     'u_alex',
     '2.0.4',
@@ -219,6 +259,7 @@ export function runSeed() {
     'major',
     'high',
     'core',
+    'prj_core',
     'u_sam',
     'u_sam',
     '2.0.4',
@@ -240,6 +281,7 @@ export function runSeed() {
     'normal',
     'normal',
     'api',
+    'prj_core',
     'u_priya',
     'u_alex',
     '2.1.0-beta',
@@ -263,6 +305,7 @@ export function runSeed() {
     'blocker',
     'highest',
     'auth',
+    'prj_sec',
     'u_sarah',
     'u_marcus',
     '2.1.0-beta',
@@ -329,6 +372,9 @@ export function runSeed() {
     const version = i % 3 === 0 ? '2.1.0-beta' : '2.0.4';
     const estTime = (i % 8) + 2;
 
+    // Distribute projects: 65% CORE, 25% PAY, 10% SEC
+    const projectId = i % 10 === 0 ? 'prj_sec' : i % 4 === 0 ? 'prj_pay' : 'prj_core';
+
     // Distribute creation across past 45 days
     const daysAgo = (140 - i) * 0.3 + (i % 5);
     const createdDate = new Date(now - daysAgo * DAY_MS);
@@ -352,6 +398,7 @@ export function runSeed() {
       severity,
       priority,
       component,
+      projectId,
       reporter,
       assignee,
       version,
