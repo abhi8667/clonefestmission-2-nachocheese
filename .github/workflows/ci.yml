@@ -30,7 +30,7 @@ jobs:
         run: npm run test:engine
 
       - name: Run API Integration, Performance & Security Tests
-        run: npm run test -w apps/api
+        run: npm run test:api
 
       - name: Build all packages
         run: npm run build

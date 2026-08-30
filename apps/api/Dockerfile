@@ -28,9 +28,9 @@ COPY packages/engine ./packages/engine
 COPY apps/api ./apps/api
 
 # Build shared packages and API
-RUN npm run build -w packages/shared-types && \
-    npm run build -w packages/engine && \
-    npm run build -w apps/api
+RUN npm run build -w @triarc/shared-types && \
+    npm run build -w @triarc/engine && \
+    npm run build -w @triarc/api
 
 # ===================================================
 # Stage 2: Minimal Production Runtime

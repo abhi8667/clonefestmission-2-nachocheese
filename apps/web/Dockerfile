@@ -21,9 +21,9 @@ COPY packages/engine ./packages/engine
 COPY apps/web ./apps/web
 
 # Build shared packages and Vite Web bundle
-RUN npm run build -w packages/shared-types && \
-    npm run build -w packages/engine && \
-    npm run build -w apps/web
+RUN npm run build -w @triarc/shared-types && \
+    npm run build -w @triarc/engine && \
+    npm run build -w @triarc/web
 
 # ===================================================
 # Stage 2: High-Performance Nginx Web Server

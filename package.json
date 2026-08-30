@@ -7,17 +7,18 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev -w apps/api\" \"npm run dev -w apps/web\"",
-    "dev:api": "npm run dev -w apps/api",
-    "dev:web": "npm run dev -w apps/web",
-    "build": "npm run build -w packages/shared-types && npm run build -w packages/engine && npm run build -w apps/api && npm run build -w apps/web",
-    "build:packages": "npm run build -w packages/shared-types && npm run build -w packages/engine",
-    "start": "npm run start -w apps/api",
-    "test": "npm run test -w packages/engine && npm run test -w apps/api",
-    "test:engine": "npm run test -w packages/engine",
-    "benchmark": "npm run benchmark -w apps/api",
-    "seed": "npm run seed -w apps/api",
-    "typecheck": "npm run typecheck -w packages/shared-types && npm run typecheck -w packages/engine && npm run typecheck -w apps/api && npm run typecheck -w apps/web"
+    "dev": "concurrently \"npm run dev -w @triarc/api\" \"npm run dev -w @triarc/web\"",
+    "dev:api": "npm run dev -w @triarc/api",
+    "dev:web": "npm run dev -w @triarc/web",
+    "build": "npm run build -w @triarc/shared-types && npm run build -w @triarc/engine && npm run build -w @triarc/api && npm run build -w @triarc/web",
+    "build:packages": "npm run build -w @triarc/shared-types && npm run build -w @triarc/engine",
+    "start": "npm run start -w @triarc/api",
+    "test": "npm run test -w @triarc/engine && npm run test -w @triarc/api",
+    "test:engine": "npm run test -w @triarc/engine",
+    "test:api": "npm run test -w @triarc/api",
+    "benchmark": "npm run benchmark -w @triarc/api",
+    "seed": "npm run seed -w @triarc/api",
+    "typecheck": "npm run typecheck -w @triarc/shared-types && npm run typecheck -w @triarc/engine && npm run typecheck -w @triarc/api && npm run typecheck -w @triarc/web"
   },
   "devDependencies": {
     "@esbuild/darwin-arm64": "^0.28.2",
