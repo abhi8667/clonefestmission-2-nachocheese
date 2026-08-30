@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # ===================================================
+  # Triarc REST API & Real-time Telemetry Service
+  # ===================================================
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: triarc-api
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_PATH=/app/apps/api/data/triarc.db
+      - JWT_SECRET=triarc_production_jwt_secret_key_crypto_99
+      - GITHUB_WEBHOOK_SECRET=triarc_webhook_secret_99
+      - CORS_ORIGIN=http://localhost:8080,http://localhost:5173,http://localhost
+    volumes:
+      - triarc-data:/app/apps/api/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/api/projects').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - triarc-network
+
+  # ===================================================
+  # Triarc Web Client & Nginx Reverse Proxy
+  # ===================================================
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: triarc-web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+      - "5173:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - triarc-network
+
+volumes:
+  triarc-data:
+    driver: local
+
+networks:
+  triarc-network:
+    driver: bridge

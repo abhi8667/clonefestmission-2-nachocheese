@@ -357,35 +357,55 @@ Triarc is fully compliant with **WCAG 2.2 Level AA** accessibility standards:
 ## 🚀 Quickstart & Installation
 
 ### Prerequisites
-- **Node.js**: `v18.0.0` or higher (`v20+` recommended)
-- **npm**: `v9.0.0` or higher
+- **Option A (Local)**: Node.js `v18.0.0+` (`v20+` recommended) & npm `v9+`
+- **Option B (Docker)**: Docker & Docker Compose
 
-### 1. Clone & Install Dependencies
+---
+
+### Option A: Local Bare-Metal Setup
+
 ```bash
+# 1. Clone repository
 git clone https://github.com/abhi8667/clonefestmission-2-nachocheese.git triarc
 cd triarc
+
+# 2. Install dependencies & build packages
 npm install
-```
-
-### 2. Build Monorepo Packages
-```bash
 npm run build
-```
 
-### 3. Run Automated Verification Tests
-```bash
+# 3. Run automated test suite
 npm test
-```
 
-### 4. Start Development Servers
-```bash
+# 4. Start local development servers
 npm run dev
 ```
 
-The application will be live at:
 - 🌐 **Web Client**: `http://localhost:5173`
 - 📡 **API Backend**: `http://localhost:3001`
 - ⚡ **SSE Event Stream**: `http://localhost:3001/api/stream`
+
+---
+
+### Option B: Production Docker Deployment (100% Docker-Ready)
+
+#### 1. Multi-Container Orchestration (Docker Compose + Nginx)
+Runs the **Express/Better-SQLite3 API** on port `3001` and an optimized **Nginx reverse proxy** on port `8080` (and `5173`) with persistent SQLite volume storage:
+
+```bash
+docker compose up --build
+```
+- 🌐 **Web App (Nginx Reverse Proxy)**: `http://localhost:8080` (or `http://localhost:5173`)
+- 📡 **API & Telemetry Backend**: `http://localhost:3001`
+
+#### 2. Single-Container Cloud Deployment (AWS ECS / GCP Cloud Run / Render / Fly.io)
+Builds a unified production image serving both REST API endpoints and compiled static web assets:
+
+```bash
+docker build -t triarc:latest .
+docker run -d -p 3001:3001 -v triarc-data:/app/apps/api/data --name triarc triarc:latest
+```
+- 🌐 **Full Stack Application**: `http://localhost:3001`
+
 
 ---
 

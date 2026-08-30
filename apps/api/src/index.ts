@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import fs from 'fs';
 import { initializeDatabase } from './db/schema.js';
+
 import { db } from './db/database.js';
 import { authRouter } from './routes/auth.js';
 import { bugsRouter } from './routes/bugs.js';
@@ -113,6 +116,25 @@ app.use('/api/import', authMiddleware, importRouter);
 // GitHub account linking. The OAuth callback inside handles its own auth via
 // the `state` it minted, so the router is mounted without authMiddleware.
 app.use('/api/github', githubRouter);
+
+// Serve static web app bundle if built dist folder exists (e.g. all-in-one container)
+const staticDistCandidates = [
+  process.env.STATIC_DIST_PATH,
+  path.resolve(process.cwd(), '../web/dist'),
+  path.resolve(process.cwd(), 'apps/web/dist'),
+  path.resolve(process.cwd(), 'public')
+].filter(Boolean) as string[];
+
+for (const candidatePath of staticDistCandidates) {
+  if (fs.existsSync(candidatePath)) {
+    app.use(express.static(candidatePath));
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api')) return next();
+      res.sendFile(path.join(candidatePath, 'index.html'));
+    });
+    break;
+  }
+}
 
 // Global Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

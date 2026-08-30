@@ -1,0 +1,40 @@
+# Dependencies & Package Managers
+node_modules/
+.pnp
+.pnp.js
+package-lock.json
+
+# Local Databases & Persistent Data
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.db
+*.db-wal
+*.db-shm
+data/
+apps/api/data/
+
+# Logs & Debug
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build Outputs & Cache
+dist/
+build/
+*.tsbuildinfo
+.vite/
+
+# Version Control & IDE
+.git/
+.github/
+.vscode/
+.idea/
+.claude/
+.DS_Store
+Thumbs.db
+reference-bugzilla/
+*.zip
