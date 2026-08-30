@@ -20,6 +20,7 @@
     "typecheck": "npm run typecheck -w packages/shared-types && npm run typecheck -w packages/engine && npm run typecheck -w apps/api && npm run typecheck -w apps/web"
   },
   "devDependencies": {
+    "@esbuild/darwin-arm64": "^0.28.2",
     "concurrently": "^9.1.2",
     "puppeteer-core": "^25.9.0",
     "typescript": "^5.7.3"

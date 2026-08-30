@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Layers, Inbox, Activity, Plus, GitPullRequest, ArrowRight, UserCheck, Shield, Key } from 'lucide-react';
+import { Search, Layers, Inbox, Activity, Plus, GitPullRequest, ArrowRight, UserCheck, Shield, Key, Bot } from 'lucide-react';
+import { useCyberPet } from './CyberPet/CyberPetContext.tsx';
 import { useNavigate } from 'react-router-dom';
 import { Bug } from '@triarc/shared-types';
 import { useAuth } from '../context/AuthContext.tsx';
@@ -28,6 +29,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const { currentUser, users, switchUserById } = useAuth();
+  const { setIsAssistantOpen } = useCyberPet();
   const trapRef = useFocusTrap<HTMLDivElement>({
     isOpen,
     onClose,
@@ -46,6 +48,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   // Static actions
   const staticActions = [
+    { id: 'act_tom', label: 'LAUNCH TOM THE LIZARD AI TRIAGE COPILOT', icon: Bot, action: () => { onClose(); setIsAssistantOpen(true); } },
     { id: 'act_projects', label: 'GO TO PROJECT WORKSPACES LIST', icon: Layers, action: () => { onClose(); navigate('/projects'); } },
     { id: 'act_new', label: 'FILE A NEW BUG / INCIDENT REPORT', icon: Plus, action: () => { onClose(); openNewBugModal(); } },
     { id: 'act_inbox', label: 'GO TO CLEARANCE & APPROVAL INBOX', icon: Inbox, action: () => { onClose(); navigate('/inbox'); } },

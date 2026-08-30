@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 interface UseFocusTrapOptions {
   isOpen: boolean;
   onClose?: () => void;
-  initialFocusRef?: React.RefObject<HTMLElement>;
+  initialFocusRef?: React.RefObject<HTMLElement | null>;
 }
 
 export function useFocusTrap<T extends HTMLElement = HTMLDivElement>({
@@ -13,42 +13,70 @@ export function useFocusTrap<T extends HTMLElement = HTMLDivElement>({
 }: UseFocusTrapOptions) {
   const containerRef = useRef<T>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const initialFocusRefRef = useRef(initialFocusRef);
+  initialFocusRefRef.current = initialFocusRef;
+  const wasOpenRef = useRef(false);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      if (wasOpenRef.current) {
+        wasOpenRef.current = false;
+        // Restore focus on close
+        if (previousActiveElement.current && typeof previousActiveElement.current.focus === 'function') {
+          previousActiveElement.current.focus();
+        }
+      }
+      return;
+    }
 
-    // Save previously focused element
-    previousActiveElement.current = document.activeElement as HTMLElement;
+    const isJustOpening = !wasOpenRef.current;
+    wasOpenRef.current = true;
 
     const container = containerRef.current;
     if (!container) return;
 
-    // Focus the initial element or the first focusable element
     const focusableSelector =
       'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-    const focusableElements = container.querySelectorAll<HTMLElement>(focusableSelector);
 
-    if (initialFocusRef?.current) {
-      initialFocusRef.current.focus();
-    } else if (focusableElements.length > 0) {
-      focusableElements[0].focus();
-    } else {
-      container.focus();
+    // Only set initial focus when the modal/drawer FIRST opens, never on mid-session re-renders!
+    if (isJustOpening) {
+      previousActiveElement.current = document.activeElement as HTMLElement;
+
+      // Defer slightly to ensure elements are mounted in the DOM
+      const timer = setTimeout(() => {
+        if (!containerRef.current) return;
+        const focusableElements = containerRef.current.querySelectorAll<HTMLElement>(focusableSelector);
+
+        if (initialFocusRefRef.current?.current) {
+          initialFocusRefRef.current.current.focus();
+        } else if (focusableElements.length > 0) {
+          focusableElements[0].focus();
+        } else {
+          containerRef.current.focus();
+        }
+      }, 30);
+
+      return () => clearTimeout(timer);
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (onClose) {
+        if (onCloseRef.current) {
           e.preventDefault();
           e.stopPropagation();
-          onClose();
+          onCloseRef.current();
         }
         return;
       }
 
       if (e.key === 'Tab') {
+        const currentContainer = containerRef.current;
+        if (!currentContainer) return;
+
         const currentFocusables = Array.from(
-          container.querySelectorAll<HTMLElement>(focusableSelector)
+          currentContainer.querySelectorAll<HTMLElement>(focusableSelector)
         ).filter((el) => el.offsetParent !== null); // only visible elements
 
         if (currentFocusables.length === 0) {
@@ -61,7 +89,7 @@ export function useFocusTrap<T extends HTMLElement = HTMLDivElement>({
 
         if (e.shiftKey) {
           // Shift + Tab: if focused on first, wrap to last
-          if (document.activeElement === firstElement || document.activeElement === container) {
+          if (document.activeElement === firstElement || document.activeElement === currentContainer) {
             e.preventDefault();
             lastElement.focus();
           }
@@ -79,12 +107,8 @@ export function useFocusTrap<T extends HTMLElement = HTMLDivElement>({
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      // Restore focus on close
-      if (previousActiveElement.current && typeof previousActiveElement.current.focus === 'function') {
-        previousActiveElement.current.focus();
-      }
     };
-  }, [isOpen, onClose, initialFocusRef]);
+  }, [isOpen]);
 
   return containerRef;
 }
