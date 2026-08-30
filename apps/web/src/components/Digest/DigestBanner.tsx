@@ -50,18 +50,18 @@ export const DigestBanner: React.FC<DigestBannerProps> = ({ onSelectBug }) => {
   }
 
   return (
-    <div className="mb-6 bg-[#0d0d0d] border-2 border-foreground/30 p-4 shadow-brutalist animate-fade-in transition-all">
+    <div className="mb-6 bg-[#0d0d0d] border border-border p-4 sm:p-5 shadow-sm animate-fade-in transition-all rounded-sm">
       <div className="flex items-start sm:items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
         {/* Left: Icon + Intelligence Briefing */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-foreground text-background flex items-center justify-center font-mono font-bold shrink-0">
-            <Radio className="w-4 h-4 text-background" />
+        <div className="flex items-center gap-3.5">
+          <div className="w-8 h-8 bg-foreground/10 text-foreground border border-border flex items-center justify-center font-mono font-bold shrink-0 rounded-sm">
+            <Radio className="w-4 h-4 text-[#ea580c]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-xs font-bold font-mono text-foreground uppercase tracking-wider flex items-center gap-2">
-                <span>// THREAT BRIEFING: SINCE LAST LOGIN ({digest.period_label.toUpperCase()})</span>
-                <span className="px-1.5 py-0.2 text-[10px] font-mono font-bold bg-[#ea580c] text-background">
+                <span>ACTIVITY DIGEST ({digest.period_label.toUpperCase()})</span>
+                <span className="px-1.5 py-0.2 text-[10px] font-mono font-bold bg-[#ea580c] text-background rounded-sm">
                   <AnimatedCounter value={digest.total_events} /> EVENTS
                 </span>
               </h3>
@@ -86,7 +86,7 @@ export const DigestBanner: React.FC<DigestBannerProps> = ({ onSelectBug }) => {
         <div className="flex items-center gap-2 ml-auto sm:ml-0">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="px-3 py-1 bg-[#141414] hover:bg-foreground hover:text-background border-2 border-border text-xs font-mono uppercase font-bold flex items-center gap-1.5 transition-all"
+            className="px-3 py-1.5 bg-[#141414] hover:bg-foreground hover:text-background border border-border text-xs font-mono uppercase font-bold flex items-center gap-1.5 transition-all"
           >
             <span>{isExpanded ? 'COLLAPSE' : 'EXPAND'}</span>
             {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -94,7 +94,7 @@ export const DigestBanner: React.FC<DigestBannerProps> = ({ onSelectBug }) => {
 
           <button
             onClick={() => setIsDismissed(true)}
-            className="p-1 border-2 border-border hover:border-foreground text-muted-foreground hover:text-foreground bg-[#141414] transition-all"
+            className="p-1.5 border border-border hover:border-foreground text-muted-foreground hover:text-foreground bg-[#141414] transition-all"
             title="Acknowledge & dismiss briefing"
             aria-label="Dismiss intelligence briefing"
           >
@@ -105,9 +105,9 @@ export const DigestBanner: React.FC<DigestBannerProps> = ({ onSelectBug }) => {
 
       {/* Expanded Briefing Drawer */}
       {isExpanded && (
-        <div className="mt-4 pt-3 border-t-2 border-border space-y-2 text-xs font-mono">
-          <h4 className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">
-            // RECENT AUDIT TRAIL LOGS ({digest.items.length})
+        <div className="mt-4 pt-3.5 border-t border-border space-y-2 text-xs font-mono">
+          <h4 className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+            RECENT AUDIT TRAIL LOGS ({digest.items.length})
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {digest.items.slice(0, 8).map((item: DigestItem) => (

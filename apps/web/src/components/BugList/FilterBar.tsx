@@ -157,18 +157,18 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   return (
     <div className="space-y-3 mb-6">
       {/* Main Command Console Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-[#0d0d0d] p-3 border-2 border-foreground/20 shadow-brutalist">
-        {/* Left: Tactical Radar Query Input */}
+      <div className="flex flex-wrap items-center justify-between gap-3.5 bg-[#0d0d0d] p-4 border border-border shadow-sm rounded-sm">
+        {/* Left: Query Input */}
         <div className="flex-1 min-w-[280px] relative flex items-center">
           <div className="absolute left-3 flex items-center justify-center text-muted-foreground">
             <Search className="w-4 h-4" />
           </div>
           <input
             type="text"
-            placeholder='QUERY RADAR // e.g. status:open milestone:v2.1 keyword:security "auth memory"...'
+            placeholder='Search incidents, e.g. status:open milestone:v2.1 keyword:security...'
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-20 py-2 bg-[#080808] border-2 border-foreground/20 text-xs font-mono text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground transition-all uppercase"
+            className="w-full pl-9 pr-20 py-2 bg-[#080808] border border-border text-xs font-mono text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground transition-all rounded-sm"
           />
           <div className="absolute right-2.5 flex items-center gap-1.5">
             {searchQuery && (
@@ -182,11 +182,11 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             )}
             <button
               onClick={() => setShowSavedSearches(!showSavedSearches)}
-              className={`p-1 border text-xs font-mono transition-colors ${showSavedSearches
+              className={`p-1 border text-xs font-mono transition-colors rounded-sm ${showSavedSearches
                   ? 'text-background bg-foreground border-foreground'
                   : 'text-muted-foreground hover:text-foreground border-border'
                 }`}
-              title="Saved telemetry searches"
+              title="Saved searches"
             >
               <Bookmark className="w-3.5 h-3.5" />
             </button>
@@ -206,7 +206,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-[#080808] border-2 border-foreground/20 text-foreground text-xs px-2.5 py-1.5 focus:outline-none focus:border-foreground font-mono uppercase"
+            className="bg-[#080808] border border-border text-foreground text-xs px-2.5 py-1.5 focus:outline-none focus:border-foreground font-mono uppercase rounded-sm"
           >
             <option value="">STATUS: ALL</option>
             <option value="open">STATUS: OPEN</option>
@@ -226,7 +226,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <select
             value={selectedMilestone}
             onChange={(e) => handleMilestoneChange(e.target.value)}
-            className="bg-[#080808] border-2 border-foreground/20 text-foreground text-xs px-2.5 py-1.5 focus:outline-none focus:border-foreground font-mono uppercase"
+            className="bg-[#080808] border border-border text-foreground text-xs px-2.5 py-1.5 focus:outline-none focus:border-foreground font-mono uppercase rounded-sm"
           >
             <option value="">MILESTONES: ALL</option>
             {milestones.map((m) => (
@@ -240,7 +240,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <select
             value={componentFilter}
             onChange={(e) => setComponentFilter(e.target.value)}
-            className="bg-[#080808] border-2 border-foreground/20 text-foreground text-xs px-2.5 py-1.5 focus:outline-none focus:border-foreground font-mono uppercase"
+            className="bg-[#080808] border border-border text-foreground text-xs px-2.5 py-1.5 focus:outline-none focus:border-foreground font-mono uppercase rounded-sm"
           >
             <option value="">SUBSYSTEM: ALL</option>
             <option value="core">CORE ENGINE</option>
@@ -255,7 +255,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="bg-[#080808] border-2 border-foreground/20 text-foreground text-xs px-2.5 py-1.5 focus:outline-none focus:border-foreground font-mono uppercase"
+            className="bg-[#080808] border border-border text-foreground text-xs px-2.5 py-1.5 focus:outline-none focus:border-foreground font-mono uppercase rounded-sm"
           >
             <option value="">PRIORITY: ALL</option>
             <option value="highest">P1 // HIGHEST</option>
@@ -269,7 +269,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <select
             value={assigneeFilter}
             onChange={(e) => setAssigneeFilter(e.target.value)}
-            className="bg-[#080808] border-2 border-foreground/20 text-foreground text-xs px-2.5 py-1.5 focus:outline-none focus:border-foreground font-mono uppercase"
+            className="bg-[#080808] border border-border text-foreground text-xs px-2.5 py-1.5 focus:outline-none focus:border-foreground font-mono uppercase rounded-sm"
           >
             <option value="">ASSIGNEE: ALL</option>
             <option value="me">ASSIGNED TO ME</option>
@@ -284,7 +284,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="text-xs text-[#ea580c] hover:text-white px-2.5 py-1.5 bg-[#ea580c]/10 border-2 border-[#ea580c] flex items-center gap-1 font-mono uppercase font-bold transition-all"
+              className="text-xs text-[#ea580c] hover:text-white px-2.5 py-1.5 bg-[#ea580c]/10 border border-[#ea580c] flex items-center gap-1 font-mono uppercase font-bold transition-all rounded-sm"
             >
               <X className="w-3.5 h-3.5" /> RESET
             </button>
@@ -292,20 +292,20 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         </div>
 
         {/* Right: View mode HUD & Count */}
-        <div className="flex items-center gap-2">
-          <div className="px-2.5 py-1.5 border-2 border-foreground/20 bg-[#080808] text-xs font-mono text-foreground flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 bg-[#ea580c] animate-blink" />
+        <div className="flex items-center gap-2.5">
+          <div className="px-3 py-1.5 border border-border bg-[#080808] text-xs font-mono text-foreground flex items-center gap-1.5 rounded-sm">
+            <span className="w-1.5 h-1.5 bg-[#ea580c] animate-blink rounded-full" />
             <AnimatedCounter value={totalCount} suffix=" INCIDENTS" />
           </div>
 
-          <div className="flex items-center border-2 border-foreground/20 bg-[#080808]">
+          <div className="flex items-center border border-border bg-[#080808] rounded-sm overflow-hidden">
             <button
               onClick={() => setViewMode('table')}
               className={`p-1.5 text-xs transition-all ${viewMode === 'table'
                   ? 'bg-foreground text-background font-bold'
                   : 'text-muted-foreground hover:text-foreground'
                 }`}
-              title="Dense Incident Matrix (Table view)"
+              title="Table view"
             >
               <Table className="w-3.5 h-3.5" />
             </button>
@@ -315,7 +315,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   ? 'bg-foreground text-background font-bold'
                   : 'text-muted-foreground hover:text-foreground'
                 }`}
-              title="Tactical Card Grid (Kanban view)"
+              title="Card grid view"
             >
               <LayoutGrid className="w-3.5 h-3.5" />
             </button>

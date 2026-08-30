@@ -22,34 +22,21 @@ export const CyberBackground: React.FC = () => {
 
     window.addEventListener('resize', handleResize);
 
-    // Crosshair target coords
-    let scanY = 0;
-    let scanSpeed = 0.4;
-
-    const render = (time: number) => {
+    const render = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Draw subtle horizontal scanning laser line
-      scanY += scanSpeed;
-      if (scanY > height) scanY = 0;
+      // Subtle dot grid
+      const gridSize = 32;
+      ctx.fillStyle = 'rgba(242, 241, 234, 0.04)';
+      for (let x = 0; x < width; x += gridSize) {
+        for (let y = 0; y < height; y += gridSize) {
+          ctx.fillRect(x, y, 1, 1);
+        }
+      }
 
-      ctx.strokeStyle = 'rgba(234, 88, 12, 0.15)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(0, scanY);
-      ctx.lineTo(width, scanY);
-      ctx.stroke();
-
-      // Laser glowing trail
-      const grad = ctx.createLinearGradient(0, scanY - 30, 0, scanY);
-      grad.addColorStop(0, 'rgba(234, 88, 12, 0)');
-      grad.addColorStop(1, 'rgba(234, 88, 12, 0.04)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, scanY - 30, width, 30);
-
-      // 2. Corner crosshairs at viewport corners
-      const chSize = 14;
-      ctx.strokeStyle = 'rgba(242, 241, 234, 0.18)';
+      // Corner subtle crosshairs
+      const chSize = 12;
+      ctx.strokeStyle = 'rgba(242, 241, 234, 0.08)';
       ctx.lineWidth = 1;
 
       // Top-left
@@ -66,15 +53,12 @@ export const CyberBackground: React.FC = () => {
       ctx.moveTo(width - 24, height - 24); ctx.lineTo(width - 24 - chSize, height - 24);
       ctx.moveTo(width - 24, height - 24); ctx.lineTo(width - 24, height - 24 - chSize);
       ctx.stroke();
-
-      animationFrameId = requestAnimationFrame(render);
     };
 
-    animationFrameId = requestAnimationFrame(render);
+    render();
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(animationFrameId);
     };
   }, []);
 

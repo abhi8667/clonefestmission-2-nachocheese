@@ -189,26 +189,24 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
     >
       <div
         ref={trapRef}
-        className="w-full max-w-5xl bg-[#080808] border-2 border-foreground shadow-brutalist max-h-[92vh] flex flex-col overflow-hidden text-foreground font-mono"
+        className="w-full max-w-5xl bg-[#080808] border border-border shadow-2xl max-h-[92vh] flex flex-col overflow-hidden text-foreground font-mono rounded-sm"
       >
-        {/* Brutalist Window Header */}
-        <div className="flex items-center justify-between px-4 py-2 bg-[#121212] border-b-2 border-foreground">
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 bg-[#ea580c]" />
-            <span className="h-2.5 w-2.5 bg-foreground" />
-            <span className="h-2.5 w-2.5 border border-foreground" />
-            <span className="ml-2 text-xs font-mono font-bold uppercase tracking-widest text-foreground">
-              MANIFEST: INCIDENT_#{bugId}.LOG // v3.1.0
+        {/* Window Header */}
+        <div className="flex items-center justify-between px-5 py-2.5 bg-[#121212] border-b border-border">
+          <div className="flex items-center gap-2.5">
+            <span className="h-2 w-2 bg-[#ea580c] rounded-full" />
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-foreground">
+              INCIDENT DOSSIER #{bugId}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <span className="text-[10px] text-muted-foreground uppercase hidden sm:inline">
               [ESC TO CLOSE]
             </span>
             <button
               onClick={onClose}
-              className="p-1 border border-border hover:border-foreground text-muted-foreground hover:text-foreground bg-[#080808] transition-colors"
+              className="p-1 border border-border hover:border-foreground text-muted-foreground hover:text-foreground bg-[#080808] transition-colors rounded-sm"
               aria-label="Close dossier modal"
             >
               <X className="w-4 h-4" />
@@ -217,11 +215,11 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
         </div>
 
         {/* Modal Banner & Title */}
-        <div className="p-4 lg:p-6 border-b-2 border-border bg-[#0d0d0d] flex flex-wrap items-start justify-between gap-4">
+        <div className="p-5 lg:p-7 border-b border-border bg-[#0d0d0d] flex flex-wrap items-start justify-between gap-4">
           <div className="flex-1 min-w-[280px]">
-            <div className="flex items-center gap-2 flex-wrap mb-2">
-              <span className="px-2 py-0.5 bg-foreground text-background font-bold text-xs">
-                INCIDENT #{bugId}
+            <div className="flex items-center gap-2.5 flex-wrap mb-2.5">
+              <span className="px-2 py-0.5 bg-foreground text-background font-bold text-xs rounded-sm">
+                #{bugId}
               </span>
 
               {/* Status Transition Guard Dropdown */}
@@ -235,15 +233,15 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
               )}
 
               {data?.bug?.security_group_id && (
-                <span className="px-2 py-0.5 bg-purple-950 text-purple-300 border border-purple-500 text-xs font-bold uppercase">
-                  [CLASSIFIED SECURITY DOSSIER]
+                <span className="px-2 py-0.5 bg-purple-950 text-purple-300 border border-purple-500 text-xs font-bold uppercase rounded-sm">
+                  CONFIDENTIAL SECURITY
                 </span>
               )}
 
               {/* Live Presence Viewers */}
               {data?.viewers && data.viewers.length > 0 && (
-                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-black border border-border text-[10px] text-muted-foreground">
-                  <span className="w-1.5 h-1.5 bg-emerald-400 animate-blink" />
+                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-black border border-border text-[10px] text-muted-foreground rounded-sm">
+                  <span className="w-1.5 h-1.5 bg-emerald-400 animate-blink rounded-full" />
                   <span>
                     VIEWERS: <strong className="text-foreground">@{data.viewers.map((v: any) => v.username).join(', @')}</strong>
                   </span>
@@ -252,16 +250,16 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
             </div>
 
             <h2 id="bug-detail-modal-title" className="text-lg lg:text-xl font-bold text-foreground leading-snug uppercase">
-              {data?.bug?.title || 'DECRYPTING INCIDENT DOSSIER...'}
+              {data?.bug?.title || 'LOADING INCIDENT DOSSIER...'}
             </h2>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {/* Watch / Unwatch Toggle */}
             {data?.bug && (
               <button
                 onClick={handleToggleWatch}
-                className={`px-3 py-1.5 text-xs font-mono uppercase font-bold border-2 transition-all ${data.bug.is_watched
+                className={`px-3 py-1.5 text-xs font-mono uppercase font-bold border transition-all rounded-sm ${data.bug.is_watched
                     ? 'bg-foreground text-background border-foreground'
                     : 'bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground'
                   }`}
@@ -274,7 +272,7 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
             {data?.bug && (
               <button
                 onClick={() => exportFlowReportAsHtml(data)}
-                className="px-3 py-1.5 text-xs font-mono uppercase font-bold border-2 border-border hover:border-foreground text-foreground bg-transparent transition-all flex items-center gap-1.5"
+                className="px-3 py-1.5 text-xs font-mono uppercase font-bold border border-border hover:border-foreground text-foreground bg-transparent transition-all flex items-center gap-1.5 rounded-sm"
                 title="Download Standalone HTML Report"
               >
                 <Download className="w-3.5 h-3.5" />
@@ -288,7 +286,7 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
         {isLoading ? (
           <DetailSkeleton />
         ) : (
-          <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-5">
+          <div className="flex-1 overflow-y-auto p-5 lg:p-7 space-y-6">
             {/* Headline #1: Per-Bug Flow Timeline */}
             {data?.bug && (
               <FlowTimeline
@@ -302,27 +300,27 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
             )}
 
             {/* Core Metadata Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-0 border-2 border-border bg-[#0d0d0d] text-xs font-mono">
-              <div className="p-3 border-r border-b sm:border-b-0 border-border">
-                <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">// REPORTER</span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-0 border border-border bg-[#0d0d0d] text-xs font-mono rounded-sm overflow-hidden">
+              <div className="p-3.5 border-r border-b sm:border-b-0 border-border">
+                <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">REPORTER</span>
                 <span className="font-bold text-foreground mt-1 block uppercase">
                   @{data?.bug?.reporter?.username || 'reporter'}
                 </span>
               </div>
-              <div className="p-3 border-r border-b sm:border-b-0 border-border">
-                <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">// ASSIGNEE</span>
+              <div className="p-3.5 border-r border-b sm:border-b-0 border-border">
+                <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">ASSIGNEE</span>
                 <span className="font-bold text-[#ea580c] mt-1 block uppercase">
-                  {data?.bug?.assignee ? `@${data.bug.assignee.username}` : '// UNASSIGNED'}
+                  {data?.bug?.assignee ? `@${data.bug.assignee.username}` : 'UNASSIGNED'}
                 </span>
               </div>
-              <div className="p-3 border-r border-border">
-                <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">// SUBSYSTEM</span>
+              <div className="p-3.5 border-r border-border">
+                <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">SUBSYSTEM</span>
                 <span className="text-foreground font-bold uppercase mt-1 block">
                   {data?.bug?.component_id}
                 </span>
               </div>
-              <div className="p-3">
-                <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">// PRIORITY / SEV</span>
+              <div className="p-3.5">
+                <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">PRIORITY / SEVERITY</span>
                 <span className="font-bold text-foreground uppercase mt-1 block">
                   {data?.bug?.priority} / {data?.bug?.severity}
                 </span>
@@ -330,34 +328,34 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
             </div>
 
             {/* Capability Bar: Milestone, Version, Keywords & Time Tracking */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Milestone & Keywords */}
-              <div className="p-3.5 bg-[#0d0d0d] border-2 border-border text-xs space-y-2">
+              <div className="p-4 bg-[#0d0d0d] border border-border text-xs space-y-3 rounded-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground font-mono font-bold uppercase flex items-center gap-1.5">
-                    // TARGET MILESTONE
+                    TARGET MILESTONE
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 bg-foreground text-background text-[10px] font-bold uppercase">
+                    <span className="px-2 py-0.5 bg-foreground text-background text-[10px] font-bold uppercase rounded-sm">
                       {data?.bug?.target_milestone || 'NONE'}
                     </span>
                     {data?.bug?.version && (
-                      <span className="px-1.5 py-0.5 border border-border text-muted-foreground text-[10px] uppercase">
+                      <span className="px-1.5 py-0.5 border border-border text-muted-foreground text-[10px] uppercase rounded-sm">
                         v{data.bug.version}
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-border">
+                <div className="flex items-center justify-between pt-2.5 border-t border-border">
                   <span className="text-muted-foreground font-mono font-bold uppercase flex items-center gap-1.5">
-                    // TAGS
+                    TAGS & KEYWORDS
                   </span>
                   <div className="flex flex-wrap items-center gap-1.5">
                     {data?.bug?.keywords?.map((kw: any) => (
                       <span
                         key={kw.id}
-                        className="inline-flex items-center gap-1 px-1.5 py-0.2 text-[10px] font-mono bg-black text-foreground border border-border uppercase"
+                        className="inline-flex items-center gap-1 px-1.5 py-0.2 text-[10px] font-mono bg-black text-foreground border border-border uppercase rounded-sm"
                       >
                         #{kw.name}
                         <button
@@ -374,7 +372,7 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
                         <select
                           value={selectedKeywordToAdd}
                           onChange={(e) => setSelectedKeywordToAdd(e.target.value)}
-                          className="bg-black border border-border text-foreground text-[10px] font-mono px-1.5 py-0.5 uppercase"
+                          className="bg-black border border-border text-foreground text-[10px] font-mono px-1.5 py-0.5 uppercase rounded-sm"
                         >
                           <option value="">SELECT...</option>
                           {allKeywords.map((k) => (
@@ -383,7 +381,7 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
                         </select>
                         <button
                           onClick={handleAddKeyword}
-                          className="px-2 py-0.5 bg-foreground text-background text-[10px] font-bold uppercase"
+                          className="px-2 py-0.5 bg-foreground text-background text-[10px] font-bold uppercase rounded-sm"
                         >
                           ADD
                         </button>
@@ -397,7 +395,7 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
                     ) : (
                       <button
                         onClick={() => setIsAddingKeyword(true)}
-                        className="px-1.5 py-0.2 border border-dashed border-border text-muted-foreground hover:text-foreground text-[10px] uppercase"
+                        className="px-1.5 py-0.2 border border-dashed border-border text-muted-foreground hover:text-foreground text-[10px] uppercase rounded-sm"
                       >
                         + ADD TAG
                       </button>
@@ -407,10 +405,10 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
               </div>
 
               {/* Time Tracking Comparison */}
-              <div className="p-3.5 bg-[#0d0d0d] border-2 border-border text-xs space-y-2">
+              <div className="p-4 bg-[#0d0d0d] border border-border text-xs space-y-3 rounded-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground font-mono font-bold uppercase flex items-center gap-1.5">
-                    // TIME TRACKING
+                    TIME TRACKING
                   </span>
                   <span className="text-[10px] text-muted-foreground uppercase">
                     ESTIMATED: <strong className="text-foreground">{data?.bug?.estimated_time || 0}H</strong>
@@ -418,15 +416,15 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center pt-1 font-mono text-[11px]">
-                  <div className="p-2 border border-border bg-black">
+                  <div className="p-2 border border-border bg-black rounded-sm">
                     <span className="text-muted-foreground block text-[9px] uppercase font-bold">LOGGED</span>
                     <span className="text-[#ea580c] font-bold text-sm">{totalLoggedWorkHours}H</span>
                   </div>
-                  <div className="p-2 border border-border bg-black">
+                  <div className="p-2 border border-border bg-black rounded-sm">
                     <span className="text-muted-foreground block text-[9px] uppercase font-bold">REMAINING</span>
                     <span className="text-foreground font-bold text-sm">{data?.bug?.remaining_time || 0}H</span>
                   </div>
-                  <div className="p-2 border border-border bg-black">
+                  <div className="p-2 border border-border bg-black rounded-sm">
                     <span className="text-muted-foreground block text-[9px] uppercase font-bold">ELAPSED</span>
                     <span className="text-foreground font-bold text-sm">{elapsedFlowHours}H</span>
                   </div>
@@ -435,9 +433,9 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
             </div>
 
             {/* Description */}
-            <div className="bg-[#0d0d0d] p-4 border-2 border-border text-xs leading-relaxed text-foreground whitespace-pre-wrap font-mono">
-              <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-2">
-                // REPRODUCTION DETAILS & RAW LOGS
+            <div className="bg-[#0d0d0d] p-4 sm:p-5 border border-border text-xs leading-relaxed text-foreground whitespace-pre-wrap font-mono rounded-sm">
+              <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-2">
+                REPRODUCTION DETAILS & INCIDENT NOTES
               </h4>
               {data?.bug?.description}
             </div>
@@ -445,7 +443,7 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
             {/* Tabbed Panels */}
             <div>
               {/* Tab Navigation */}
-              <div className="flex items-center gap-1 border-b-2 border-border pb-2 mb-4 font-mono text-xs overflow-x-auto">
+              <div className="flex items-center gap-1.5 border-b border-border pb-2 mb-4 font-mono text-xs overflow-x-auto">
                 <button
                   onClick={() => setActiveTab('comments')}
                   className={`px-3 py-1 text-xs uppercase font-bold transition-all shrink-0 border ${activeTab === 'comments'

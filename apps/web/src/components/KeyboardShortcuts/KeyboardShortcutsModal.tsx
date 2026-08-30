@@ -9,39 +9,39 @@ interface ShortcutsModalProps {
 
 const SHORTCUTS = [
   {
-    section: 'GLOBAL',
+    section: 'GLOBAL SHORTCUTS',
     items: [
-      { keys: ['⌘', 'K'], desc: 'OPEN COMMAND PALETTE' },
-      { keys: ['⌘', 'N'], desc: 'FILE A NEW BUG' },
-      { keys: ['`'], desc: 'TOGGLE SOC TELEMETRY TERMINAL' },
-      { keys: ['?'], desc: 'SHOW KEYBOARD SHORTCUTS' },
-      { keys: ['ESC'], desc: 'CLOSE MODAL / DISMISS OVERLAY' },
+      { keys: ['CTRL', 'K'], desc: 'Open Command Palette' },
+      { keys: ['CTRL', 'N'], desc: 'File a new bug report' },
+      { keys: ['`'], desc: 'Toggle Telemetry Terminal' },
+      { keys: ['?'], desc: 'Show keyboard shortcuts' },
+      { keys: ['ESC'], desc: 'Close modal / Dismiss overlay' },
     ],
   },
   {
     section: 'INCIDENT MATRIX',
     items: [
-      { keys: ['J'], desc: 'MOVE SELECTION DOWN ONE ROW' },
-      { keys: ['K'], desc: 'MOVE SELECTION UP ONE ROW' },
-      { keys: ['ENTER'], desc: 'OPEN SELECTED INCIDENT DOSSIER' },
-      { keys: ['G', 'I'], desc: 'GO TO CLEARANCE INBOX' },
-      { keys: ['G', 'A'], desc: 'GO TO FLOW ANALYTICS' },
-      { keys: ['G', 'B'], desc: 'GO TO INCIDENT MATRIX' },
+      { keys: ['J'], desc: 'Move selection down one row' },
+      { keys: ['K'], desc: 'Move selection up one row' },
+      { keys: ['ENTER'], desc: 'Open selected bug dossier' },
+      { keys: ['G', 'I'], desc: 'Go to Clearance Inbox' },
+      { keys: ['G', 'A'], desc: 'Go to Flow Analytics' },
+      { keys: ['G', 'B'], desc: 'Go to Incident Matrix' },
     ],
   },
   {
     section: 'INCIDENT DOSSIER',
     items: [
-      { keys: ['TAB'], desc: 'CYCLE BETWEEN TABS' },
-      { keys: ['⌘', 'ENTER'], desc: 'POST AUDIT NOTE' },
-      { keys: ['←'], desc: 'GO BACK TO LIST' },
+      { keys: ['TAB'], desc: 'Cycle between tabs' },
+      { keys: ['CTRL', 'ENTER'], desc: 'Post audit note' },
+      { keys: ['ESC'], desc: 'Close modal' },
     ],
   },
   {
     section: 'CLEARANCE INBOX',
     items: [
-      { keys: ['I'], desc: 'SWITCH TO INCOMING QUEUE' },
-      { keys: ['O'], desc: 'SWITCH TO OUTGOING QUEUE' },
+      { keys: ['I'], desc: 'Switch to incoming queue' },
+      { keys: ['O'], desc: 'Switch to outgoing queue' },
     ],
   },
 ];

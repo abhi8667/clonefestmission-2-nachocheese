@@ -168,22 +168,22 @@ export const SecurityTelemetryFeed: React.FC<SecurityTelemetryFeedProps> = ({ on
   return (
     <aside
       aria-label="Security Telemetry and Activity Terminal"
-      className="fixed bottom-3 right-3 z-40 max-w-lg w-full transition-all duration-300 pointer-events-auto font-mono"
+      className={`fixed bottom-4 right-4 z-40 transition-all duration-300 pointer-events-auto font-mono ${isExpanded ? 'max-w-lg w-full' : 'max-w-[280px] sm:max-w-xs w-auto'
+        }`}
     >
-      <div className="bg-[#080808] border-2 border-foreground shadow-brutalist overflow-hidden">
+      <div className="bg-[#080808] border border-border shadow-2xl overflow-hidden rounded-sm">
         {/* Terminal Header */}
         <div
           onClick={() => setIsExpanded(!isExpanded)}
-          className="px-3 py-2 bg-[#121212] border-b-2 border-foreground flex items-center justify-between cursor-pointer select-none hover:bg-[#1a1a1a] transition-colors"
+          className="px-3 py-2 bg-[#121212] border-b border-border flex items-center justify-between cursor-pointer select-none hover:bg-[#1a1a1a] transition-colors"
         >
           <div className="flex items-center space-x-2">
-            <span className="h-2 w-2 bg-[#ea580c]" />
-            <span className="h-2 w-2 bg-foreground" />
+            <span className="h-2 w-2 bg-[#ea580c] rounded-full" />
             <div className="flex items-center space-x-2">
               <span className="text-xs font-mono font-bold text-foreground tracking-wider uppercase">
-                // TERMINAL.SYS // SOC_STREAM
+                TELEMETRY
               </span>
-              <span className="px-1.5 py-0.2 bg-[#ea580c] text-background text-[9px] font-mono font-bold animate-blink">
+              <span className="px-1.5 py-0.2 bg-[#ea580c] text-background text-[9px] font-mono font-bold rounded-xs animate-blink">
                 LIVE
               </span>
             </div>
@@ -191,8 +191,8 @@ export const SecurityTelemetryFeed: React.FC<SecurityTelemetryFeedProps> = ({ on
 
           <div className="flex items-center space-x-2">
             {!isExpanded && latestLog && (
-              <span className="text-[10px] font-mono text-muted-foreground truncate max-w-[160px] hidden sm:inline uppercase">
-                [{latestLog.timestamp.split('.')[0]}] {latestLog.message}
+              <span className="text-[10px] font-mono text-muted-foreground truncate max-w-[120px] hidden sm:inline uppercase">
+                {latestLog.message}
               </span>
             )}
             <button

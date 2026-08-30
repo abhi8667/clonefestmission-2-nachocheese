@@ -110,45 +110,44 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         ref={trapRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Tactical Command Palette"
-        className="w-full max-w-2xl bg-[#080808] border-2 border-foreground shadow-brutalist overflow-hidden animate-slide-up font-mono text-foreground"
+        aria-label="Command Palette"
+        className="w-full max-w-2xl bg-[#080808] border border-border shadow-2xl overflow-hidden animate-slide-up font-mono text-foreground rounded-sm"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
       >
-        {/* Brutalist Window Header */}
-        <div className="flex items-center justify-between px-3 py-1.5 bg-[#121212] border-b-2 border-foreground text-[10px]">
+        {/* Window Header */}
+        <div className="flex items-center justify-between px-4 py-2 bg-[#121212] border-b border-border text-[10px]">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 bg-[#ea580c]" />
-            <span className="h-2 w-2 bg-foreground" />
-            <span className="font-bold uppercase tracking-wider">// SYS.EXEC // COMMAND_PALETTE</span>
+            <span className="h-2 w-2 bg-[#ea580c] rounded-full" />
+            <span className="font-bold uppercase tracking-wider text-foreground">COMMAND PALETTE (CTRL+K)</span>
           </div>
           <span className="text-muted-foreground uppercase">[ESC TO CLOSE]</span>
         </div>
 
         {/* Search Input */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b-2 border-border bg-[#0d0d0d]">
-          <Search className="w-4 h-4 text-foreground shrink-0" />
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border bg-[#0d0d0d]">
+          <Search className="w-4 h-4 text-muted-foreground shrink-0" />
           <input
             ref={inputRef}
             type="text"
-            placeholder="EXECUTE COMMAND OR SEARCH INCIDENTS BY #ID, TITLE, VECTOR..."
+            placeholder="Type a command or search incidents by #ID or title..."
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
               setSelectedIndex(0);
             }}
-            className="flex-1 bg-transparent border-none outline-none text-xs text-foreground placeholder-muted-foreground font-mono uppercase"
+            className="flex-1 bg-transparent border-none outline-none text-xs text-foreground placeholder-muted-foreground font-mono"
           />
-          <kbd className="px-1.5 py-0.2 text-[9px] font-mono text-foreground bg-black border border-border">
+          <kbd className="px-2 py-0.5 text-[9px] font-mono text-muted-foreground bg-black border border-border rounded-xs">
             ESC
           </kbd>
         </div>
 
         {/* Results List */}
-        <div className="max-h-96 overflow-y-auto p-2 space-y-1" role="listbox">
+        <div className="max-h-96 overflow-y-auto p-2.5 space-y-1" role="listbox">
           {filteredActions.length > 0 && (
-            <div className="px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-              // OPERATIONAL COMMANDS & OPERATORS
+            <div className="px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+              COMMANDS & OPERATORS
             </div>
           )}
           {filteredActions.map((item, idx) => {

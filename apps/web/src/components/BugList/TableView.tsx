@@ -214,33 +214,21 @@ export const TableView: React.FC<TableViewProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Section Header */}
-      <div className="flex items-center gap-4">
-        <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">
-          // SECTION: INCIDENT_MATRIX
-        </span>
-        <div className="flex-1 border-t border-border"></div>
-        <span className="inline-block h-2 w-2 bg-[#ea580c] animate-blink"></span>
-        <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">
-          001
-        </span>
-      </div>
-
       {/* Floating Bulk Action Bar */}
       {canTriage && selectedBugIds.length > 0 && (
-        <div className="p-3 bg-[#0d0d0d] border-2 border-[#ea580c] shadow-brutalist flex items-center justify-between gap-4 animate-slide-up flex-wrap">
+        <div className="p-3.5 bg-[#0d0d0d] border border-[#ea580c] shadow-lg flex items-center justify-between gap-4 animate-slide-up flex-wrap rounded-sm">
           <div className="flex items-center gap-3">
-            <span className="px-2 py-0.5 bg-[#ea580c] text-background font-mono font-bold text-xs uppercase">
+            <span className="px-2 py-0.5 bg-[#ea580c] text-background font-mono font-bold text-xs uppercase rounded-sm">
               {selectedBugIds.length} SELECTED
             </span>
-            <span className="text-xs font-mono uppercase text-foreground">BULK TRANSITION ACTION:</span>
+            <span className="text-xs font-mono uppercase text-foreground font-semibold">Bulk Transition Action:</span>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
             <select
               value={bulkTargetState}
               onChange={(e) => setBulkTargetState(e.target.value)}
-              className="bg-[#080808] border-2 border-foreground/30 px-3 py-1 text-xs text-foreground font-mono uppercase focus:outline-none focus:border-foreground"
+              className="bg-[#080808] border border-border px-3 py-1.5 text-xs text-foreground font-mono uppercase focus:outline-none focus:border-foreground"
             >
               <option value="Confirmed">TRANSITION TO CONFIRMED</option>
               <option value="In Progress">TRANSITION TO IN PROGRESS</option>
@@ -252,7 +240,7 @@ export const TableView: React.FC<TableViewProps> = ({
             <button
               onClick={handleBulkTransition}
               disabled={isBulkSubmitting}
-              className="px-4 py-1 bg-foreground text-background font-bold text-xs font-mono uppercase flex items-center gap-1.5 hover:bg-white"
+              className="px-4 py-1.5 bg-foreground text-background font-bold text-xs font-mono uppercase flex items-center gap-1.5 hover:bg-white transition-all"
             >
               {isBulkSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArrowRight className="w-3.5 h-3.5" />}
               <span>EXECUTE</span>
@@ -260,7 +248,7 @@ export const TableView: React.FC<TableViewProps> = ({
 
             <button
               onClick={() => setSelectedBugIds([])}
-              className="px-3 py-1 bg-[#141414] hover:bg-[#222] text-muted-foreground hover:text-foreground text-xs font-mono uppercase border border-border"
+              className="px-3 py-1.5 bg-[#141414] hover:bg-[#222] text-muted-foreground hover:text-foreground text-xs font-mono uppercase border border-border transition-all"
             >
               CANCEL
             </button>
@@ -269,19 +257,19 @@ export const TableView: React.FC<TableViewProps> = ({
       )}
 
       {bulkResultMsg && (
-        <div className="p-3 border-2 border-foreground bg-[#141414] text-xs font-mono text-foreground flex items-center justify-between animate-fade-in uppercase">
+        <div className="p-3 border border-foreground/40 bg-[#141414] text-xs font-mono text-foreground flex items-center justify-between animate-fade-in uppercase">
           <span>{bulkResultMsg}</span>
           <button onClick={() => setBulkResultMsg(null)} className="text-muted-foreground hover:text-foreground text-xs">✕</button>
         </div>
       )}
 
       {/* Main Incident Matrix Table */}
-      <div className="w-full overflow-x-auto border-2 border-foreground bg-[#080808] shadow-brutalist">
+      <div className="w-full overflow-x-auto border border-border bg-[#080808] shadow-sm">
         <table className="w-full text-left border-collapse text-xs" aria-label="Incident triage matrix">
           <thead>
-            <tr className="border-b-2 border-foreground bg-[#121212] text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">
+            <tr className="border-b border-border bg-[#101010] text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-wider">
               {canTriage && (
-                <th scope="col" className="py-2.5 px-3 w-8 text-center border-r border-border">
+                <th scope="col" className="py-3 px-3 w-8 text-center border-r border-border/60">
                   <button
                     type="button"
                     onClick={handleSelectAll}
@@ -296,15 +284,15 @@ export const TableView: React.FC<TableViewProps> = ({
                   </button>
                 </th>
               )}
-              <th scope="col" className="py-2.5 px-2 w-14 text-center border-r border-border">ID</th>
-              <th scope="col" className="py-2.5 px-2 w-10 text-center border-r border-border">SEV</th>
-              <th scope="col" className="py-2.5 px-2 w-12 text-center border-r border-border">PRIO</th>
-              <th scope="col" className="py-2.5 px-4 border-r border-border">INCIDENT & THREAT VECTOR</th>
-              <th scope="col" className="py-2.5 px-3 w-32 border-r border-border">STATE</th>
-              <th scope="col" className="py-2.5 px-3 w-28 border-r border-border">SUBSYSTEM</th>
-              <th scope="col" className="py-2.5 px-3 w-36 border-r border-border">ASSIGNEE</th>
-              <th scope="col" className="py-2.5 px-3 w-16 text-center border-r border-border">PULSE</th>
-              <th scope="col" className="py-2.5 px-3 w-24 text-right">UPDATED</th>
+              <th scope="col" className="py-3 px-3 w-14 text-center border-r border-border/60">ID</th>
+              <th scope="col" className="py-3 px-2.5 w-10 text-center border-r border-border/60">SEV</th>
+              <th scope="col" className="py-3 px-2.5 w-14 text-center border-r border-border/60">PRIO</th>
+              <th scope="col" className="py-3 px-4 border-r border-border/60">INCIDENT TITLE & DETAILS</th>
+              <th scope="col" className="py-3 px-3.5 w-32 border-r border-border/60">STATUS</th>
+              <th scope="col" className="py-3 px-3.5 w-28 border-r border-border/60">SUBSYSTEM</th>
+              <th scope="col" className="py-3 px-3.5 w-36 border-r border-border/60">ASSIGNEE</th>
+              <th scope="col" className="py-3 px-3 w-16 text-center border-r border-border/60">PULSE</th>
+              <th scope="col" className="py-3 px-3.5 w-24 text-right">UPDATED</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border font-mono">

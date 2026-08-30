@@ -108,12 +108,12 @@ export const FlowTimeline: React.FC<FlowTimelineProps> = ({
   ];
 
   return (
-    <div className="bg-[#0d0d0d] border-2 border-foreground/20 p-4 shadow-brutalist">
-      <div className="flex items-center justify-between mb-3 border-b-2 border-border pb-2">
+    <div className="bg-[#0d0d0d] border border-border p-4 sm:p-5 shadow-sm rounded-sm">
+      <div className="flex items-center justify-between mb-3.5 border-b border-border pb-2.5">
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-[#ea580c]" />
           <h4 className="text-xs font-bold font-mono text-foreground uppercase tracking-wider">
-            // FLOW LIFECYCLE TIMELINE (GIT + AUDIT ENGINE)
+            LIFECYCLE FLOW TIMELINE (GIT + AUDIT ENGINE)
           </h4>
         </div>
         <div className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground uppercase">

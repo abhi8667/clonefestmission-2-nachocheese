@@ -63,29 +63,17 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
 
   return (
     <div className="space-y-6">
-      {/* Section Taxonomy */}
-      <div className="flex items-center gap-4">
-        <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">
-          // SECTION: TELEMETRY_METRICS
-        </span>
-        <div className="flex-1 border-t border-border"></div>
-        <span className="inline-block h-2 w-2 bg-[#ea580c] animate-blink"></span>
-        <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">
-          003
-        </span>
-      </div>
-
       {/* Top Header Command HUD */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0d0d0d] p-4 border-2 border-foreground shadow-brutalist">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0d0d0d] p-5 border border-border shadow-sm rounded-sm">
         <div className="space-y-1">
-          <h2 className="text-base font-bold font-mono text-foreground uppercase tracking-wider flex items-center gap-2">
-            <div className="w-6 h-6 bg-foreground text-background flex items-center justify-center font-bold">
-              <Activity className="w-3.5 h-3.5 text-background" />
+          <h2 className="text-base font-bold font-mono text-foreground uppercase tracking-wider flex items-center gap-2.5">
+            <div className="w-7 h-7 bg-foreground text-background flex items-center justify-center font-bold rounded-sm">
+              <Activity className="w-4 h-4 text-background" />
             </div>
-            <span>// THREAT MOMENTUM & FLOW ANALYTICS</span>
+            <span>LIFECYCLE FLOW ANALYTICS & CFD TELEMETRY</span>
           </h2>
           <p className="text-xs font-mono text-muted-foreground uppercase">
-            REAL-TIME TELEMETRY DERIVED FROM ACTIVITY AUDIT EVENTS, GIT COMMITS & BOTTLENECKS.
+            Real-time telemetry derived from activity audit logs, git events, and lifecycle bottlenecks.
           </p>
         </div>
 
@@ -94,7 +82,7 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
           <select
             value={days}
             onChange={(e) => setDays(Number(e.target.value))}
-            className="bg-[#080808] border-2 border-border text-foreground text-xs px-3 py-1.5 focus:outline-none focus:border-foreground font-mono uppercase"
+            className="bg-[#080808] border border-border text-foreground text-xs px-3 py-1.5 focus:outline-none focus:border-foreground font-mono uppercase rounded-sm"
           >
             <option value={7}>WINDOW: PAST 7 DAYS</option>
             <option value={14}>WINDOW: PAST 14 DAYS</option>
@@ -104,7 +92,7 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
 
           <button
             onClick={loadAnalytics}
-            className="p-1.5 border-2 border-border hover:border-foreground text-muted-foreground hover:text-foreground bg-[#080808] transition-all"
+            className="p-2 border border-border hover:border-foreground text-muted-foreground hover:text-foreground bg-[#080808] transition-all rounded-sm"
             title="Refresh analytics telemetry"
             aria-label="Refresh analytics telemetry"
           >
@@ -121,49 +109,49 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
       ) : (
         <>
           {/* Key Metric Summary Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            <div className="p-3.5 bg-[#0d0d0d] border-2 border-border hover:border-foreground shadow-brutalist space-y-1 transition-all">
-              <span className="text-[9px] font-mono uppercase font-bold text-muted-foreground block tracking-wider">// AVG TRIAGE SLA</span>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
+            <div className="p-4 bg-[#0d0d0d] border border-border hover:border-foreground shadow-sm space-y-1 transition-all rounded-sm">
+              <span className="text-[10px] font-mono uppercase font-bold text-muted-foreground block tracking-wider">AVG TRIAGE SLA</span>
               <p className="text-xl font-black text-foreground font-mono">
                 <AnimatedCounter value={data?.summary?.averages?.triage_hours || 0} suffix="H" />
               </p>
               <span className="text-[9px] font-mono text-muted-foreground uppercase block">UNCONF → CONF</span>
             </div>
 
-            <div className="p-3.5 bg-[#0d0d0d] border-2 border-border hover:border-[#ea580c] shadow-brutalist space-y-1 transition-all">
-              <span className="text-[9px] font-mono uppercase font-bold text-muted-foreground block tracking-wider">// DEV VELOCITY</span>
+            <div className="p-4 bg-[#0d0d0d] border border-border hover:border-[#ea580c] shadow-sm space-y-1 transition-all rounded-sm">
+              <span className="text-[10px] font-mono uppercase font-bold text-muted-foreground block tracking-wider">DEV VELOCITY</span>
               <p className="text-xl font-black text-[#ea580c] font-mono">
                 <AnimatedCounter value={data?.summary?.averages?.dev_hours || 0} suffix="H" />
               </p>
               <span className="text-[9px] font-mono text-muted-foreground uppercase block">IN PROGRESS RES</span>
             </div>
 
-            <div className="p-3.5 bg-[#0d0d0d] border-2 border-border hover:border-foreground shadow-brutalist space-y-1 transition-all">
-              <span className="text-[9px] font-mono uppercase font-bold text-muted-foreground block tracking-wider">// REVIEW LATENCY</span>
+            <div className="p-4 bg-[#0d0d0d] border border-border hover:border-foreground shadow-sm space-y-1 transition-all rounded-sm">
+              <span className="text-[10px] font-mono uppercase font-bold text-muted-foreground block tracking-wider">REVIEW LATENCY</span>
               <p className="text-xl font-black text-foreground font-mono">
                 <AnimatedCounter value={data?.summary?.averages?.review_hours || 0} suffix="H" />
               </p>
               <span className="text-[9px] font-mono text-muted-foreground uppercase block">FLAG REVIEW TURNAROUND</span>
             </div>
 
-            <div className="p-3.5 bg-[#0d0d0d] border-2 border-border hover:border-foreground shadow-brutalist space-y-1 transition-all">
-              <span className="text-[9px] font-mono uppercase font-bold text-muted-foreground block tracking-wider">// VERIFY LATENCY</span>
+            <div className="p-4 bg-[#0d0d0d] border border-border hover:border-foreground shadow-sm space-y-1 transition-all rounded-sm">
+              <span className="text-[10px] font-mono uppercase font-bold text-muted-foreground block tracking-wider">VERIFY LATENCY</span>
               <p className="text-xl font-black text-foreground font-mono">
                 <AnimatedCounter value={data?.summary?.averages?.verify_hours || 0} suffix="H" />
               </p>
               <span className="text-[9px] font-mono text-muted-foreground uppercase block">RESOLVED → VERIFIED</span>
             </div>
 
-            <div className="p-3.5 bg-[#0d0d0d] border-2 border-border hover:border-red-500 shadow-brutalist space-y-1 transition-all">
-              <span className="text-[9px] font-mono uppercase font-bold text-muted-foreground block tracking-wider">// REOPEN RATE</span>
+            <div className="p-4 bg-[#0d0d0d] border border-border hover:border-red-500 shadow-sm space-y-1 transition-all rounded-sm">
+              <span className="text-[10px] font-mono uppercase font-bold text-muted-foreground block tracking-wider">REOPEN RATE</span>
               <p className="text-xl font-black text-red-500 font-mono">
                 <AnimatedCounter value={data?.summary?.reopen_rate_percent || 0} suffix="%" />
               </p>
               <span className="text-[9px] font-mono text-muted-foreground uppercase block">DEFECT REGRESSION</span>
             </div>
 
-            <div className="p-3.5 bg-[#0d0d0d] border-2 border-[#ea580c] shadow-brutalist space-y-1 transition-all">
-              <span className="text-[9px] font-mono uppercase font-bold text-[#ea580c] block tracking-wider">// STALLED INCIDENTS</span>
+            <div className="p-4 bg-[#0d0d0d] border border-[#ea580c] shadow-sm space-y-1 transition-all rounded-sm">
+              <span className="text-[10px] font-mono uppercase font-bold text-[#ea580c] block tracking-wider">STALLED BUGS</span>
               <p className="text-xl font-black text-foreground font-mono">
                 <AnimatedCounter value={data?.summary?.stalled_count || 0} />
               </p>
@@ -172,21 +160,21 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
           </div>
 
           {/* Cumulative Flow Diagram (CFD) Area Visualization */}
-          <div className="p-4 bg-[#0d0d0d] border-2 border-foreground shadow-brutalist space-y-3">
+          <div className="p-5 bg-[#0d0d0d] border border-border shadow-sm space-y-3.5 rounded-sm">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
                 <h3 className="text-xs font-bold font-mono text-foreground uppercase tracking-wider flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-[#ea580c]" />
-                  <span>// CUMULATIVE FLOW TELEMETRY MATRIX (CFD)</span>
+                  <span>CUMULATIVE FLOW DIAGRAM (CFD)</span>
                 </h3>
-                <p className="text-[10px] font-mono text-muted-foreground uppercase">RECONSTRUCTED FROM HISTORICAL AUDIT LOGS</p>
+                <p className="text-[10px] font-mono text-muted-foreground uppercase">Reconstructed from historical activity audit trail</p>
               </div>
 
               {/* Legends */}
               <div className="flex items-center gap-3 text-xs flex-wrap font-mono">
                 {['Unconfirmed', 'Confirmed', 'In Progress', 'In Review', 'Resolved', 'Verified'].map((st) => (
                   <div key={st} className="flex items-center gap-1.5">
-                    <span className="w-2 h-2" style={{ backgroundColor: stateColors[st] }} />
+                    <span className="w-2 h-2 rounded-xs" style={{ backgroundColor: stateColors[st] }} />
                     <span className="text-[10px] text-muted-foreground uppercase">{st}</span>
                   </div>
                 ))}
@@ -194,7 +182,7 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
             </div>
 
             {/* Custom SVG Stacked Area Visualization */}
-            <div className="h-64 w-full bg-black p-3 border-2 border-border relative flex items-end">
+            <div className="h-64 w-full bg-black p-3.5 border border-border relative flex items-end rounded-sm">
               <div className="w-full h-full flex items-end gap-1 sm:gap-2">
                 {data?.cfd?.map((point: any, idx: number) => {
                   const states = ['Verified', 'Resolved', 'In Review', 'In Progress', 'Confirmed', 'Unconfirmed'];
@@ -203,7 +191,7 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
                   return (
                     <div key={idx} className="flex-1 flex flex-col justify-end h-full group relative cursor-pointer">
                       {/* Tooltip on hover */}
-                      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block z-30 p-2.5 bg-[#080808] border-2 border-foreground shadow-brutalist text-[10px] font-mono text-foreground whitespace-nowrap">
+                      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block z-30 p-2.5 bg-[#080808] border border-border shadow-lg text-[10px] font-mono text-foreground whitespace-nowrap rounded-sm">
                         <p className="font-bold text-foreground mb-1 border-b border-border pb-1 uppercase">{point.timestamp}</p>
                         {states.map((s) => (
                           <div key={s} className="flex justify-between gap-4 py-0.2 uppercase">
@@ -247,12 +235,12 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
 
           {/* Milestone Predictive Delivery Forecast */}
           {data?.milestone_forecasts && data.milestone_forecasts.length > 0 && (
-            <div className="p-4 bg-[#0d0d0d] border-2 border-border shadow-brutalist space-y-3">
+            <div className="p-5 bg-[#0d0d0d] border border-border shadow-sm space-y-3.5 rounded-sm">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
                   <h3 className="text-xs font-bold font-mono text-foreground uppercase tracking-wider flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-emerald-400" />
-                    <span>// PREDICTIVE RELEASE MILESTONE FORECAST</span>
+                    <span>PREDICTIVE RELEASE MILESTONE FORECAST</span>
                   </h3>
                   <p className="text-[10px] font-mono text-muted-foreground uppercase">
                     ACTIVE THROUGHPUT: {data?.summary?.throughput_per_week || 0} INCIDENTS/WEEK
@@ -260,9 +248,9 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
                 {data.milestone_forecasts.map((mf: any) => (
-                  <div key={mf.id} className="p-3 bg-black border-2 border-border space-y-2.5">
+                  <div key={mf.id} className="p-3.5 bg-black border border-border space-y-2.5 rounded-sm">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-xs font-bold text-foreground uppercase">{mf.name}</span>
@@ -271,7 +259,7 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
                         </span>
                       </div>
                       <span
-                        className={`px-1.5 py-0.2 text-[9px] font-bold font-mono uppercase ${mf.risk_status === 'AT_RISK'
+                        className={`px-1.5 py-0.2 text-[9px] font-bold font-mono uppercase rounded-sm ${mf.risk_status === 'AT_RISK'
                             ? 'bg-red-950 text-red-300 border border-red-500'
                             : 'bg-emerald-950 text-emerald-300 border border-emerald-500'
                           }`}
@@ -288,7 +276,7 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
                         </span>
                         <span className="text-foreground font-bold">{mf.completion_pct}%</span>
                       </div>
-                      <div className="w-full h-2 bg-[#1a1a1a] overflow-hidden border border-border">
+                      <div className="w-full h-2 bg-[#1a1a1a] overflow-hidden border border-border rounded-xs">
                         <div
                           className="h-full bg-[#ea580c] transition-all duration-500"
                           style={{ width: `${mf.completion_pct}%` }}
@@ -313,11 +301,11 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
           {/* Sleeper Branches Alert Card & Stalled Bugs Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Sleeper Branches */}
-            <div className="p-4 bg-[#0d0d0d] border-2 border-border shadow-brutalist space-y-2.5">
+            <div className="p-5 bg-[#0d0d0d] border border-border shadow-sm space-y-3 rounded-sm">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold font-mono text-foreground uppercase tracking-wider flex items-center gap-2">
                   <GitBranch className="w-4 h-4 text-[#ea580c]" />
-                  <span>// SLEEPER BRANCHES ({data?.sleeper_branches?.length || 0})</span>
+                  <span>SLEEPER BRANCHES ({data?.sleeper_branches?.length || 0})</span>
                 </h3>
                 <span className="text-[9px] text-muted-foreground uppercase font-mono">QUIET &gt; 3D</span>
               </div>

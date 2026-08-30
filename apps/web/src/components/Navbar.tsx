@@ -132,58 +132,58 @@ export const Navbar: React.FC<NavbarProps> = ({
   const clearance = getClearanceLevel(currentUser?.role);
 
   return (
-    <header className="sticky top-0 z-40 bg-[#080808]/90 backdrop-blur-md border-b-2 border-foreground/20 px-4 lg:px-8 py-2.5 transition-all">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        {/* Left: Brand HUD + Navigation Tabs */}
+    <header className="sticky top-0 z-40 bg-[#080808]/95 backdrop-blur-md border-b border-border px-4 lg:px-8 py-3 transition-all">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-5">
+        {/* Left: Brand + Navigation Tabs */}
         <div className="flex items-center gap-6">
           <button
             type="button"
-            aria-label="SYS.INT Triarc - Go to Incident Matrix"
+            aria-label="Triarc - Go to Incident Matrix"
             className="flex items-center gap-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ea580c] p-1 group transition-all"
             onClick={() => setActiveTab('bugs')}
           >
-            <div className="relative w-8 h-8 bg-foreground flex items-center justify-center border-2 border-foreground group-hover:bg-[#ea580c] transition-colors">
+            <div className="relative w-8 h-8 bg-foreground flex items-center justify-center border border-foreground group-hover:bg-[#ea580c] transition-colors rounded-sm">
               <Cpu className="w-4 h-4 text-background" />
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#ea580c] animate-blink" />
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="font-bold font-mono tracking-[0.15em] text-sm text-foreground uppercase">
-                  SYS.INT
+                <span className="font-bold font-mono tracking-[0.12em] text-sm text-foreground uppercase">
+                  TRIARC
                 </span>
-                <span className="text-[9px] uppercase font-mono font-bold px-1.5 py-0.5 bg-foreground text-background tracking-widest">
-                  TRIARC // OS
+                <span className="text-[9px] uppercase font-mono font-bold px-1.5 py-0.5 bg-foreground/10 text-foreground border border-foreground/30 tracking-wider">
+                  FLOW
                 </span>
               </div>
-              <span className="text-[9px] font-mono text-muted-foreground tracking-widest uppercase hidden sm:inline">
-                HIGH-INTEGRITY GOVERNANCE
+              <span className="text-[9px] font-mono text-muted-foreground tracking-wider uppercase hidden sm:inline">
+                INCIDENT LIFECYCLE
               </span>
             </div>
           </button>
 
-          <nav aria-label="Main Navigation" className="flex items-center gap-1 ml-2">
+          <nav aria-label="Main Navigation" className="flex items-center gap-1.5 ml-2">
             <button
               onClick={() => setActiveTab('bugs')}
-              className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider flex items-center gap-2 transition-all border-2 ${activeTab === 'bugs'
+              className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider flex items-center gap-2 transition-all border ${activeTab === 'bugs'
                   ? 'bg-foreground text-background border-foreground font-bold'
-                  : 'text-muted-foreground hover:text-foreground border-transparent hover:border-foreground/30'
+                  : 'text-muted-foreground hover:text-foreground border-transparent hover:border-border'
                 }`}
             >
               <Layers className="w-3.5 h-3.5" />
-              <span>TRIAGE // 01</span>
+              <span>INCIDENTS</span>
             </button>
 
             <button
               onClick={() => setActiveTab('inbox')}
-              className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider flex items-center gap-2 transition-all border-2 relative ${activeTab === 'inbox'
+              className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider flex items-center gap-2 transition-all border relative ${activeTab === 'inbox'
                   ? 'bg-foreground text-background border-foreground font-bold'
-                  : 'text-muted-foreground hover:text-foreground border-transparent hover:border-foreground/30'
+                  : 'text-muted-foreground hover:text-foreground border-transparent hover:border-border'
                 }`}
             >
               <Inbox className="w-3.5 h-3.5" />
-              <span>REQUESTS // 02</span>
+              <span>INBOX</span>
               {inboxCount > 0 && (
-                <span className="px-1.5 py-0.2 text-[10px] font-mono font-bold bg-[#ea580c] text-foreground animate-blink">
+                <span className="px-1.5 py-0.2 text-[10px] font-mono font-bold bg-[#ea580c] text-foreground">
                   {inboxCount}
                 </span>
               )}
@@ -191,25 +191,25 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <button
               onClick={() => setActiveTab('analytics')}
-              className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider flex items-center gap-2 transition-all border-2 ${activeTab === 'analytics'
+              className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider flex items-center gap-2 transition-all border ${activeTab === 'analytics'
                   ? 'bg-foreground text-background border-foreground font-bold'
-                  : 'text-muted-foreground hover:text-foreground border-transparent hover:border-foreground/30'
+                  : 'text-muted-foreground hover:text-foreground border-transparent hover:border-border'
                 }`}
             >
               <Activity className="w-3.5 h-3.5" />
-              <span>ANALYTICS // 03</span>
+              <span>ANALYTICS</span>
             </button>
 
             {currentUser?.role === 'admin' && (
               <button
                 onClick={() => setActiveTab('admin')}
-                className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider flex items-center gap-2 transition-all border-2 ${activeTab === 'admin'
+                className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider flex items-center gap-2 transition-all border ${activeTab === 'admin'
                     ? 'bg-[#ea580c] text-foreground border-[#ea580c] font-bold'
                     : 'text-[#ea580c]/80 hover:text-[#ea580c] border-transparent hover:border-[#ea580c]/30'
                   }`}
               >
                 <Settings className="w-3.5 h-3.5" />
-                <span>ADMIN // 04</span>
+                <span>ADMIN</span>
               </button>
             )}
           </nav>
@@ -219,24 +219,24 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex-1 max-w-sm hidden md:block">
           <button
             onClick={openCommandPalette}
-            className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-muted-foreground bg-[#0d0d0d] hover:bg-[#141414] border-2 border-foreground/20 hover:border-foreground/40 transition-all group"
+            className="w-full flex items-center justify-between px-3.5 py-1.5 text-xs text-muted-foreground bg-[#0d0d0d] hover:bg-[#141414] border border-border hover:border-foreground/40 transition-all group"
           >
             <div className="flex items-center gap-2">
               <Search className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
-              <span className="font-mono text-[11px] uppercase tracking-wider">SEARCH // CMD_K</span>
+              <span className="font-mono text-[11px] uppercase tracking-wider">SEARCH INCIDENTS...</span>
             </div>
-            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-mono text-background bg-foreground font-bold">
-              <Command className="w-2.5 h-2.5" /> K
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-mono text-muted-foreground bg-black border border-border group-hover:text-foreground font-bold">
+              CTRL+K
             </kbd>
           </button>
         </div>
 
         {/* Right: Telemetry + Tools + Action HUD */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           {/* Live Node / SSE Status */}
           <div
-            className="hidden lg:flex items-center gap-2 px-2.5 py-1.5 border-2 border-foreground/20 bg-[#0d0d0d] text-[10px] font-mono uppercase tracking-widest"
-            title="Real-time TLS 1.3 telemetry stream"
+            className="hidden lg:flex items-center gap-2 px-2.5 py-1.5 border border-border bg-[#0d0d0d] text-[10px] font-mono uppercase tracking-wider"
+            title="Real-time telemetry connection"
           >
             <span
               className={`w-2 h-2 ${isConnected
@@ -245,15 +245,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
             />
             <span className={isConnected ? 'text-foreground' : 'text-red-400'}>
-              {isConnected ? 'NODE: ONLINE' : 'NODE: OFFLINE'}
+              {isConnected ? 'ONLINE' : 'OFFLINE'}
             </span>
           </div>
 
           {/* GitHub Ingestion Button */}
           <button
             onClick={openImportModal}
-            className="px-2.5 py-1.5 border-2 border-foreground/20 hover:border-foreground text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground bg-[#0d0d0d] flex items-center gap-1.5 transition-all"
-            title="Ingest GitHub repository issue stream"
+            className="px-2.5 py-1.5 border border-border hover:border-foreground text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground bg-[#0d0d0d] flex items-center gap-1.5 transition-all"
+            title="Ingest GitHub repository issues"
           >
             <Github className="w-3.5 h-3.5" />
             <span className="hidden sm:inline font-mono">IMPORT</span>
@@ -262,19 +262,19 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Webhook Simulator Trigger */}
           <button
             onClick={openWebhookSimulator}
-            className="px-2.5 py-1.5 border-2 border-foreground/20 hover:border-foreground text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground bg-[#0d0d0d] flex items-center gap-1.5 transition-all"
-            title="Simulate CI/CD & git webhooks"
+            className="px-2.5 py-1.5 border border-border hover:border-foreground text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground bg-[#0d0d0d] flex items-center gap-1.5 transition-all"
+            title="Simulate git & CI/CD webhooks"
           >
             <GitPullRequest className="w-3.5 h-3.5 text-[#ea580c]" />
-            <span className="hidden sm:inline font-mono">SIMULATE</span>
+            <span className="hidden sm:inline font-mono">WEBHOOK</span>
           </button>
 
           {/* Keyboard Shortcuts Trigger */}
           {openKeyboardShortcuts && (
             <button
               onClick={openKeyboardShortcuts}
-              className="p-1.5 border-2 border-foreground/20 hover:border-foreground text-muted-foreground hover:text-foreground bg-[#0d0d0d] transition-all"
-              title="Keyboard command shortcuts (?)"
+              className="p-1.5 border border-border hover:border-foreground text-muted-foreground hover:text-foreground bg-[#0d0d0d] transition-all"
+              title="Keyboard shortcuts (?)"
             >
               <Keyboard className="w-4 h-4" />
             </button>
@@ -284,9 +284,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="relative">
             <button
               onClick={() => setIsNotifOpen(!isNotifOpen)}
-              className="p-1.5 border-2 border-foreground/20 hover:border-foreground text-muted-foreground hover:text-foreground bg-[#0d0d0d] transition-all relative"
-              title="Tactical Alerts"
-              aria-label={`Tactical alerts ${unreadNotifCount > 0 ? `(${unreadNotifCount} unread)` : ''}`}
+              className="p-1.5 border border-border hover:border-foreground text-muted-foreground hover:text-foreground bg-[#0d0d0d] transition-all relative"
+              title="Notifications & Alerts"
+              aria-label={`Alerts ${unreadNotifCount > 0 ? `(${unreadNotifCount} unread)` : ''}`}
             >
               <Bell className="w-4 h-4" />
               {unreadNotifCount > 0 && (
