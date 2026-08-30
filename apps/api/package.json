@@ -10,7 +10,7 @@
     "seed": "tsx src/scripts/seed.ts",
     "benchmark": "tsx src/scripts/benchmark.ts",
     "start": "node dist/index.js",
-    "test": "node --import tsx --test --test-concurrency=1 test/projects.test.ts test/api.test.ts test/security.test.ts"
+    "test": "tsx test/projects.test.ts && tsx test/api.test.ts && tsx test/security.test.ts"
   },
   "dependencies": {
     "@triarc/engine": "*",
