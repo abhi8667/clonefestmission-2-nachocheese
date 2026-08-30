@@ -116,26 +116,22 @@ export const LandingView: React.FC = () => {
 
             <h1
               id="hero-heading"
-              className="text-6xl sm:text-8xl md:text-9xl font-black text-foreground uppercase tracking-tight leading-none select-none font-mono"
+              className="py-1 flex items-center justify-center select-none font-mono"
             >
-              TRIARC
-            </h1>
-
-            {/* Split-Flap Departure Board Status Indicator */}
-            <div className="py-2 overflow-x-auto max-w-full">
               <SplitFlapText
-                words={['CODE LINKED', 'ZERO STALL', 'LIVE FLOW', 'GIT SYNCED', 'TRIARC CORE']}
-                fontSize="clamp(22px, 4.5vw, 42px)"
-                tileColor="#0c0c0c"
+                words={['TRIARC']}
+                fontSize="clamp(52px, 10vw, 100px)"
+                tileColor="#0a0a0a"
                 textColor="#F2F1EA"
-                tileRadius={4}
-                gap={4}
-                padTo={11}
-                flipsPerChar={5}
-                flipDuration={0.1}
-                cycleDelay={2800}
+                tileRadius={6}
+                gap={6}
+                padTo={6}
+                flipsPerChar={10}
+                flipDuration={0.08}
+                cycleDelay={4000}
+                className="font-black tracking-tight drop-shadow-2xl"
               />
-            </div>
+            </h1>
 
             <p className="text-sm sm:text-base md:text-lg text-muted-foreground uppercase leading-relaxed max-w-2xl font-mono">
               Bugzilla tracked where a bug is.{' '}

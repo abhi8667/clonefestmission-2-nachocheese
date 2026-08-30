@@ -136,11 +136,11 @@ export const SplitFlapText: React.FC<SplitFlapTextProps> = ({
 
     clearAnimation();
 
-    const firstPhrase = normalizedPhrases[0] || '';
-    currentTextRef.current = firstPhrase;
-    setTiles(createTiles(firstPhrase));
+    const initialBlank = normalizePhrase('', width);
+    currentTextRef.current = initialBlank;
+    setTiles(createTiles(initialBlank));
 
-    if (normalizedPhrases.length <= 1 || typeof window === 'undefined') {
+    if (typeof window === 'undefined') {
       return clearAnimation;
     }
 
@@ -288,7 +288,10 @@ export const SplitFlapText: React.FC<SplitFlapTextProps> = ({
       }, delay);
     };
 
-    scheduleNext(safeCycleDelay);
+    const initialDuration = animateTo(normalizedPhrases[0]);
+    if (normalizedPhrases.length > 1) {
+      scheduleNext(safeCycleDelay + initialDuration);
+    }
 
     return () => {
       cancelled = true;
