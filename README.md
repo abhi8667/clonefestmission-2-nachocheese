@@ -20,7 +20,13 @@
 
 <br />
 
-[Quickstart](#-quickstart--installation) • [Architecture](#-system-architecture) • [Core Capabilities](#-headline-capabilities--innovations) • [Tom the Lizard AI](#-interactive-roaming-pet--ai-copilot-tom-the-lizard) • [Benchmarks](#-performance-evidence--10000-bug-benchmark) • [Security Model](#-row-level-security--rbac-governance) • [API Reference](#-api--webhook-reference) • [Demo Walkthrough](#-5-minute-demo-walkthrough-script)
+<div align="center">
+  <img src="readme_images/01_landing_hero.png" alt="TRIARC Defect Telemetry & Flow Matrix Hero" width="100%" />
+</div>
+
+<br />
+
+[Quickstart](#-quickstart--installation) • [Architecture](#-system-architecture) • [UI Gallery](#-visual-interface--workspace-gallery) • [Core Capabilities](#-headline-capabilities--innovations) • [Tom the Lizard AI](#-interactive-roaming-pet--ai-copilot-tom-the-lizard) • [Benchmarks](#-performance-evidence--10000-bug-benchmark) • [Security Model](#-row-level-security--rbac-governance) • [Demo Walkthrough](#-5-minute-demo-walkthrough-script)
 
 </div>
 
@@ -29,6 +35,7 @@
 ## 📑 Table of Contents
 
 - [🎯 Executive Summary & Core Thesis](#-executive-summary--core-thesis)
+- [📸 Visual Interface & Workspace Gallery](#-visual-interface--workspace-gallery)
 - [🏗️ System Architecture](#-system-architecture)
 - [🧪 Verified Quality & Test Matrix](#-verified-quality--test-matrix)
 - [🌟 Headline Capabilities & Innovations](#-headline-capabilities--innovations)
@@ -79,6 +86,43 @@ Modern software engineering organizations face a painful dilemma in defect track
 | **Jira** | High configurability | Heavyweight, sluggish ($p_{95} > 1,500\text{ms}$), bloated UI, disconnected from real-time Git CI/CD telemetry. |
 | **Bugzilla** | Exceptional relational data model & request flags | Trapped in 2004 web architecture, painful manual forms, no visual flow tracking, no real-time push. |
 | **⚡ Triarc** | **The Best of Both Worlds** | Preserves Bugzilla's high-integrity data model (immutable audit log, guarded state transitions, first-class request flags, row-level security isolation) while providing sub-millisecond query latencies, live GitHub synchronization, and an interactive cyberpunk developer workspace. |
+
+---
+
+## 📸 Visual Interface & Workspace Gallery
+
+### 1. Cyberpunk Hero & Defect Telemetry Matrix (`/`)
+*Dynamic mechanical split-flap typography, real-time defect flow telemetry positioning, instant workspace entry, and live Tom the Lizard pet monitor.*
+
+![TRIARC Landing Hero & Defect Telemetry](readme_images/01_landing_hero.png)
+
+---
+
+### 2. Dual-Workspace Architecture (`/workspace`)
+*Seamless fork between **Organization Workspace** (team triage, guarded state machine, request & approval inbox, row-level security) and **GitHub Project View** (continuous branch network, sleeper branch detection, live commit streams).*
+
+![Dual Workspace Selector](readme_images/02_workspace_selector.png)
+
+---
+
+### 3. Project Portfolio & Attention Command Center (`/projects`)
+*Multi-subsystem status cards (`PAY`, `SEC`, `CORE`) with real-time triage counters (**Assigned to Me**, **Incoming Requests**, **Watched Incidents**) and health indicators.*
+
+![Project Portfolio & Incident Lifecycle Matrix](readme_images/03_projects_portfolio.png)
+
+---
+
+### 4. High-Velocity Incident Intake Modal (`INTAKE: FILE_INCIDENT.SYS`)
+*Instant defect filing with real-time sub-millisecond duplicate radar, tactical tagging (`#CRASH`, `#PERF`, `#REGRESSION`, `#SECURITY`, `#UX`), milestone targeting, and row-level security isolation (`GRP_SEC`).*
+
+![Incident Intake System](readme_images/04_incident_intake_modal.png)
+
+---
+
+### 5. Tom the Lizard AI Copilot & Live Telemetry Sentinel
+*Interactive AI Triage Copilot with 1-click diagnostic suites (**Duplicate Radar**, **SLA Bottleneck Advisor**, **Executive Brief**, **Simulate Commit**, **RBAC Audit**), cycle-time latency breakdown, and pet personality selectors (Tom Lizard, Byte Drone, Glitch Fox).*
+
+![AI Copilot Drawer & Project Telemetry](readme_images/05_project_telemetry_and_ai_copilot.png)
 
 ---
 
@@ -228,6 +272,10 @@ Duplicate bug reports waste hundreds of engineering hours. Triarc catches duplic
 - **Zero Cold-Start Overhead**: Eliminates the 90MB neural network download overhead of heavier models, delivering instant feedback on keydown (<3ms candidate scan across 10,000 bugs).
 - **Row-Level Security Group Isolation**: Strictly filters out confidential security bugs from duplicate suggestions if the filing user does not belong to the authorized security group.
 
+<div align="center">
+  <img src="readme_images/04_incident_intake_modal.png" alt="High-Velocity Incident Intake & Duplicate Detection" width="85%" />
+</div>
+
 ---
 
 ### 5. Configurable Workflow State Machine & Guard Engine
@@ -293,6 +341,10 @@ Triarc features **Tom the Lizard** — an authentic, animated screen-roaming des
   - ⏱️ **SLA Bottleneck Advisor**: Scans review queues and flags stalled triage steps.
   - 📋 **Executive Briefings**: Formats instant Markdown incident summaries for stakeholders.
   - 🛡️ **RBAC Audit**: Validates confidential group boundaries.
+
+<div align="center">
+  <img src="readme_images/05_project_telemetry_and_ai_copilot.png" alt="Tom the Lizard AI Copilot & Real-Time Flow Diagnostics" width="85%" />
+</div>
 
 ---
 
