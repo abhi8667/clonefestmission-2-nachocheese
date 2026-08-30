@@ -13,8 +13,9 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     region: oregon
-    healthCheckPath: /api/projects
+    healthCheckPath: /api/health
     envVars:
+
       - key: NODE_ENV
         value: production
       - key: PORT

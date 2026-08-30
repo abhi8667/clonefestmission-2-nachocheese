@@ -1,0 +1,25 @@
+name: Render Keep-Alive Daemon
+
+on:
+  schedule:
+    # Runs every 12 minutes to prevent Render free instance from spinning down (which happens after 15 min of inactivity)
+    - cron: '*/12 * * * *'
+  workflow_dispatch:
+
+jobs:
+  keep-alive:
+    name: Ping Render Instance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render Health Check
+        run: |
+          # Use user-defined RENDER_APP_URL repository secret or fallback
+          TARGET_URL="${{ secrets.RENDER_APP_URL || 'https://triarc-governance-system.onrender.com' }}"
+          echo "📡 Pinging Render health endpoint: $TARGET_URL/api/health"
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET_URL/api/health" || echo "000")
+          echo "HTTP Status Code: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 400 ]; then
+            echo "✅ Render instance is awake and responsive!"
+          else
+            echo "⚠️ Non-200 status or waking up: $HTTP_STATUS"
+          fi

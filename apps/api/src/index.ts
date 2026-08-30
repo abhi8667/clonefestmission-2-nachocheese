@@ -152,7 +152,27 @@ if (isDirectEntry && process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
     console.log(`🚀 Triarc API listening on http://localhost:${PORT}`);
     console.log(`📡 SSE Stream active on http://localhost:${PORT}/api/stream`);
+
+    // Render / Cloud Free-Tier Keep-Alive Self-Pinger
+    // Automatically pings the public URL every 10 minutes to prevent Render from spinning down
+    const publicUrl = process.env.RENDER_EXTERNAL_URL || process.env.PUBLIC_URL || process.env.RENDER_URL;
+    if (publicUrl) {
+      const pingIntervalMs = 10 * 60 * 1000; // 10 minutes (Render spins down after 15 min inactivity)
+      console.log(`⏱️ Keep-alive background daemon enabled for: ${publicUrl}`);
+      setInterval(async () => {
+        try {
+          const pingUrl = `${publicUrl.replace(/\/$/, '')}/api/health`;
+          const res = await fetch(pingUrl);
+          if (res.ok) {
+            console.log(`💓 [Render Keep-Alive] Ping successfully sent to ${pingUrl} (Instance kept active)`);
+          }
+        } catch (err: any) {
+          console.warn(`⚠️ [Render Keep-Alive] Ping failed: ${err.message}`);
+        }
+      }, pingIntervalMs);
+    }
   });
 }
 
 export default app;
+
