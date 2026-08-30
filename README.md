@@ -91,38 +91,66 @@ Modern software engineering organizations face a painful dilemma in defect track
 
 ## 📸 Visual Interface & Workspace Gallery
 
-### 1. Cyberpunk Hero & Defect Telemetry Matrix (`/`)
-*Dynamic mechanical split-flap typography, real-time defect flow telemetry positioning, instant workspace entry, and live Tom the Lizard pet monitor.*
+### 1. Liquid Ether Hero & System Gateway (`/`)
+*Interactive WebGL fluid shader particle background (`#5227FF`, `#FF9FFC`, `#B497CF`), minimalist Cinzel typography, real-time system status telemetry badges, and 1-click workspace entry.*
 
-![TRIARC Landing Hero & Defect Telemetry](readme_images/01_landing_hero.png)
+![TRIARC Landing Hero & Liquid Ether Background](readme_images/01_landing_hero.png)
 
 ---
 
-### 2. Dual-Workspace Architecture (`/workspace`)
-*Seamless fork between **Organization Workspace** (team triage, guarded state machine, request & approval inbox, row-level security) and **GitHub Project View** (continuous branch network, sleeper branch detection, live commit streams).*
+### 2. Dual-Workspace Architecture Fork (`/workspace`)
+*Seamless navigation fork between **Organization Workspace** (team triage, guarded state machine, request & approval inbox, row-level security) and **GitHub Personal Project** (continuous branch network, sleeper branch detection, live commit streams), complete with roaming Tom the Lizard copilot.*
 
 ![Dual Workspace Selector](readme_images/02_workspace_selector.png)
 
 ---
 
-### 3. Project Portfolio & Attention Command Center (`/projects`)
-*Multi-subsystem status cards (`PAY`, `SEC`, `CORE`) with real-time triage counters (**Assigned to Me**, **Incoming Requests**, **Watched Incidents**) and health indicators.*
+### 3. Personal Workspace & Branch Network (`/github`)
+*Continuous branch network visualization where trunk flows as a single continuous line, branches diverge at cutoff commits, and sleeper branches (>30 days inactive) are automatically flagged.*
 
-![Project Portfolio & Incident Lifecycle Matrix](readme_images/03_projects_portfolio.png)
+![Personal Workspace & Repository Graph](readme_images/03_repository_graph.png)
 
 ---
 
-### 4. High-Velocity Incident Intake Modal (`INTAKE: FILE_INCIDENT.SYS`)
+### 4. GitHub Telemetry Ingest & Pre-Bundled Benchmarks
+*One-click ingestion of real-world GitHub repositories with rate-limit-free offline benchmarks (`facebook/react`, `expressjs/express`) and custom public repository telemetry ingestion.*
+
+![GitHub Telemetry Ingestion Modal](readme_images/04_github_telemetry_ingest.png)
+
+---
+
+### 5. High-Velocity Incident Intake Modal (`INTAKE: FILE_INCIDENT.SYS`)
 *Instant defect filing with real-time sub-millisecond duplicate radar, tactical tagging (`#CRASH`, `#PERF`, `#REGRESSION`, `#SECURITY`, `#UX`), milestone targeting, and row-level security isolation (`GRP_SEC`).*
 
-![Incident Intake System](readme_images/04_incident_intake_modal.png)
+![Incident Intake System](readme_images/05_incident_intake_modal.png)
 
 ---
 
-### 5. Tom the Lizard AI Copilot & Live Telemetry Sentinel
-*Interactive AI Triage Copilot with 1-click diagnostic suites (**Duplicate Radar**, **SLA Bottleneck Advisor**, **Executive Brief**, **Simulate Commit**, **RBAC Audit**), cycle-time latency breakdown, and pet personality selectors (Tom Lizard, Byte Drone, Glitch Fox).*
+### 6. Project Portfolio & Attention Command Center (`/projects`)
+*Multi-subsystem status cards (`PAY`, `SEC`, `CORE`) with real-time triage counters (**Assigned to Me**, **Incoming Requests**, **Watched Incidents**) and health indicators.*
 
-![AI Copilot Drawer & Project Telemetry](readme_images/05_project_telemetry_and_ai_copilot.png)
+![Project Portfolio & Incident Lifecycle Matrix](readme_images/06_project_portfolio.png)
+
+---
+
+### 7. Incident Lifecycle Triage & Activity Digest (`/projects/:key`)
+*High-density triage matrix with expanding Activity Digest (2-day audit trail), multi-dimensional status/milestone filters, and real-time pulse sparklines.*
+
+![Project Issues & Triage Matrix](readme_images/07_project_issues_triage.png)
+
+---
+
+### 8. Git Flow Hub & Collaborator Live Telemetry (`/projects/:key?tab=commits`)
+*Real-time developer presence monitor, live commit stream with verified author signatures, commit simulator, and branch telemetry.*
+
+![Git Collaborator Telemetry & Commit Hub](readme_images/08_git_collaborator_telemetry.png)
+
+---
+
+### 9. Lifecycle Flow Analytics & Cumulative Flow Diagram (`/projects/:key/analytics`)
+*Reconstructed CFD from immutable audit logs, cycle-time latency breakdown (Triage SLA, Dev Velocity, Review Latency, Verify Latency), and predictive release milestone forecasting.*
+
+![Cumulative Flow Diagram & Lifecycle Analytics](readme_images/09_cumulative_flow_analytics.png)
 
 ---
 
