@@ -1,0 +1,31 @@
+# ===================================================
+# Render.com Infrastructure-as-Code Blueprint
+# Project: TRIARC Bug Governance & Telemetry System
+# Docs: https://render.com/docs/blueprint-spec
+# ===================================================
+
+services:
+  # Unified Full-Stack Production Service (Docker Runtime)
+  # Builds packages, Vite web client, Express API, and serves everything seamlessly
+  - type: web
+    name: triarc-governance-system
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /api/projects
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_PATH
+        value: /app/apps/api/data/triarc.db
+      - key: STATIC_DIST_PATH
+        value: /app/apps/web/dist
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: GITHUB_WEBHOOK_SECRET
+        generateValue: true
