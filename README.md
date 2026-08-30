@@ -2,6 +2,7 @@
 
 <div align="center">
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-triarc--governance--system.onrender.com-5227FF.svg?style=for-the-badge&logo=render)](https://triarc-governance-system.onrender.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18.3-61DAFB.svg?style=for-the-badge&logo=react)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC.svg?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
@@ -11,6 +12,12 @@
 [![Benchmark](https://img.shields.io/badge/p95_Latency-%3C5.1ms_%40_10k_Bugs-06B6D4.svg?style=for-the-badge&logo=speedtest)](https://nodejs.org/)
 [![Accessibility](https://img.shields.io/badge/Accessibility-WCAG_2.2_AA-8B5CF6.svg?style=for-the-badge&logo=w3c)](https://www.w3.org/WAI/standards-guidelines/wcag/)
 [![License](https://img.shields.io/badge/License-MIT-F59E0B.svg?style=for-the-badge)](LICENSE)
+
+<br />
+
+> ### 🌐 Live Production Application
+> **🚀 [https://triarc-governance-system.onrender.com/](https://triarc-governance-system.onrender.com/)**  
+> *Production deployment on Render.com with 24/7 anti-cold-start background daemon, continuous SSE event streaming, and persistent SQLite WAL database.*
 
 <br />
 
@@ -26,7 +33,7 @@
 
 <br />
 
-[Quickstart](#-quickstart--installation) • [Architecture](#-system-architecture) • [UI Gallery](#-visual-interface--workspace-gallery) • [Core Capabilities](#-headline-capabilities--innovations) • [Tom the Lizard AI](#-interactive-roaming-pet--ai-copilot-tom-the-lizard) • [Benchmarks](#-performance-evidence--10000-bug-benchmark) • [Security Model](#-row-level-security--rbac-governance) • [Demo Walkthrough](#-5-minute-demo-walkthrough-script)
+[🚀 Live Demo](https://triarc-governance-system.onrender.com/) • [Quickstart](#-quickstart--installation) • [Architecture](#-system-architecture) • [UI Gallery](#-visual-interface--workspace-gallery) • [Core Capabilities](#-headline-capabilities--innovations) • [Tom the Lizard AI](#-interactive-roaming-pet--ai-copilot-tom-the-lizard) • [Benchmarks](#-performance-evidence--10000-bug-benchmark) • [Security Model](#-row-level-security--rbac-governance) • [Demo Walkthrough](#-5-minute-demo-walkthrough-script)
 
 </div>
 
@@ -436,8 +443,14 @@ Triarc is fully compliant with **WCAG 2.2 Level AA** accessibility standards:
 
 ## 🚀 Quickstart & Installation
 
+### 🌐 Instant Live Cloud Instance
+Try the fully deployed production instance (with headline bugs, live SSE telemetry, and Tom the Lizard copilot) directly in your browser without installing anything:  
+🔗 **[https://triarc-governance-system.onrender.com/](https://triarc-governance-system.onrender.com/)**
+
+---
+
 ### Prerequisites
-- **Option A (Local)**: Node.js `v18.0.0+` (`v20+` recommended) & npm `v9+`
+- **Option A (Local)**: Node.js `v18.0.0+` (`v20+` / `v22` recommended) & npm `v9+`
 - **Option B (Docker)**: Docker & Docker Compose
 
 ---
