@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.tsx';
 import { LoginView } from '../views/LoginView.tsx';
+import { LandingView } from '../views/LandingView.tsx';
 import { ProjectsListView } from '../views/ProjectsListView.tsx';
 import { ProjectIssuesView } from '../views/ProjectIssuesView.tsx';
 import { IssueDetailView } from '../views/IssueDetailView.tsx';
@@ -31,21 +32,34 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <>{children}</>;
 };
 
+const RootRoute: React.FC = () => {
+  const { currentUser, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-2 font-mono text-xs uppercase text-muted-foreground">
+        <Loader2 className="w-6 h-6 animate-spin text-foreground" />
+        <span>INITIALIZING TRIARC...</span>
+      </div>
+    );
+  }
+
+  if (currentUser) {
+    return <Navigate to="/projects" replace />;
+  }
+
+  return <LandingView />;
+};
+
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Public Login Route */}
+      {/* Public Landing & Login Routes */}
+      <Route path="/landing" element={<LandingView />} />
       <Route path="/login" element={<LoginView />} />
 
-      {/* Root redirects to /projects */}
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <Navigate to="/projects" replace />
-          </ProtectedRoute>
-        }
-      />
+      {/* Root route: / -> /projects if authenticated, /landing if unauthenticated */}
+      <Route path="/" element={<RootRoute />} />
 
       {/* Project Navigation Flow */}
       <Route

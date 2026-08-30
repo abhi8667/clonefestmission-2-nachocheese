@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.tsx';
 import { Shield, Lock, Mail, ArrowRight, UserCheck, AlertCircle, Loader2 } from 'lucide-react';
@@ -12,15 +12,40 @@ export const LoginView: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const errorRef = useRef<HTMLDivElement>(null);
 
-  // Read destination redirect
+  // Read destination redirect and demo prefill params
   const params = new URLSearchParams(location.search);
   const redirectPath = params.get('from') || '/projects';
+  const demoParam = params.get('demo')?.toLowerCase();
+
+  // Pre-fill demo account if specified in query param
+  useEffect(() => {
+    if (demoParam) {
+      if (demoParam.includes('alex')) {
+        setEmail('alex@triarc.dev');
+        setPassword('password123');
+      } else if (demoParam.includes('sam')) {
+        setEmail('sam@triarc.dev');
+        setPassword('password123');
+      } else if (demoParam.includes('priya')) {
+        setEmail('priya@triarc.dev');
+        setPassword('password123');
+      } else if (demoParam.includes('marcus')) {
+        setEmail('marcus@triarc.dev');
+        setPassword('password123');
+      } else {
+        setEmail(`${demoParam}@triarc.dev`);
+        setPassword('password123');
+      }
+    }
+  }, [demoParam]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) {
       setError('Please enter both your email/username and password');
+      setTimeout(() => errorRef.current?.focus(), 50);
       return;
     }
 
@@ -31,7 +56,11 @@ export const LoginView: React.FC = () => {
       await login({ username: email.trim(), password: password.trim() });
       navigate(redirectPath, { replace: true });
     } catch (err: any) {
-      setError(err.message || 'Invalid credentials. Please try demo accounts below.');
+      setError(
+        err.message ||
+        'Unable to authenticate with the Triarc access gateway. Please check your credentials or select a demo account below.'
+      );
+      setTimeout(() => errorRef.current?.focus(), 50);
     } finally {
       setIsSubmitting(false);
     }
@@ -44,7 +73,11 @@ export const LoginView: React.FC = () => {
       await quickLogin(userId);
       navigate(redirectPath, { replace: true });
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in as selected user');
+      setError(
+        err.message ||
+        'Unable to connect to Triarc authentication service. Please verify server connectivity.'
+      );
+      setTimeout(() => errorRef.current?.focus(), 50);
     } finally {
       setIsSubmitting(false);
     }
@@ -56,28 +89,32 @@ export const LoginView: React.FC = () => {
       name: 'Alex River',
       role: 'DEVELOPER',
       desc: 'Triarc Core Platform dev, triage queues & PR fixes',
-      badge: 'bg-blue-950 text-blue-300 border-blue-600'
+      badge: 'bg-blue-950 text-blue-300 border-blue-600',
+      keyMatch: 'alex'
     },
     {
       id: 'u_sam',
       name: 'Sam Patel',
       role: 'DEVELOPER',
       desc: 'Offline sync engine & reviewer',
-      badge: 'bg-emerald-950 text-emerald-300 border-emerald-600'
+      badge: 'bg-emerald-950 text-emerald-300 border-emerald-600',
+      keyMatch: 'sam'
     },
     {
       id: 'u_priya',
       name: 'Priya Sharma',
       role: 'TRIAGER',
       desc: 'Triage matrix lead, bulk actions & approvals',
-      badge: 'bg-amber-950 text-amber-300 border-amber-600'
+      badge: 'bg-amber-950 text-amber-300 border-amber-600',
+      keyMatch: 'priya'
     },
     {
       id: 'u_marcus',
       name: 'Marcus Vance',
       role: 'SYSTEM ADMIN',
       desc: 'Global system configuration & project creation',
-      badge: 'bg-purple-950 text-purple-300 border-purple-600'
+      badge: 'bg-purple-950 text-purple-300 border-purple-600',
+      keyMatch: 'marcus'
     }
   ];
 
@@ -110,9 +147,12 @@ export const LoginView: React.FC = () => {
 
             {error && (
               <div
+                ref={errorRef}
+                id="login-error"
+                tabIndex={-1}
                 role="alert"
                 aria-live="assertive"
-                className="p-3 mb-6 bg-red-950/40 border border-red-500 text-red-300 text-xs flex items-start gap-2.5 rounded-sm"
+                className="p-3 mb-6 bg-red-950/40 border border-red-500 text-red-300 text-xs flex items-start gap-2.5 rounded-sm outline-none focus:ring-1 focus:ring-red-400"
               >
                 <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
                 <div>
@@ -136,13 +176,14 @@ export const LoginView: React.FC = () => {
                   </div>
                   <input
                     id="login-email"
+                    name="username"
                     type="text"
                     required
                     autoComplete="username"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="alex@triarc.dev or alex"
-                    className="w-full pl-9 pr-3 py-2.5 bg-[#080808] border border-border focus:border-foreground text-foreground text-xs font-mono outline-none rounded-sm transition-all"
+                    className="w-full pl-9 pr-3 py-2.5 bg-[#080808] border border-border focus:border-foreground text-foreground text-xs font-mono outline-none rounded-sm transition-all focus-visible:ring-1 focus-visible:ring-[#ea580c]"
                   />
                 </div>
               </div>
@@ -160,13 +201,15 @@ export const LoginView: React.FC = () => {
                   </div>
                   <input
                     id="login-password"
+                    name="password"
                     type="password"
                     required
                     autoComplete="current-password"
+                    aria-describedby={error ? 'login-error' : undefined}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full pl-9 pr-3 py-2.5 bg-[#080808] border border-border focus:border-foreground text-foreground text-xs font-mono outline-none rounded-sm transition-all"
+                    className="w-full pl-9 pr-3 py-2.5 bg-[#080808] border border-border focus:border-foreground text-foreground text-xs font-mono outline-none rounded-sm transition-all focus-visible:ring-1 focus-visible:ring-[#ea580c]"
                   />
                 </div>
               </div>
@@ -174,7 +217,7 @@ export const LoginView: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3 bg-foreground text-background font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-white transition-all rounded-sm disabled:opacity-50"
+                className="w-full py-3 bg-foreground text-background font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-white transition-all rounded-sm disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
               >
                 {isSubmitting ? (
                   <>
@@ -211,27 +254,37 @@ export const LoginView: React.FC = () => {
             </p>
 
             <div className="space-y-2.5">
-              {demoAccounts.map((account) => (
-                <button
-                  key={account.id}
-                  type="button"
-                  onClick={() => handleQuickSignIn(account.id)}
-                  disabled={isSubmitting}
-                  className="w-full text-left p-3 bg-[#080808] hover:bg-[#181818] border border-border hover:border-foreground transition-all rounded-sm group"
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-foreground group-hover:text-[#ea580c] transition-colors">
-                      {account.name}
-                    </span>
-                    <span className={`px-1.5 py-0.2 text-[9px] font-bold uppercase border rounded-xs ${account.badge}`}>
-                      {account.role}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground uppercase">
-                    {account.desc}
-                  </p>
-                </button>
-              ))}
+              {demoAccounts.map((account) => {
+                const isSelectedDemo = demoParam && (demoParam === account.keyMatch || account.id.includes(demoParam));
+                return (
+                  <button
+                    key={account.id}
+                    type="button"
+                    onClick={() => handleQuickSignIn(account.id)}
+                    disabled={isSubmitting}
+                    className={`w-full text-left p-3 bg-[#080808] hover:bg-[#181818] border transition-all rounded-sm group focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none ${
+                      isSelectedDemo
+                        ? 'border-[#ea580c] ring-1 ring-[#ea580c] bg-[#140c06]'
+                        : 'border-border hover:border-foreground'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-foreground group-hover:text-[#ea580c] transition-colors flex items-center gap-1.5">
+                        <span>{account.name}</span>
+                        {isSelectedDemo && (
+                          <span className="text-[9px] text-[#ea580c] font-bold uppercase">(PRESELECTED)</span>
+                        )}
+                      </span>
+                      <span className={`px-1.5 py-0.2 text-[9px] font-bold uppercase border rounded-xs ${account.badge}`}>
+                        {account.role}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground uppercase">
+                      {account.desc}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

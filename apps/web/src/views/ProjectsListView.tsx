@@ -18,6 +18,8 @@ import {
   X
 } from 'lucide-react';
 import { AnimatedCounter } from '../components/Cyber/AnimatedCounter.tsx';
+import { EmptyState } from '../components/Common/EmptyState.tsx';
+import { CardSkeleton } from '../components/Common/LoadingSkeleton.tsx';
 
 export const ProjectsListView: React.FC = () => {
   const navigate = useNavigate();
@@ -94,7 +96,11 @@ export const ProjectsListView: React.FC = () => {
   const isAdmin = currentUser?.role === 'admin';
 
   return (
-    <main className="space-y-6 animate-fade-in font-mono" id="main-content">
+    <main
+      aria-labelledby="projects-heading"
+      className="space-y-6 animate-fade-in font-mono"
+      id="main-content"
+    >
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0d0d0d] p-5 border border-border shadow-sm rounded-sm">
         <div className="space-y-1">
@@ -106,7 +112,7 @@ export const ProjectsListView: React.FC = () => {
               <span className="text-[10px] text-[#ea580c] font-bold tracking-wider uppercase block">
                 PROJECT PORTFOLIO
               </span>
-              <h1 className="text-lg font-black text-foreground uppercase tracking-wide">
+              <h1 id="projects-heading" className="text-lg font-black text-foreground uppercase tracking-wide">
                 Projects & Workspaces
               </h1>
             </div>
@@ -119,7 +125,7 @@ export const ProjectsListView: React.FC = () => {
         {isAdmin && (
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="px-4 py-2 bg-foreground text-background font-bold text-xs uppercase flex items-center gap-2 hover:bg-white transition-all rounded-sm shrink-0"
+            className="px-4 py-2 bg-foreground text-background font-bold text-xs uppercase flex items-center gap-2 hover:bg-white transition-all rounded-sm shrink-0 focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
             aria-label="Create new project workspace"
           >
             <Plus className="w-4 h-4" />
@@ -142,14 +148,14 @@ export const ProjectsListView: React.FC = () => {
               const defaultKey = projects[0]?.key || 'CORE';
               navigate(`/projects/${defaultKey}?assignee=me`);
             }}
-            className="p-4 bg-[#0d0d0d] hover:bg-[#141414] border border-border hover:border-foreground text-left transition-all rounded-sm flex items-center justify-between group"
+            className="p-4 bg-[#0d0d0d] hover:bg-[#141414] border border-border hover:border-foreground text-left transition-all rounded-sm flex items-center justify-between group focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
           >
             <div className="space-y-1">
               <span className="text-[10px] uppercase font-bold text-muted-foreground block tracking-wider">
                 ASSIGNED TO ME (OPEN)
               </span>
               <p className="text-2xl font-black text-foreground">
-                <AnimatedCounter value={attention.assigned_to_me} />
+                {isLoading ? '—' : <AnimatedCounter value={attention.assigned_to_me ?? 0} />}
               </p>
               <span className="text-[10px] text-muted-foreground uppercase">Across all projects</span>
             </div>
@@ -159,7 +165,7 @@ export const ProjectsListView: React.FC = () => {
           {/* Incoming Requests */}
           <button
             onClick={() => navigate('/inbox')}
-            className="p-4 bg-[#0d0d0d] hover:bg-[#141414] border border-border hover:border-[#ea580c] text-left transition-all rounded-sm flex items-center justify-between group"
+            className="p-4 bg-[#0d0d0d] hover:bg-[#141414] border border-border hover:border-[#ea580c] text-left transition-all rounded-sm flex items-center justify-between group focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
           >
             <div className="space-y-1">
               <span className="text-[10px] uppercase font-bold text-[#ea580c] block tracking-wider flex items-center gap-1.5">
@@ -167,7 +173,7 @@ export const ProjectsListView: React.FC = () => {
                 <span>INCOMING REQUESTS</span>
               </span>
               <p className="text-2xl font-black text-[#ea580c]">
-                <AnimatedCounter value={attention.incoming_requests} />
+                {isLoading ? '—' : <AnimatedCounter value={attention.incoming_requests ?? 0} />}
               </p>
               <span className="text-[10px] text-muted-foreground uppercase">Awaiting review? / approval?</span>
             </div>
@@ -180,7 +186,7 @@ export const ProjectsListView: React.FC = () => {
               const defaultKey = projects[0]?.key || 'CORE';
               navigate(`/projects/${defaultKey}?is_watched=true`);
             }}
-            className="p-4 bg-[#0d0d0d] hover:bg-[#141414] border border-border hover:border-foreground text-left transition-all rounded-sm flex items-center justify-between group"
+            className="p-4 bg-[#0d0d0d] hover:bg-[#141414] border border-border hover:border-foreground text-left transition-all rounded-sm flex items-center justify-between group focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
           >
             <div className="space-y-1">
               <span className="text-[10px] uppercase font-bold text-muted-foreground block tracking-wider flex items-center gap-1.5">
@@ -188,7 +194,7 @@ export const ProjectsListView: React.FC = () => {
                 <span>WATCHED INCIDENTS</span>
               </span>
               <p className="text-2xl font-black text-foreground">
-                <AnimatedCounter value={attention.watching_changed} />
+                {isLoading ? '—' : <AnimatedCounter value={attention.watching_changed ?? 0} />}
               </p>
               <span className="text-[10px] text-muted-foreground uppercase">Updated in past 7 days</span>
             </div>
@@ -205,32 +211,15 @@ export const ProjectsListView: React.FC = () => {
         </h2>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="p-6 bg-[#0d0d0d] border border-border rounded-sm space-y-4 animate-pulse">
-                <div className="h-4 bg-[#1f1f1f] w-3/4 rounded-xs" />
-                <div className="h-3 bg-[#181818] w-full rounded-xs" />
-                <div className="h-10 bg-[#141414] rounded-xs" />
-              </div>
-            ))}
-          </div>
+          <CardSkeleton count={3} />
         ) : projects.length === 0 ? (
-          <div className="p-12 text-center border border-border bg-[#0d0d0d] rounded-sm space-y-3">
-            <FolderKanban className="w-8 h-8 text-muted-foreground mx-auto" />
-            <h3 className="text-sm font-bold uppercase text-foreground">No Projects Available</h3>
-            <p className="text-xs text-muted-foreground uppercase">
-              You are currently not enrolled as a member of any project workspace.
-            </p>
-            {isAdmin && (
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="px-4 py-2 bg-foreground text-background font-bold text-xs uppercase inline-flex items-center gap-2 hover:bg-white rounded-sm mt-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span>CREATE FIRST PROJECT</span>
-              </button>
-            )}
-          </div>
+          <EmptyState
+            icon={FolderKanban}
+            title="No Projects Available"
+            description="You are currently not enrolled as a member of any project workspace."
+            actionLabel={isAdmin ? 'CREATE FIRST PROJECT' : undefined}
+            onAction={isAdmin ? () => setIsCreateModalOpen(true) : undefined}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {projects.map((project) => {
@@ -238,8 +227,17 @@ export const ProjectsListView: React.FC = () => {
               return (
                 <div
                   key={project.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Open project workspace ${project.name} (${project.key})`}
                   onClick={() => navigate(`/projects/${project.key}`)}
-                  className="p-5 bg-[#0d0d0d] hover:bg-[#121212] border border-border hover:border-foreground transition-all rounded-sm flex flex-col justify-between cursor-pointer group shadow-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate(`/projects/${project.key}`);
+                    }
+                  }}
+                  className="p-5 bg-[#0d0d0d] hover:bg-[#121212] border border-border hover:border-foreground transition-all rounded-sm flex flex-col justify-between cursor-pointer group shadow-sm focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
                 >
                   <div className="space-y-3">
                     {/* Top row: Key + Role + Health */}

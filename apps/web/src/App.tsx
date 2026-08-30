@@ -89,15 +89,17 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const isLandingPage = location.pathname === '/landing' || (location.pathname === '/' && !currentUser);
   const isLoginPage = location.pathname === '/login';
+  const isPublicPage = isLandingPage || isLoginPage;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col relative selection:bg-foreground selection:text-background font-mono">
       {/* Background Dot Matrix Canvas */}
       <CyberBackground />
 
-      {/* Top Navbar Header (Rendered on all non-login views) */}
-      {!isLoginPage && (
+      {/* Top Navbar Header (Rendered on all authenticated app views) */}
+      {!isPublicPage && (
         <Navbar
           openNewBugModal={() => setIsNewBugOpen(true)}
           openWebhookSimulator={() => setIsSimulatorOpen(true)}
@@ -109,14 +111,14 @@ export const App: React.FC = () => {
       )}
 
       {/* Main Viewport Content */}
-      <div className={isLoginPage ? 'flex-1' : 'flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6'}>
+      <div className={isPublicPage ? 'flex-1' : 'flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6'}>
         <ErrorBoundary>
           <AppRoutes />
         </ErrorBoundary>
       </div>
 
       {/* Security Telemetry Footer (Floating or Collapsible) */}
-      {!isLoginPage && <SecurityTelemetryFeed />}
+      {!isPublicPage && <SecurityTelemetryFeed />}
 
       {/* Global Modals & Dialogs */}
       <NewBugModal
