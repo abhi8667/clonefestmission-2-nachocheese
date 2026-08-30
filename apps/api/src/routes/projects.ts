@@ -336,3 +336,122 @@ projectsRouter.delete('/:key/members/:userId', (req: AuthenticatedRequest, res: 
 
   res.json({ success: true, message: 'Member removed from project' });
 });
+
+// POST /api/projects/from-github - Create project from GitHub repo URL and import issues & telemetry
+projectsRouter.post('/from-github', async (req: AuthenticatedRequest, res: Response) => {
+  const { repoUrl, key, name, description, githubToken, useFixture = false, fixtureName } = req.body || {};
+
+  if (!repoUrl && !useFixture) {
+    return res.status(400).json({ error: 'repoUrl is required' });
+  }
+
+  const { importGitHubRepository, parseGitHubUrl } = await import('../services/github-importer.js');
+  const parsed = parseGitHubUrl(repoUrl || 'https://github.com/facebook/react');
+  const repoName = parsed?.name || (fixtureName ? fixtureName.split('/').pop()! : 'workspace');
+  const defaultKey = repoName.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6).toUpperCase() || 'GH';
+  const cleanKey = (key ? String(key).trim().toUpperCase() : defaultKey).slice(0, 10);
+  const cleanName = name ? String(name).trim() : `${repoName.charAt(0).toUpperCase() + repoName.slice(1)} Platform`;
+
+  // Find or create project
+  let project = db.prepare('SELECT * FROM projects WHERE UPPER(key) = ?').get(cleanKey) as Project | undefined;
+  const projectId = project ? project.id : `prj_${cleanKey.toLowerCase()}_${Date.now().toString(36)}`;
+
+  if (!project) {
+    db.prepare(`
+      INSERT INTO projects (id, key, name, description, department_id, repo_url, created_at)
+      VALUES (?, ?, ?, ?, 'dept_eng', ?, datetime('now'))
+    `).run(
+      projectId,
+      cleanKey,
+      cleanName,
+      description || `Imported GitHub repository workspace for ${parsed?.owner || 'github'}/${repoName}`,
+      repoUrl || `https://github.com/${parsed?.owner || 'github'}/${repoName}`
+    );
+    project = db.prepare('SELECT * FROM projects WHERE id = ?').get(projectId) as Project;
+  }
+
+  // Add creator user as admin
+  const currentUserId = req.user?.id || 'u_alex';
+  db.prepare(`
+    INSERT OR REPLACE INTO project_members (project_id, user_id, role)
+    VALUES (?, ?, 'admin')
+  `).run(projectId, currentUserId);
+
+  try {
+    const importResult = await importGitHubRepository({
+      repoUrl: repoUrl || `https://github.com/${parsed?.owner || 'github'}/${repoName}`,
+      projectId: projectId,
+      // An explicit token wins; otherwise fall back to the viewer's linked account.
+      githubToken: githubToken || (await import('./github.js')).getGitHubToken(currentUserId),
+      useFixture,
+      fixtureName: fixtureName || (parsed ? `${parsed.owner}/${parsed.name}` : undefined),
+      creatorUserId: currentUserId
+    });
+
+    res.status(201).json({
+      success: true,
+      project,
+      import: importResult
+    });
+  } catch (err: any) {
+    res.status(201).json({
+      success: true,
+      project,
+      warning: `Project created, but GitHub issue sync had warning: ${err.message}`
+    });
+  }
+});
+
+// GET /api/projects/:key/git-telemetry - Telemetry for commits, active collaborators & branches
+projectsRouter.get('/:key/git-telemetry', async (req: AuthenticatedRequest, res: Response) => {
+  const key = String(req.params.key);
+  const { getProjectGitTelemetry } = await import('../services/github-importer.js');
+
+  try {
+    const telemetry = await getProjectGitTelemetry(key);
+    res.json(telemetry);
+  } catch (err: any) {
+
+    res.status(404).json({ error: err.message || `Project '${key}' not found` });
+  }
+});
+
+// GET /api/projects/:key/git-graph - Lane-assigned commit network for the repo view
+projectsRouter.get('/:key/git-graph', async (req: AuthenticatedRequest, res: Response) => {
+  const key = String(req.params.key);
+  const { getProjectGitTelemetry } = await import('../services/github-importer.js');
+  const { buildGitGraph } = await import('../services/git-graph.js');
+  const { getGitHubToken } = await import('./github.js');
+
+  try {
+    // Use the viewer's linked account when they have one, so private repos
+    // resolve and the request bills their rate limit rather than the server's.
+    const telemetry = await getProjectGitTelemetry(key, getGitHubToken(req.user?.id));
+    // A repo_url still pointing at the placeholder org means the telemetry came
+    // from local data rather than the GitHub API.
+    const isLive = !!telemetry.repo_url
+      && !telemetry.repo_url.includes('triarc/')
+      && !telemetry.repo_url.includes('example.com');
+
+    res.json(buildGitGraph(telemetry, { isLive }));
+  } catch (err: any) {
+    res.status(404).json({ error: err.message || `Project '${key}' not found` });
+  }
+});
+
+// POST /api/projects/:key/simulate-commit - Push or simulate a collaborator commit
+projectsRouter.post('/:key/simulate-commit', async (req: AuthenticatedRequest, res: Response) => {
+  const key = String(req.params.key);
+  const { author = 'alex', message = 'feat: update telemetry module', branch = 'main', bugId } = req.body || {};
+
+  const { simulateProjectCommit } = await import('../services/github-importer.js');
+
+  try {
+    const event = simulateProjectCommit(key, { author, message, branch, bugId: bugId ? Number(bugId) : undefined });
+    res.json({ success: true, commit: event });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message || 'Failed to simulate commit' });
+  }
+});
+
+

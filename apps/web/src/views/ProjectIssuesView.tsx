@@ -8,6 +8,7 @@ import { CardView } from '../components/BugList/CardView.tsx';
 import { FilterBar } from '../components/BugList/FilterBar.tsx';
 import { DigestBanner } from '../components/Digest/DigestBanner.tsx';
 import { NewBugModal } from '../components/NewBug/NewBugModal.tsx';
+import { ProjectGitTelemetryView } from '../components/GitTelemetry/ProjectGitTelemetryView.tsx';
 import { Bug, Project } from '@triarc/shared-types';
 import {
   FolderKanban,
@@ -18,7 +19,9 @@ import {
   AlertCircle,
   Loader2,
   Table,
-  LayoutGrid
+  LayoutGrid,
+  GitCommit,
+  Users
 } from 'lucide-react';
 
 export const ProjectIssuesView: React.FC = () => {
@@ -27,6 +30,9 @@ export const ProjectIssuesView: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { currentUser } = useAuth();
   const { lastEvent } = useSSE();
+
+  // Tab mode: 'issues' | 'git'
+  const activeTab = searchParams.get('tab') === 'git' ? 'git' : 'issues';
 
   // URL query params synchronization
   const searchQuery = searchParams.get('query') || '';
@@ -42,6 +48,7 @@ export const ProjectIssuesView: React.FC = () => {
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [isNewBugOpen, setIsNewBugOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
 
   // Helper to update search params
   const updateFilter = useCallback((paramName: string, value: string) => {
@@ -170,10 +177,26 @@ export const ProjectIssuesView: React.FC = () => {
         <nav aria-label="Project Sections" className="flex items-center px-5 gap-1 bg-[#101010] text-xs">
           <Link
             to={`/projects/${key}`}
-            className="py-3 px-4 font-bold border-b-2 border-foreground text-foreground flex items-center gap-2 uppercase"
+            className={`py-3 px-4 font-bold border-b-2 flex items-center gap-2 uppercase transition-all ${
+              activeTab === 'issues'
+                ? 'border-[#ea580c] text-foreground'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+            }`}
           >
-            <Activity className="w-4 h-4 text-[#ea580c]" />
+            <Activity className={`w-4 h-4 ${activeTab === 'issues' ? 'text-[#ea580c]' : ''}`} />
             <span>ISSUES ({totalCount})</span>
+          </Link>
+
+          <Link
+            to={`/projects/${key}?tab=git`}
+            className={`py-3 px-4 font-bold border-b-2 flex items-center gap-2 uppercase transition-all ${
+              activeTab === 'git'
+                ? 'border-[#ea580c] text-foreground'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+            }`}
+          >
+            <GitCommit className={`w-4 h-4 ${activeTab === 'git' ? 'text-[#ea580c]' : ''}`} />
+            <span>COMMITS & COLLABORATORS</span>
           </Link>
 
           <Link
@@ -196,80 +219,93 @@ export const ProjectIssuesView: React.FC = () => {
         </nav>
       </div>
 
-      {/* Notifications Briefing */}
-      <DigestBanner onSelectBug={handleSelectBug} />
-
-      {/* Filter Toolbar */}
-      <FilterBar
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-        searchQuery={searchQuery}
-        setSearchQuery={(val) => updateFilter('query', val)}
-        statusFilter={statusFilter}
-        setStatusFilter={(val) => updateFilter('status', val)}
-        componentFilter={componentFilter}
-        setComponentFilter={(val) => updateFilter('component', val)}
-        priorityFilter={priorityFilter}
-        setPriorityFilter={(val) => updateFilter('priority', val)}
-        assigneeFilter={assigneeFilter}
-        setAssigneeFilter={(val) => updateFilter('assignee', val)}
-        totalCount={totalCount}
-      />
-
-      {/* Error Alert */}
-      {error && (
-        <div role="alert" className="p-4 bg-red-950/40 border border-red-500 text-red-300 text-xs rounded-sm uppercase flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-red-400" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      {/* Issues Content Area */}
-      {isLoading ? (
-        <div className="p-16 flex flex-col items-center justify-center gap-2 text-muted-foreground font-mono uppercase border border-border bg-[#0d0d0d] rounded-sm">
-          <Loader2 className="w-6 h-6 animate-spin text-foreground" />
-          <p className="text-xs">Synchronizing project incidents...</p>
-        </div>
-      ) : bugs.length === 0 ? (
-        <div className="p-16 text-center border border-border bg-[#0d0d0d] rounded-sm space-y-3">
-          <FolderKanban className="w-8 h-8 text-muted-foreground mx-auto" />
-          <h3 className="text-sm font-bold uppercase text-foreground">
-            {hasFilters ? 'No Matching Issues Found' : 'No Issues Reported Yet'}
-          </h3>
-          <p className="text-xs text-muted-foreground uppercase max-w-md mx-auto">
-            {hasFilters
-              ? 'No incidents matched your query and filter criteria in this project.'
-              : `The ${key.toUpperCase()} workspace has zero active incidents.`}
-          </p>
-          {hasFilters ? (
-            <button
-              onClick={clearAllFilters}
-              className="px-4 py-2 border border-border bg-[#141414] hover:bg-[#222] text-foreground text-xs uppercase rounded-sm font-bold inline-block mt-2"
-            >
-              CLEAR ACTIVE FILTERS
-            </button>
-          ) : (
-            <button
-              onClick={() => setIsNewBugOpen(true)}
-              className="px-4 py-2 bg-foreground text-background font-bold text-xs uppercase inline-flex items-center gap-2 hover:bg-white rounded-sm mt-2"
-            >
-              <Plus className="w-4 h-4" />
-              <span>REPORT FIRST ISSUE</span>
-            </button>
-          )}
-        </div>
-      ) : viewMode === 'table' ? (
-        <TableView
-          bugs={bugs}
-          onSelectBug={handleSelectBug}
-          onBugsUpdated={loadBugs}
+      {activeTab === 'git' ? (
+        /* Git Commits & Collaborator Activity Telemetry View */
+        <ProjectGitTelemetryView
+          projectKey={key}
+          projectName={project?.name}
+          repoUrl={project?.repo_url}
         />
       ) : (
-        <CardView
-          bugs={bugs}
-          onSelectBug={handleSelectBug}
-        />
+        /* Issues Matrix View */
+        <>
+          {/* Notifications Briefing */}
+          <DigestBanner onSelectBug={handleSelectBug} />
+
+          {/* Filter Toolbar */}
+          <FilterBar
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            searchQuery={searchQuery}
+            setSearchQuery={(val) => updateFilter('query', val)}
+            statusFilter={statusFilter}
+            setStatusFilter={(val) => updateFilter('status', val)}
+            componentFilter={componentFilter}
+            setComponentFilter={(val) => updateFilter('component', val)}
+            priorityFilter={priorityFilter}
+            setPriorityFilter={(val) => updateFilter('priority', val)}
+            assigneeFilter={assigneeFilter}
+            setAssigneeFilter={(val) => updateFilter('assignee', val)}
+            totalCount={totalCount}
+          />
+
+          {/* Error Alert */}
+          {error && (
+            <div role="alert" className="p-4 bg-red-950/40 border border-red-500 text-red-300 text-xs rounded-sm uppercase flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-red-400" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Issues Content Area */}
+          {isLoading ? (
+            <div className="p-16 flex flex-col items-center justify-center gap-2 text-muted-foreground font-mono uppercase border border-border bg-[#0d0d0d] rounded-sm">
+              <Loader2 className="w-6 h-6 animate-spin text-foreground" />
+              <p className="text-xs">Synchronizing project incidents...</p>
+            </div>
+          ) : bugs.length === 0 ? (
+            <div className="p-16 text-center border border-border bg-[#0d0d0d] rounded-sm space-y-3">
+              <FolderKanban className="w-8 h-8 text-muted-foreground mx-auto" />
+              <h3 className="text-sm font-bold uppercase text-foreground">
+                {hasFilters ? 'No Matching Issues Found' : 'No Issues Reported Yet'}
+              </h3>
+              <p className="text-xs text-muted-foreground uppercase max-w-md mx-auto">
+                {hasFilters
+                  ? 'No incidents matched your query and filter criteria in this project.'
+                  : `The ${key.toUpperCase()} workspace has zero active incidents.`}
+              </p>
+              {hasFilters ? (
+                <button
+                  onClick={clearAllFilters}
+                  className="px-4 py-2 border border-border bg-[#141414] hover:bg-[#222] text-foreground text-xs uppercase rounded-sm font-bold inline-block mt-2"
+                >
+                  CLEAR ACTIVE FILTERS
+                </button>
+              ) : (
+                <button
+                  onClick={() => setIsNewBugOpen(true)}
+                  className="px-4 py-2 bg-foreground text-background font-bold text-xs uppercase inline-flex items-center gap-2 hover:bg-white rounded-sm mt-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>REPORT FIRST ISSUE</span>
+                </button>
+              )}
+            </div>
+          ) : viewMode === 'table' ? (
+            <TableView
+              bugs={bugs}
+              onSelectBug={handleSelectBug}
+              onBugsUpdated={loadBugs}
+            />
+          ) : (
+            <CardView
+              bugs={bugs}
+              onSelectBug={handleSelectBug}
+            />
+          )}
+        </>
       )}
+
 
       {/* New Bug Modal */}
       <NewBugModal

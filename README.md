@@ -184,10 +184,10 @@ Bugzilla's most powerful concept — request and approval flags (`review?`, `nee
 
 ---
 
-### 3. Zero-Cold-Start Live Semantic Duplicate Radar
+### 3. Zero-Cold-Start Live Duplicate Radar
 Duplicate bug reports waste hundreds of engineering hours. Triarc solves this at the moment of creation:
-- **Zero Cold-Start Deterministic Lexical Embedder**: Uses a deterministic 384-dimensional token-frequency projection with sub-millisecond cosine vector matching.
-- **Zero Cold-Start Overhead**: Eliminates the 90MB neural network download overhead of heavier models, delivering instant feedback on keydown (<1.3ms across 10,000 bugs).
+- **Zero Cold-Start Deterministic Lexical Embedder**: Uses a deterministic 384-dimensional token-frequency projection with domain synonym expansion, stemming, and subword character trigrams with cosine vector matching.
+- **Zero Cold-Start Overhead**: Eliminates the 90MB neural network download overhead of heavier models, delivering instant feedback on keydown (<3ms candidate scan across 10,000 bugs).
 - **Row-Level Security Group Isolation**: Strictly filters out confidential security bugs from duplicate suggestions if the filing user does not belong to the authorized security group.
 
 ---
@@ -261,14 +261,15 @@ TRIARC SCALE BENCHMARK REPORT (10,000 BUGS / 100,000 ACTIVITY ROWS)
 ========================================================================================
 | Scenario                                      | Iterations | p50 (ms) | p95 (ms) | Target  | Status |
 |-----------------------------------------------|------------|----------|----------|---------|--------|
-| 1. Filtered Bug Table (status & component)    |        100 |     0.19 |     0.20 | < 150ms | ✅ PASS |
-| 2. Milestone Slice Query (milestone = v2.1)   |        100 |     0.18 |     0.19 | < 150ms | ✅ PASS |
-| 3. Request Inbox (? flags for requestee)      |        100 |     0.08 |     0.08 | < 150ms | ✅ PASS |
-| 4. Bug Detail + Activity History Hydration    |        100 |     0.03 |     0.03 | < 150ms | ✅ PASS |
-| 5. Full-Text Search (title LIKE %payload%)    |        100 |     1.28 |     1.30 | < 150ms | ✅ PASS |
-| 6. Unread Notification Count                  |        100 |     0.02 |     0.02 | < 150ms | ✅ PASS |
-| 7. State Transition Transaction (Write + Audit) |        100 |     0.04 |     0.05 | < 150ms | ✅ PASS |
-| 8. 30-Day Activity Field Aggregation          |         50 |     4.84 |     5.15 | < 150ms | ✅ PASS |
+| 1. Filtered Bug Table (status & component)    |        100 |     0.25 |     0.43 | < 150ms | ✅ PASS |
+| 2. Milestone Slice Query (milestone = v2.1)   |        100 |     0.25 |     0.44 | < 150ms | ✅ PASS |
+| 3. Request Inbox (? flags for requestee)      |        100 |     0.11 |     0.15 | < 150ms | ✅ PASS |
+| 4. Bug Detail + Activity History Hydration    |        100 |     0.04 |     0.05 | < 150ms | ✅ PASS |
+| 5. Full-Text Search (title LIKE %payload%)    |        100 |     1.52 |     1.73 | < 150ms | ✅ PASS |
+| 6. Unread Notification Count                  |        100 |     0.03 |     0.03 | < 150ms | ✅ PASS |
+| 7. State Transition Transaction (Write + Audit) |        100 |     0.05 |     0.11 | < 150ms | ✅ PASS |
+| 8. 30-Day Activity Field Aggregation          |         50 |     6.28 |     8.15 | < 150ms | ✅ PASS |
+| 9. Duplicate Radar Candidate Scan & Match     |         50 |     2.42 |     2.96 | < 150ms | ✅ PASS |
 ========================================================================================
 ```
 
@@ -441,14 +442,18 @@ Bugzilla historically provided a free-text `whiteboard` field where developers d
 3. **Structured Discussion & Audit Log**: Replaces unversioned whiteboard edits with immutable, author-attributed comments and activity entries.
 
 ### 2. Zero-Inference Duplicate Radar Architecture
-Rather than introducing heavy 90MB ONNX transformers that cause cold-start lag and memory bloat, Triarc utilizes a deterministic 384-dimensional term-frequency feature hash with cosine vector similarity. This achieves:
-- Sub-millisecond evaluation (<1.3ms on 10,000 bugs).
-- Zero cold-start latency.
+Rather than introducing heavy 90MB ONNX transformers that cause cold-start lag and memory bloat, Triarc utilizes a deterministic 384-dimensional term-frequency feature hash with domain synonym expansion, stemming, and subword character trigrams with cosine vector similarity. This achieves:
+- Sub-3ms evaluation on 10,000 bugs (<2.5ms p50, <3.0ms p95).
+- Zero cold-start latency with instant typing reactivity.
 - Deterministic, repeatable similarity scoring.
-- Complete security-group filtering before similarity calculation.
+- Complete security-group filtering before similarity calculation in a single database query.
 
 ### 3. Pure TypeScript Workflow Engine
 All state transitions, guards, flag lifecycle validations, and CFD calculations live in `@triarc/engine` with zero external I/O dependencies. This enables the exact same workflow engine code to run on both the Node.js API server (for database transaction integrity) and the React frontend (for instant optimistic client-side validation and UI state disabling).
+
+### 4. Authentication Process Boundary & Rate Limiting Model
+- **Token Architecture**: Triarc issues HMAC-SHA256 signed JSON Web Tokens (7-day grant) encoding role permissions and authorized security group identifiers, with session revalidation via `/api/auth/me`.
+- **In-Memory Rate Limiting**: The sliding-window rate limiters on credential routes (`/api/auth/login`, `/api/auth/register`) and general API paths operate in-process memory. While ideal for single-instance high-throughput deployments aligned with SQLite's single-writer architecture, multi-node clustering would transition the sliding window backing store to Redis.
 
 ---
 

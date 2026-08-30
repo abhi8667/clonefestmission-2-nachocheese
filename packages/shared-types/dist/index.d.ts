@@ -304,7 +304,7 @@ export interface PresenceEvent {
         last_seen: string;
     }[];
 }
-export type SSEEventType = 'bug:updated' | 'bug:created' | 'activity:created' | 'flag:created' | 'flag:resolved' | 'git:linked' | 'presence:changed' | 'presence:ping' | 'notification:created' | 'admin:user_updated' | 'import:progress' | 'import:complete';
+export type SSEEventType = 'bug:updated' | 'bug:created' | 'activity:created' | 'flag:created' | 'flag:resolved' | 'git:linked' | 'git:commit' | 'presence:changed' | 'presence:ping' | 'notification:created' | 'admin:user_updated' | 'import:progress' | 'import:complete';
 export interface SSEMessage {
     type: SSEEventType;
     data: any;
@@ -447,5 +447,103 @@ export interface ImportProgressEvent {
     total: number;
     message: string;
     repo_name?: string;
+}
+export interface GitCommit {
+    sha: string;
+    short_sha: string;
+    message: string;
+    author_name: string;
+    author_username: string;
+    author_avatar?: string;
+    branch: string;
+    created_at: string;
+    url: string;
+    bug_id?: number;
+    bug_title?: string;
+    /** Parent SHAs. Two or more parents means this commit is a merge. */
+    parents?: string[];
+}
+export interface CollaboratorTelemetry {
+    id: string;
+    username: string;
+    name: string;
+    avatar_url?: string;
+    role: string;
+    commits_count: number;
+    prs_count: number;
+    active_branch?: string;
+    current_status: string;
+    last_activity_at: string;
+}
+export interface ProjectGitTelemetry {
+    repo_url: string;
+    commits: GitCommit[];
+    collaborators: CollaboratorTelemetry[];
+    branches: {
+        name: string;
+        is_default: boolean;
+        is_sleeper: boolean;
+        last_commit_at: string;
+        author: string;
+    }[];
+    stats: {
+        total_commits: number;
+        total_collaborators: number;
+        active_branches: number;
+        open_prs: number;
+    };
+}
+export interface GitGraphNode {
+    sha: string;
+    short_sha: string;
+    message: string;
+    author_name: string;
+    author_username: string;
+    author_avatar?: string;
+    branch: string;
+    created_at: string;
+    url: string;
+    bug_id?: number;
+    bug_title?: string;
+    /** Horizontal lane. 0 is the default branch. */
+    lane: number;
+    /** Position along the time axis, ascending from the oldest commit. */
+    index: number;
+    /** True when this commit brought a branch back into the trunk. */
+    is_merge: boolean;
+}
+export interface GitGraphLane {
+    /** Branch name occupying this lane. */
+    branch: string;
+    lane: number;
+    is_default: boolean;
+    /** No commits for over 3 days while still unmerged. */
+    is_sleeper: boolean;
+    is_merged: boolean;
+    /** Index of the trunk commit this branch diverged from, null for the trunk. */
+    branched_from_index: number | null;
+    /** Index of the commit that merged it back, null while still open. */
+    merged_at_index: number | null;
+    first_commit_at: string;
+    last_commit_at: string;
+    commit_count: number;
+    author: string;
+}
+export interface GitGraph {
+    repo_url: string;
+    default_branch: string;
+    /** Oldest first, so index maps directly onto the time axis. */
+    nodes: GitGraphNode[];
+    lanes: GitGraphLane[];
+    /** True when this came from the live GitHub API rather than local data. */
+    is_live: boolean;
+    stats: {
+        total_commits: number;
+        total_branches: number;
+        open_branches: number;
+        sleeper_branches: number;
+        contributors: number;
+        spans_days: number;
+    };
 }
 //# sourceMappingURL=index.d.ts.map

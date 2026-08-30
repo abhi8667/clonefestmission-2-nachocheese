@@ -664,6 +664,10 @@ bugsRouter.post('/bugs/:id/watch', (req: AuthenticatedRequest, res: Response) =>
   const bugId = parseInt(String(req.params.id), 10);
   if (isNaN(bugId)) return res.status(400).json({ error: 'Invalid bug ID' });
 
+  if (!canUserViewBug(req.user, bugId)) {
+    return res.status(404).json({ error: 'Bug not found or restricted' });
+  }
+
   const userId = req.user?.id || 'u_alex';
   const nowIso = new Date().toISOString();
 
@@ -681,6 +685,10 @@ bugsRouter.delete('/bugs/:id/watch', (req: AuthenticatedRequest, res: Response) 
   const bugId = parseInt(String(req.params.id), 10);
   if (isNaN(bugId)) return res.status(400).json({ error: 'Invalid bug ID' });
 
+  if (!canUserViewBug(req.user, bugId)) {
+    return res.status(404).json({ error: 'Bug not found or restricted' });
+  }
+
   const userId = req.user?.id || 'u_alex';
   db.prepare('DELETE FROM watchers WHERE bug_id = ? AND user_id = ?').run(bugId, userId);
 
@@ -696,6 +704,10 @@ bugsRouter.post('/bugs/:id/keywords', (req: AuthenticatedRequest, res: Response)
     return res.status(400).json({ error: 'bugId and keyword_id are required' });
   }
 
+  if (!canUserViewBug(req.user, bugId)) {
+    return res.status(404).json({ error: 'Bug not found or restricted' });
+  }
+
   try {
     db.prepare('INSERT INTO bug_keywords (bug_id, keyword_id) VALUES (?, ?)').run(bugId, keyword_id);
   } catch (err) {}
@@ -708,6 +720,12 @@ bugsRouter.delete('/bugs/:id/keywords/:keywordId', (req: AuthenticatedRequest, r
   const bugId = parseInt(String(req.params.id), 10);
   const { keywordId } = req.params;
 
+  if (isNaN(bugId)) return res.status(400).json({ error: 'Invalid bug ID' });
+
+  if (!canUserViewBug(req.user, bugId)) {
+    return res.status(404).json({ error: 'Bug not found or restricted' });
+  }
+
   db.prepare('DELETE FROM bug_keywords WHERE bug_id = ? AND keyword_id = ?').run(bugId, keywordId);
   res.json({ success: true });
 });
@@ -716,6 +734,10 @@ bugsRouter.delete('/bugs/:id/keywords/:keywordId', (req: AuthenticatedRequest, r
 bugsRouter.patch('/bugs/:id', (req: AuthenticatedRequest, res: Response) => {
   const bugId = parseInt(String(req.params.id), 10);
   if (isNaN(bugId)) return res.status(400).json({ error: 'Invalid bug ID' });
+
+  if (!canUserViewBug(req.user, bugId)) {
+    return res.status(404).json({ error: 'Bug not found or restricted' });
+  }
 
   const bug = db.prepare('SELECT * FROM bugs WHERE id = ?').get(bugId) as Bug | undefined;
   if (!bug) return res.status(404).json({ error: 'Bug not found' });
@@ -847,6 +869,12 @@ bugsRouter.post('/bugs/bulk-transition', (req: AuthenticatedRequest, res: Respon
   let failedCount = 0;
 
   for (const bugId of bug_ids) {
+    if (!canUserViewBug(req.user, bugId)) {
+      results.push({ bug_id: bugId, success: false, reason: 'Bug not found or restricted' });
+      failedCount++;
+      continue;
+    }
+
     const bug = db.prepare('SELECT * FROM bugs WHERE id = ?').get(bugId) as Bug | undefined;
     if (!bug) {
       results.push({ bug_id: bugId, success: false, reason: 'Bug not found' });
@@ -926,8 +954,15 @@ bugsRouter.patch('/bugs/:id/transition', (req: AuthenticatedRequest, res: Respon
   const bugId = parseInt(String(req.params.id), 10);
   if (isNaN(bugId)) return res.status(400).json({ error: 'Invalid bug ID' });
 
-  const { toState, comment, fields, automated = false } = req.body;
+  if (!canUserViewBug(req.user, bugId)) {
+    return res.status(404).json({ error: 'Bug not found or restricted' });
+  }
+
+  const { toState, comment, fields } = req.body || {};
   if (!toState) return res.status(400).json({ error: 'toState is required' });
+
+  // Finding 04: automated is never accepted from client HTTP callers
+  const automated = false;
 
   const bug = db.prepare('SELECT * FROM bugs WHERE id = ?').get(bugId) as Bug | undefined;
   if (!bug) return res.status(404).json({ error: 'Bug not found' });
@@ -1014,17 +1049,24 @@ bugsRouter.patch('/bugs/:id/transition', (req: AuthenticatedRequest, res: Respon
 // POST /api/bugs/:id/relate - Create relationship
 bugsRouter.post('/bugs/:id/relate', (req: AuthenticatedRequest, res: Response) => {
   const bugId = parseInt(String(req.params.id), 10);
-  const { toBugId, type } = req.body;
+  const { toBugId, type } = req.body || {};
 
   if (isNaN(bugId) || !toBugId || !type) {
     return res.status(400).json({ error: 'bugId, toBugId, and type are required' });
+  }
+
+  const toBugIdNum = Number(toBugId);
+  if (isNaN(toBugIdNum)) return res.status(400).json({ error: 'Invalid toBugId' });
+
+  if (!canUserViewBug(req.user, bugId) || !canUserViewBug(req.user, toBugIdNum)) {
+    return res.status(404).json({ error: 'Bug not found or restricted' });
   }
 
   const existing = db.prepare(`
     SELECT * FROM relationships WHERE from_bug_id = ? OR to_bug_id = ?
   `).all(bugId, bugId) as Relationship[];
 
-  const validation = validateRelationship(bugId, Number(toBugId), type, existing);
+  const validation = validateRelationship(bugId, toBugIdNum, type, existing);
   if (!validation.valid) {
     return res.status(400).json({ error: validation.reason });
   }
@@ -1053,10 +1095,14 @@ bugsRouter.post('/bugs/:id/relate', (req: AuthenticatedRequest, res: Response) =
 // POST /api/bugs/:id/comments - Add comment with optional work_time logging
 bugsRouter.post('/bugs/:id/comments', (req: AuthenticatedRequest, res: Response) => {
   const bugId = parseInt(String(req.params.id), 10);
-  const { body, work_time = 0, is_private = false } = req.body;
+  const { body, work_time = 0, is_private = false } = req.body || {};
 
   if (isNaN(bugId) || !body || !body.trim()) {
     return res.status(400).json({ error: 'Comment body is required' });
+  }
+
+  if (!canUserViewBug(req.user, bugId)) {
+    return res.status(404).json({ error: 'Bug not found or restricted' });
   }
 
   const authorId = req.user ? req.user.id : 'u_alex';
@@ -1105,6 +1151,10 @@ bugsRouter.get('/bugs/:id/duplicates', (req: AuthenticatedRequest, res: Response
   const bugId = parseInt(String(req.params.id), 10);
   if (isNaN(bugId)) return res.status(400).json({ error: 'Invalid bug ID' });
 
+  if (!canUserViewBug(req.user, bugId)) {
+    return res.status(404).json({ error: 'Bug not found or restricted' });
+  }
+
   const bug = db.prepare('SELECT title, description FROM bugs WHERE id = ?').get(bugId) as { title: string; description: string } | undefined;
   if (!bug) return res.status(404).json({ error: 'Bug not found' });
 
@@ -1127,6 +1177,10 @@ bugsRouter.post(['/duplicates/check', '/radar/check'], (req: AuthenticatedReques
 bugsRouter.get('/bugs/:id/timeline', (req: AuthenticatedRequest, res: Response) => {
   const bugId = parseInt(String(req.params.id), 10);
   if (isNaN(bugId)) return res.status(400).json({ error: 'Invalid bug ID' });
+
+  if (!canUserViewBug(req.user, bugId)) {
+    return res.status(404).json({ error: 'Bug not found or restricted' });
+  }
 
   const activities = db.prepare(`
     SELECT a.*, u.name as actor_name

@@ -1,4 +1,5 @@
 import { DuplicateMatch, User } from '@triarc/shared-types';
+export declare function clearVectorCache(): void;
 export declare function generateEmbedding(text: string): number[];
 export declare function cosineSimilarity(vecA: number[], vecB: number[]): number;
 export declare function indexBugEmbedding(bugId: number, title: string, description: string): void;

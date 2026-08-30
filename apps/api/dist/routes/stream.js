@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { sseService } from '../services/sse.js';
+import { authMiddleware } from '../middleware/auth.js';
 export const streamRouter = Router();
 // GET /api/stream - Server-Sent Events stream for live field updates & presence
 streamRouter.get('/stream', (req, res) => {
@@ -13,7 +14,8 @@ streamRouter.get('/stream', (req, res) => {
     sseService.registerClient(clientId, res, userId);
 });
 // POST /api/presence/heartbeat - Heartbeat sent every ~10s while bug detail is open
-streamRouter.post('/presence/heartbeat', (req, res) => {
+// Finding 06: Mount authMiddleware so req.user is properly populated
+streamRouter.post('/presence/heartbeat', authMiddleware, (req, res) => {
     const { bugId } = req.body;
     if (!bugId || !req.user) {
         return res.status(400).json({ error: 'bugId and authenticated user required' });

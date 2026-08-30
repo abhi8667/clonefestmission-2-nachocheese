@@ -282,6 +282,21 @@ export function initializeDatabase() {
             // Column already exists
         }
     }
+    // Per-user GitHub account link. The access token is a bearer credential:
+    // it is never returned to the client, only used server-side.
+    db.exec(`
+    CREATE TABLE IF NOT EXISTS github_connections (
+      user_id TEXT PRIMARY KEY,
+      access_token TEXT NOT NULL,
+      github_login TEXT NOT NULL,
+      github_name TEXT,
+      github_avatar TEXT,
+      scopes TEXT,
+      auth_method TEXT NOT NULL DEFAULT 'oauth', -- oauth | pat
+      connected_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
     // Create indexes
     db.exec(`
     CREATE INDEX IF NOT EXISTS idx_activity_bug_created ON activity(bug_id, created_at);

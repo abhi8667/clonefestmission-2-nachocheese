@@ -5,8 +5,8 @@ export const webhooksRouter = Router();
 webhooksRouter.post('/webhooks/github', (req, res) => {
     const signature = req.headers['x-hub-signature-256'];
     const eventName = req.headers['x-github-event'] || 'push';
-    const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
-    if (!verifyGitHubSignature(rawBody, signature)) {
+    const rawPayload = req.rawBody || (typeof req.body === 'string' ? req.body : JSON.stringify(req.body));
+    if (!verifyGitHubSignature(rawPayload, signature)) {
         return res.status(401).json({ error: 'Invalid webhook signature' });
     }
     const payload = req.body;

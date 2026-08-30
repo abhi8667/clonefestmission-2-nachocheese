@@ -11,7 +11,12 @@ import { CommandPalette } from './components/CommandPalette.tsx';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcuts/KeyboardShortcutsModal.tsx';
 import { CyberBackground } from './components/Cyber/CyberBackground.tsx';
 import { SecurityTelemetryFeed } from './components/Cyber/SecurityTelemetryFeed.tsx';
+import { CyberPetAvatar } from './components/CyberPet/CyberPetAvatar.tsx';
+import { TomLizardPet } from './components/CyberPet/TomLizardPet.tsx';
+import { CyberAssistantDrawer } from './components/CyberPet/CyberAssistantDrawer.tsx';
 import { useAuth } from './context/AuthContext.tsx';
+
+
 import { useSSE } from './context/SSEContext.tsx';
 import { fetchInbox, fetchBugs } from './services/api.ts';
 import { Bug } from '@triarc/shared-types';
@@ -36,7 +41,7 @@ export const App: React.FC = () => {
   const loadInboxCount = async () => {
     try {
       const res = await fetchInbox(currentUser?.id);
-      setInboxCount(res.counts?.incoming || 0);
+      setInboxCount(res.incoming?.length || 0);
     } catch {
       // Ignore
     }
@@ -89,9 +94,10 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const isLandingPage = location.pathname === '/landing' || (location.pathname === '/' && !currentUser);
+  const isLandingPage = location.pathname === '/landing';
   const isLoginPage = location.pathname === '/login';
   const isPublicPage = isLandingPage || isLoginPage;
+
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col relative selection:bg-foreground selection:text-background font-mono">
@@ -163,7 +169,13 @@ export const App: React.FC = () => {
         onClose={() => setIsShortcutsOpen(false)}
       />
 
+      {/* Interactive Roaming Desktop Pet & AI Sentinel */}
+      <TomLizardPet />
+      <CyberAssistantDrawer />
+
       <LoginModal />
     </div>
   );
 };
+
+

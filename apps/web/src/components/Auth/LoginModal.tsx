@@ -1,12 +1,28 @@
 import React, { useState } from 'react';
-import { Shield, Lock, User as UserIcon, LogIn, AlertCircle, Sparkles, Check, X, KeyRound, Radio } from 'lucide-react';
+import { Shield, Lock, User as UserIcon, LogIn, AlertCircle, Sparkles, Check, X, KeyRound, Radio, UserPlus, Mail, ChevronDown, UserCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.tsx';
 import { useFocusTrap } from '../../hooks/useFocusTrap.ts';
 
 export const LoginModal: React.FC = () => {
-  const { isLoginModalOpen, setIsLoginModalOpen, login, quickLogin, users } = useAuth();
+  const { isLoginModalOpen, setIsLoginModalOpen, login, register, users } = useAuth();
+
+  // Mode: 'login' | 'register'
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+
+  // Demo personas live in their own collapsed section so they never compete
+  // with the real sign-in form.
+  const [showPersonas, setShowPersonas] = useState(false);
+
+  // Sign In Form
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('password123');
+
+  // Registration Form
+  const [regUsername, setRegUsername] = useState('');
+  const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPassword, setRegPassword] = useState('password123');
+
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -36,16 +52,46 @@ export const LoginModal: React.FC = () => {
     }
   };
 
-  const handleQuickSignIn = async (userId: string) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!regUsername.trim() || !regEmail.trim() || !regPassword.trim()) {
+      setError('Username, email, and password are required for operator registration.');
+      return;
+    }
     setError(null);
     setIsSubmitting(true);
     try {
-      await quickLogin(userId);
+      await register({
+        username: regUsername.trim().toLowerCase(),
+        name: regName.trim() || regUsername.trim(),
+        email: regEmail.trim().toLowerCase(),
+        password: regPassword.trim()
+      });
     } catch (err: any) {
-      setError(err.message || 'Quick login failed.');
+      setError(err.message || 'Registration failed. Username or email may already be in use.');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handlePersonaSignIn = async (account: typeof demoAccounts[0]) => {
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      await login({ username: account.username, password: 'password123' });
+    } catch (err: any) {
+      setError(err.message || 'Persona authentication failed.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const switchToRegisterWithUsername = (un: string) => {
+    setAuthMode('register');
+    setRegUsername(un);
+    setRegName(un.charAt(0).toUpperCase() + un.slice(1));
+    setRegEmail(`${un.toLowerCase()}@triarc.dev`);
+    setError(null);
   };
 
   // Demo accounts configured in seed
@@ -121,7 +167,7 @@ export const LoginModal: React.FC = () => {
     >
       <div
         ref={modalRef}
-        className="w-full max-w-4xl bg-[#080808] border-2 border-foreground shadow-brutalist overflow-hidden my-8 text-foreground"
+        className="w-full max-w-md bg-[#080808] border-2 border-foreground shadow-brutalist overflow-hidden my-8 text-foreground"
       >
         {/* Header HUD */}
         <div className="flex items-center justify-between px-4 py-2 border-b-2 border-foreground bg-[#121212] font-mono text-[10px]">
@@ -144,35 +190,229 @@ export const LoginModal: React.FC = () => {
         </div>
 
         {error && (
-          <div className="mx-4 mt-3 p-2.5 bg-red-950 border-2 border-red-500 flex items-center gap-2 text-red-200 text-xs font-mono uppercase">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
-            <span>{error}</span>
+          <div className="mx-4 mt-3 p-2.5 bg-red-950 border-2 border-red-500 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-red-200 text-xs font-mono uppercase">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
+              <span>{error}</span>
+            </div>
+            {error.toLowerCase().includes('not found') && username && (
+              <button
+                type="button"
+                onClick={() => switchToRegisterWithUsername(username)}
+                className="px-2 py-1 bg-red-800 hover:bg-red-700 text-white font-bold text-[10px] uppercase border border-red-400 shrink-0"
+              >
+                + REGISTER "{username}" NOW
+              </button>
+            )}
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-border font-mono">
-          {/* Quick Demo Persona Switcher */}
-          <div className="lg:col-span-7 p-5 bg-[#0d0d0d] space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Radio className="w-3.5 h-3.5 text-[#ea580c] animate-blink" />
-                <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
-                  // 1-CLICK PERSONA EVALUATION
-                </h3>
-              </div>
-              <span className="text-[9px] bg-[#ea580c] text-background px-1.5 py-0.2 font-mono font-bold uppercase">
-                EVALUATION MODE
-              </span>
+        <div className="font-mono">
+          {/* Credentials Form (Sign In & Register Tabs) */}
+          <div className="p-5 space-y-3 bg-[#080808]">
+            {/* Mode Switcher Tabs */}
+            <div className="grid grid-cols-2 gap-1 border-2 border-border p-0.5 bg-[#0d0d0d]">
+              <button
+                type="button"
+                onClick={() => { setAuthMode('login'); setError(null); }}
+                className={`py-1.5 text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1.5 ${
+                  authMode === 'login'
+                    ? 'bg-foreground text-background shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <LogIn className="w-3 h-3" />
+                <span>SIGN IN</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { setAuthMode('register'); setError(null); }}
+                className={`py-1.5 text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1.5 ${
+                  authMode === 'register'
+                    ? 'bg-[#ea580c] text-white shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <UserPlus className="w-3 h-3" />
+                <span>NEW ACCOUNT</span>
+              </button>
             </div>
-            <p className="text-[11px] text-muted-foreground uppercase">
-              SELECT ANY OPERATOR PERSONA TO EVALUATE RBAC CLEARANCES AND CLASSIFIED DOSSIERS:
-            </p>
 
+            {authMode === 'login' ? (
+              <form onSubmit={handleStandardLogin} className="space-y-3 pt-1">
+                <div>
+                  <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                    // MANUAL OPERATOR SIGN IN
+                  </h3>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 uppercase">
+                    AUTHENTICATE WITH USERNAME AND CREDENTIALS.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-[9px] uppercase font-bold text-muted-foreground mb-1">USERNAME / EMAIL</label>
+                  <div className="relative">
+                    <UserIcon className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-2" />
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="e.g. marcus, alex, or your handle"
+                      className="w-full bg-[#0d0d0d] border-2 border-border pl-8 pr-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-foreground uppercase"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[9px] uppercase font-bold text-muted-foreground">PASSWORD</label>
+                    <span className="text-[9px] text-muted-foreground">DEFAULT: password123</span>
+                  </div>
+                  <div className="relative">
+                    <Lock className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-2" />
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••••••"
+                      className="w-full bg-[#0d0d0d] border-2 border-border pl-8 pr-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-foreground font-mono"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full brutalist-btn justify-center"
+                >
+                  <span className="btn-icon-block"><LogIn className="w-3.5 h-3.5" /></span>
+                  <span className="btn-text-block">{isSubmitting ? 'AUTHENTICATING...' : 'AUTHENTICATE'}</span>
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleRegisterSubmit} className="space-y-2.5 pt-1">
+                <div>
+                  <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                    // REGISTER OPERATOR ACCOUNT
+                  </h3>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 uppercase">
+                    SELF-SERVICE REGISTRATION FOR NEW OPERATOR DOSSIER.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-[9px] uppercase font-bold text-muted-foreground mb-0.5">USERNAME / HANDLE *</label>
+                  <div className="relative">
+                    <UserIcon className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-2" />
+                    <input
+                      type="text"
+                      required
+                      value={regUsername}
+                      onChange={(e) => {
+                        setRegUsername(e.target.value);
+                        if (!regEmail || regEmail.endsWith('@triarc.dev')) {
+                          setRegEmail(`${e.target.value.toLowerCase()}@triarc.dev`);
+                        }
+                      }}
+                      placeholder="e.g. abh or dev_lead"
+                      className="w-full bg-[#0d0d0d] border-2 border-border pl-8 pr-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-foreground uppercase font-mono"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[9px] uppercase font-bold text-muted-foreground mb-0.5">OPERATOR DISPLAY NAME</label>
+                  <input
+                    type="text"
+                    value={regName}
+                    onChange={(e) => setRegName(e.target.value)}
+                    placeholder="e.g. Abhishek"
+                    className="w-full bg-[#0d0d0d] border-2 border-border px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-foreground font-mono"
+                    disabled={isSubmitting}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[9px] uppercase font-bold text-muted-foreground mb-0.5">EMAIL ADDRESS *</label>
+                  <div className="relative">
+                    <Mail className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-2" />
+                    <input
+                      type="email"
+                      required
+                      value={regEmail}
+                      onChange={(e) => setRegEmail(e.target.value)}
+                      placeholder="e.g. abh@triarc.dev"
+                      className="w-full bg-[#0d0d0d] border-2 border-border pl-8 pr-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-foreground font-mono"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[9px] uppercase font-bold text-muted-foreground mb-0.5">PASSWORD *</label>
+                  <div className="relative">
+                    <Lock className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-2" />
+                    <input
+                      type="password"
+                      required
+                      value={regPassword}
+                      onChange={(e) => setRegPassword(e.target.value)}
+                      placeholder="••••••••••••"
+                      className="w-full bg-[#0d0d0d] border-2 border-border pl-8 pr-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-foreground font-mono"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-2 bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold text-xs uppercase flex items-center justify-center gap-1.5 transition-all shadow-sm rounded-xs mt-1"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>{isSubmitting ? 'REGISTERING...' : 'REGISTER & ENTER'}</span>
+                </button>
+              </form>
+            )}
+
+            <div className="pt-2 border-t border-border text-[9px] text-muted-foreground space-y-0.5 uppercase">
+              <div>🔒 BCRYPT HASHED CREDENTIALS</div>
+              <div>🛡️ CRYPTOGRAPHIC JWT TOKENS</div>
+            </div>
+          </div>
+
+          {/* Demo personas — a separate, collapsed section below the real form */}
+          <div className="border-t-2 border-border bg-[#0d0d0d]">
+            <button
+              type="button"
+              onClick={() => setShowPersonas((v) => !v)}
+              aria-expanded={showPersonas}
+              aria-controls="persona-list"
+              className="w-full flex items-center gap-2 px-5 py-3 text-left hover:bg-[#131313] transition-colors focus-visible:ring-2 focus-visible:ring-[#ea580c] focus-visible:ring-inset outline-none"
+            >
+              <UserCheck className="w-3.5 h-3.5 text-[#ea580c] shrink-0" />
+              <span className="text-[11px] font-bold text-foreground uppercase tracking-wider flex-1">
+                Just exploring? Use a demo account
+              </span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-muted-foreground shrink-0 transition-transform ${showPersonas ? 'rotate-180' : ''}`}
+              />
+            </button>
+
+            {showPersonas && (
+              <div id="persona-list" className="px-5 pb-5 space-y-2.5">
+                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                  Each persona carries different RBAC clearances, so the triage queue and
+                  available actions change with the role you pick.
+                </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
               {demoAccounts.map((acc) => (
                 <button
                   key={acc.id}
-                  onClick={() => handleQuickSignIn(acc.id)}
+                  onClick={() => handlePersonaSignIn(acc)}
                   disabled={isSubmitting}
                   className="flex flex-col text-left p-3 bg-black border-2 border-border hover:border-foreground transition-all group"
                 >
@@ -198,70 +438,12 @@ export const LoginModal: React.FC = () => {
                 </button>
               ))}
             </div>
-          </div>
-
-          {/* Standard Credentials Form */}
-          <div className="lg:col-span-5 p-5 space-y-3 bg-[#080808]">
-            <div>
-              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
-                // MANUAL OPERATOR SIGN IN
-              </h3>
-              <p className="text-[10px] text-muted-foreground mt-0.5 uppercase">
-                AUTHENTICATE WITH USERNAME AND CREDENTIALS.
-              </p>
-            </div>
-
-            <form onSubmit={handleStandardLogin} className="space-y-3 pt-1">
-              <div>
-                <label className="block text-[9px] uppercase font-bold text-muted-foreground mb-1">USERNAME / EMAIL</label>
-                <div className="relative">
-                  <UserIcon className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-2" />
-                  <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="e.g. marcus or alex"
-                    className="w-full bg-[#0d0d0d] border-2 border-border pl-8 pr-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-foreground uppercase"
-                    disabled={isSubmitting}
-                  />
-                </div>
               </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-[9px] uppercase font-bold text-muted-foreground">PASSWORD</label>
-                  <span className="text-[9px] text-muted-foreground">DEFAULT: password123</span>
-                </div>
-                <div className="relative">
-                  <Lock className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-2" />
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="w-full bg-[#0d0d0d] border-2 border-border pl-8 pr-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-foreground font-mono"
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full brutalist-btn justify-center"
-              >
-                <span className="btn-icon-block"><LogIn className="w-3.5 h-3.5" /></span>
-                <span className="btn-text-block">{isSubmitting ? 'AUTHENTICATING...' : 'AUTHENTICATE'}</span>
-              </button>
-
-              <div className="pt-2 border-t border-border text-[9px] text-muted-foreground space-y-0.5 uppercase">
-                <div>🔒 BCRYPT HASHED CREDENTIALS</div>
-                <div>🛡️ CRYPTOGRAPHIC JWT TOKENS</div>
-              </div>
-            </form>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 };
+

@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { db } from '../db/database.js';
 import { AuthenticatedRequest } from '../middleware/auth.js';
+import { canUserViewBug } from '../middleware/security.js';
 import { validateFlagCreation, validateFlagResolution } from '@triarc/engine';
 import { Flag, FlagType } from '@triarc/shared-types';
 import { sseService } from '../services/sse.js';
@@ -61,31 +62,32 @@ flagsRouter.get('/inbox', (req: AuthenticatedRequest, res: Response) => {
         role: r.req_role,
         avatar_url: r.req_avatar
       } : null
-    }));
+    })).filter((f: any) => canUserViewBug(req.user, f.bug_id)) as Flag[];
   };
 
   const incoming = queryFlags('f.requestee_id = ? AND f.status = ?', [userId, '?']);
   const outgoing = queryFlags('f.setter_id = ? AND f.status = ?', [userId, '?']);
-  const resolved = queryFlags('(f.requestee_id = ? OR f.setter_id = ?) AND f.status != ?', [userId, userId, '?'], 30);
+  const resolved = queryFlags('(f.setter_id = ? OR f.requestee_id = ?) AND f.status != ?', [userId, userId, '?'], 30);
 
   res.json({
     incoming,
     outgoing,
     resolved,
-    counts: {
-      incoming: incoming.length,
-      outgoing: outgoing.length
-    }
+    total_pending: incoming.length + outgoing.length
   });
 });
 
-// POST /api/bugs/:id/flags - Create a request flag
+// POST /api/bugs/:id/flags - Request a flag
 flagsRouter.post('/bugs/:id/flags', (req: AuthenticatedRequest, res: Response) => {
   const bugId = parseInt(String(req.params.id), 10);
   const { type_id, requestee_id = null, attach_id = null } = req.body;
 
   if (isNaN(bugId) || !type_id) {
     return res.status(400).json({ error: 'bugId and type_id are required' });
+  }
+
+  if (!canUserViewBug(req.user, bugId)) {
+    return res.status(404).json({ error: 'Bug not found or restricted' });
   }
 
   const flagType = db.prepare('SELECT * FROM flag_types WHERE id = ?').get(type_id) as FlagType | undefined;
@@ -147,6 +149,10 @@ const resolveHandler = (req: AuthenticatedRequest, res: Response) => {
   const flag = db.prepare('SELECT * FROM flags WHERE id = ?').get(flagId) as Flag | undefined;
   if (!flag) {
     return res.status(404).json({ error: 'Flag not found' });
+  }
+
+  if (!canUserViewBug(req.user, flag.bug_id)) {
+    return res.status(404).json({ error: 'Flag not found or restricted' });
   }
 
   const flagType = db.prepare('SELECT * FROM flag_types WHERE id = ?').get(flag.type_id) as FlagType | undefined;

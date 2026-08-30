@@ -4,6 +4,7 @@ interface RateLimitOptions {
   windowMs?: number;
   max?: number;
   message?: string;
+  keyGenerator?: (req: Request) => string;
 }
 
 interface ClientRecord {
@@ -14,16 +15,17 @@ interface ClientRecord {
 export function createRateLimiter(options: RateLimitOptions = {}) {
   const windowMs = options.windowMs || 15 * 60 * 1000; // 15 minutes
   const max = options.max || 1000; // 1000 requests per window
-  const message = options.message || 'Too many requests from this IP, please try again later.';
+  const message = options.message || 'Too many requests, please try again later.';
+  const keyGenerator = options.keyGenerator || ((req: Request) => req.ip || req.socket.remoteAddress || '127.0.0.1');
 
   const hits = new Map<string, ClientRecord>();
 
   // Periodically clean up expired entries every 5 minutes
   setInterval(() => {
     const now = Date.now();
-    for (const [ip, record] of hits.entries()) {
+    for (const [key, record] of hits.entries()) {
       if (now > record.resetTime) {
-        hits.delete(ip);
+        hits.delete(key);
       }
     }
   }, 5 * 60 * 1000).unref();
@@ -34,13 +36,13 @@ export function createRateLimiter(options: RateLimitOptions = {}) {
       return next();
     }
 
-    const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
+    const key = keyGenerator(req);
     const now = Date.now();
 
-    let record = hits.get(ip);
+    let record = hits.get(key);
     if (!record || now > record.resetTime) {
       record = { count: 1, resetTime: now + windowMs };
-      hits.set(ip, record);
+      hits.set(key, record);
     } else {
       record.count++;
     }

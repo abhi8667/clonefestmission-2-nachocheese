@@ -35,7 +35,7 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({ onSelectBug }) => {
     incoming: Flag[];
     outgoing: Flag[];
     resolved: Flag[];
-    counts: { incoming: number; outgoing: number };
+    total_pending: number;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [replyingFlagId, setReplyingFlagId] = useState<number | null>(null);
@@ -138,9 +138,9 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({ onSelectBug }) => {
               }`}
           >
             <span>INCOMING</span>
-            {data?.counts?.incoming ? (
+            {data?.incoming?.length ? (
               <span className="px-1.5 py-0.2 bg-[#ea580c] text-background text-[9px] font-bold animate-blink">
-                <AnimatedCounter value={data.counts.incoming} />
+                <AnimatedCounter value={data.incoming.length} />
               </span>
             ) : null}
           </button>
@@ -153,9 +153,9 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({ onSelectBug }) => {
               }`}
           >
             <span>OUTGOING</span>
-            {data?.counts?.outgoing ? (
+            {data?.outgoing?.length ? (
               <span className="px-1.5 py-0.2 bg-[#222] text-foreground text-[9px]">
-                <AnimatedCounter value={data.counts.outgoing} />
+                <AnimatedCounter value={data.outgoing.length} />
               </span>
             ) : null}
           </button>

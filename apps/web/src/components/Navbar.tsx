@@ -27,7 +27,10 @@ import {
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useSSE } from '../context/SSEContext.tsx';
+import { useCyberPet } from './CyberPet/CyberPetContext.tsx';
 import { fetchNotifications, markNotificationRead, markAllNotificationsRead } from '../services/api.ts';
+import { Bot } from 'lucide-react';
+
 
 interface NavbarProps {
   activeTab?: 'bugs' | 'inbox' | 'analytics' | 'admin';
@@ -54,7 +57,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   const navigate = useNavigate();
   const { currentUser, users, switchUserById, logout } = useAuth();
   const { isConnected, lastEvent } = useSSE();
+  const { isAssistantOpen, setIsAssistantOpen, skin } = useCyberPet();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
@@ -247,6 +253,27 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="hidden sm:inline font-mono">WEBHOOK</span>
           </button>
 
+          {/* AI Sentinel Copilot Drawer Trigger */}
+          <button
+            onClick={() => setIsAssistantOpen(!isAssistantOpen)}
+            className={`px-2.5 py-1.5 border text-xs font-mono uppercase tracking-wider bg-[#0d0d0d] flex items-center gap-1.5 transition-all shadow-xs ${
+              skin === 'lizard'
+                ? 'border-[#22c55e] text-[#22c55e] hover:bg-[#22c55e] hover:text-black'
+                : 'border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-black'
+            }`}
+            title={skin === 'lizard' ? 'Launch Tom the Lizard Copilot' : 'Launch Byte AI Sentinel Copilot'}
+          >
+            {skin === 'lizard' ? (
+              <span className="text-sm">🦎</span>
+            ) : (
+              <Bot className="w-3.5 h-3.5 animate-pulse" />
+            )}
+            <span className="hidden sm:inline font-mono font-bold">
+              {skin === 'lizard' ? 'TOM AI' : 'BYTE AI'}
+            </span>
+          </button>
+
+
           {/* Keyboard Shortcuts Trigger */}
           {openKeyboardShortcuts && (
             <button
@@ -257,6 +284,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Keyboard className="w-4 h-4" />
             </button>
           )}
+
 
           {/* Alert Center / Notifications Bell */}
           <div className="relative">

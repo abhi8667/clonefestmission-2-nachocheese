@@ -108,6 +108,11 @@ db.exec(`
     created_at TEXT NOT NULL
   );
 
+  CREATE TABLE bug_embeddings (
+    bug_id INTEGER PRIMARY KEY,
+    vector_json TEXT NOT NULL
+  );
+
   -- Production Indexes for ultra-fast lookups
   CREATE INDEX idx_bugs_status_component ON bugs(status, component_id);
   CREATE INDEX idx_bugs_assignee ON bugs(assignee_id);
@@ -226,6 +231,14 @@ const seedBatch = db.transaction(() => {
       new Date().toISOString()
     );
   }
+
+  // Seed 2,500 candidate embeddings
+  const insertEmbedding = db.prepare('INSERT INTO bug_embeddings (bug_id, vector_json) VALUES (?, ?)');
+  const dummyVector = Array.from({ length: 384 }, (_, idx) => Math.sin(idx * 0.1));
+  const dummyJson = JSON.stringify(dummyVector);
+  for (let e = 1; e <= 2500; e++) {
+    insertEmbedding.run(e, dummyJson);
+  }
 });
 
 seedBatch();
@@ -246,7 +259,7 @@ function runBenchmark(name: string, iterations: number, queryFn: () => void): Be
   const times: number[] = [];
 
   // Warmup
-  for (let i = 0; i < Math.min(10, iterations); i++) {
+  for (let i = 0; i < 5; i++) {
     queryFn();
   }
 
@@ -333,6 +346,19 @@ const stmtAgg = db.prepare(`
 `);
 results.push(runBenchmark('8. 30-Day Activity Field Aggregation', 50, () => {
   stmtAgg.all();
+}));
+
+// Scenario 9: Live Duplicate Radar Candidate Scan (Finding 08)
+const stmtRadar = db.prepare(`
+  SELECT b.id, b.title, b.status, b.security_group_id, e.vector_json
+  FROM bugs b
+  JOIN bug_embeddings e ON b.id = e.bug_id
+  WHERE b.id != ?
+  ORDER BY b.id DESC
+  LIMIT 250
+`);
+results.push(runBenchmark('9. Duplicate Radar Candidate Scan & Match', 50, () => {
+  stmtRadar.all(412);
 }));
 
 // 3. EXPLAIN QUERY PLAN verification

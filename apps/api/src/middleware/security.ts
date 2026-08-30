@@ -18,9 +18,10 @@ export function canUserViewBug(user: User | undefined, bugId: number): boolean {
   return !!member;
 }
 
-export function getSecurityFilterSQL(user: User | undefined): { sql: string; params: any[] } {
+export function getSecurityFilterSQL(user: User | undefined, tableAlias: string = 'bugs'): { sql: string; params: any[] } {
+  const col = `${tableAlias}.security_group_id`;
   if (!user) {
-    return { sql: 'bugs.security_group_id IS NULL', params: [] };
+    return { sql: `${col} IS NULL`, params: [] };
   }
 
   if (user.role === 'admin' || user.role === 'security') {
@@ -28,9 +29,26 @@ export function getSecurityFilterSQL(user: User | undefined): { sql: string; par
   }
 
   return {
-    sql: `(bugs.security_group_id IS NULL OR bugs.security_group_id IN (
+    sql: `(${col} IS NULL OR ${col} IN (
       SELECT group_id FROM user_group_map WHERE user_id = ?
     ))`,
     params: [user.id]
   };
 }
+
+export function requireBugAccess(paramName: string = 'id') {
+  return (req: any, res: any, next: any) => {
+    const rawId = req.params[paramName];
+    if (!rawId) return next();
+    const idStr = String(rawId).includes('-') ? String(rawId).split('-').pop()! : String(rawId);
+    const bugId = parseInt(idStr, 10);
+    if (isNaN(bugId)) {
+      return res.status(400).json({ error: 'Invalid bug ID' });
+    }
+    if (!canUserViewBug(req.user, bugId)) {
+      return res.status(404).json({ error: 'Bug not found or restricted' });
+    }
+    next();
+  };
+}
+

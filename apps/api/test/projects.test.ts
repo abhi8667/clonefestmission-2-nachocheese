@@ -1,4 +1,5 @@
 process.env.NODE_ENV = 'test';
+process.env.TRIARC_DEMO_MODE = 'true';
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import app from '../src/index.js';
@@ -140,4 +141,63 @@ describe('Project-Scoped Navigation & Management API', () => {
     const body = await res.json();
     assert.strictEqual(body.project.description, 'Updated core platform description for testing');
   });
+
+  it('POST /api/projects/from-github creates workspace from GitHub repo and ingests telemetry', async () => {
+    const res = await fetch(`${baseUrl}/api/projects/from-github`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': 'u_alex'
+      },
+      body: JSON.stringify({
+        repoUrl: 'https://github.com/facebook/react',
+        key: 'REACT',
+        name: 'React Framework Workspace',
+        useFixture: true,
+        fixtureName: 'facebook/react'
+      })
+    });
+
+    assert.strictEqual(res.status, 201);
+    const body = await res.json();
+    assert.strictEqual(body.success, true);
+    assert.strictEqual(body.project.key, 'REACT');
+    assert.ok(body.import.total_issues > 0);
+  });
+
+  it('GET /api/projects/:key/git-telemetry returns commits, collaborators, and branches', async () => {
+    const res = await fetch(`${baseUrl}/api/projects/REACT/git-telemetry`, {
+      headers: { 'x-user-id': 'u_alex' }
+    });
+
+    assert.strictEqual(res.status, 200);
+    const body = await res.json();
+    assert.ok(Array.isArray(body.commits));
+    assert.ok(Array.isArray(body.collaborators));
+    assert.ok(Array.isArray(body.branches));
+    assert.ok(body.stats.total_commits >= 1);
+    assert.ok(body.stats.total_collaborators >= 1);
+  });
+
+  it('POST /api/projects/:key/simulate-commit simulates a collaborator commit and returns event', async () => {
+    const res = await fetch(`${baseUrl}/api/projects/REACT/simulate-commit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': 'u_alex'
+      },
+      body: JSON.stringify({
+        author: 'alex',
+        message: 'fix: resolve concurrent scheduler race condition',
+        branch: 'fix/scheduler-race'
+      })
+    });
+
+    assert.strictEqual(res.status, 200);
+    const body = await res.json();
+    assert.strictEqual(body.success, true);
+    assert.strictEqual(body.commit.author_username, 'alex');
+    assert.strictEqual(body.commit.branch, 'fix/scheduler-race');
+  });
 });
+

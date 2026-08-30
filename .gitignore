@@ -36,3 +36,7 @@ yarn-error.log*
 Thumbs.db
 .vscode/
 .idea/
+.claude/
+reference-bugzilla/
+*.zip
+

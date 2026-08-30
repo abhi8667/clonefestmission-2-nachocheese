@@ -21,7 +21,10 @@ export default {
         border: 'rgba(242, 241, 234, 0.15)',
         muted: {
           DEFAULT: '#141414',
-          foreground: '#737373'
+          // WCAG 2.2 AA: #737373 measured 3.67:1–4.22:1 against our surfaces,
+          // below the 4.5:1 normal-text threshold. #8A8A8A clears it on every
+          // surface (5.04:1 on #1a1a1a → 5.80:1 on #080808).
+          foreground: '#8A8A8A'
         },
         accent: {
           orange: '#ea580c',
@@ -42,7 +45,7 @@ export default {
           cyan: '#00e5ff',
           amber: '#f59e0b',
           red: '#ef4444',
-          slate: '#737373'
+          slate: '#8A8A8A' // matches muted.foreground — see AA note above
         },
         stalled: {
           bg: 'rgba(234, 88, 12, 0.12)',

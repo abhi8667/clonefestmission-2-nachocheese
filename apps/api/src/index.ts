@@ -13,6 +13,7 @@ import { notificationsRouter } from './routes/notifications.js';
 import { adminRouter } from './routes/admin.js';
 import { importRouter } from './routes/import.js';
 import { projectsRouter } from './routes/projects.js';
+import { githubRouter } from './routes/github.js';
 import { authMiddleware } from './middleware/auth.js';
 import { createRateLimiter } from './middleware/rate-limit.js';
 import { runSeed } from './scripts/seed.js';
@@ -20,9 +21,36 @@ import { runSeed } from './scripts/seed.js';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+// Finding 10: Explicit CORS origin allowlist defaulting to dev vite port
+const allowedOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' ? allowedOrigin : true,
+  credentials: true
+}));
+
+// Finding 05: Capture authentic raw payload Buffer for cryptographic HMAC webhook validation
+app.use(express.json({
+  limit: '10mb',
+  verify: (req: any, _res, buf) => {
+    req.rawBody = buf;
+  }
+}));
+
+// Global API rate limiter
 app.use('/api', createRateLimiter({ max: 1000, windowMs: 15 * 60 * 1000 }));
+
+// Finding 09: Dedicated rate limiter for credential endpoints (15 attempts / 15 min), keyed on IP and username
+const authLimiter = createRateLimiter({
+  max: 15,
+  windowMs: 15 * 60 * 1000,
+  keyGenerator: (req) => {
+    const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
+    const username = req.body?.username ? String(req.body.username).trim().toLowerCase() : '';
+    return username ? `${ip}:${username}` : ip;
+  }
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
 
 // Initialize database schema
 initializeDatabase();
@@ -82,6 +110,9 @@ app.use('/api', authMiddleware, savedSearchesRouter);
 app.use('/api', authMiddleware, notificationsRouter);
 app.use('/api/admin', authMiddleware, adminRouter);
 app.use('/api/import', authMiddleware, importRouter);
+// GitHub account linking. The OAuth callback inside handles its own auth via
+// the `state` it minted, so the router is mounted without authMiddleware.
+app.use('/api/github', githubRouter);
 
 // Global Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

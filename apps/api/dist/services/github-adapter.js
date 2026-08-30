@@ -2,16 +2,25 @@ import crypto from 'crypto';
 import { db } from '../db/database.js';
 import { defaultWorkflowConfig, validateTransition } from '@triarc/engine';
 import { sseService } from './sse.js';
+if (process.env.NODE_ENV === 'production' && !process.env.GITHUB_WEBHOOK_SECRET) {
+    throw new Error('FATAL: GITHUB_WEBHOOK_SECRET environment variable must be set in production mode.');
+}
 const GITHUB_WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET || 'triarc-webhook-secret';
+if (!process.env.GITHUB_WEBHOOK_SECRET && process.env.NODE_ENV !== 'test') {
+    console.warn('\x1b[33m⚠️  [SECURITY WARNING] Using default fallback GITHUB_WEBHOOK_SECRET. Set GITHUB_WEBHOOK_SECRET in production.\x1b[0m');
+}
 export function verifyGitHubSignature(payload, signatureHeader) {
     if (!signatureHeader)
         return false;
-    if (process.env.NODE_ENV === 'test' || signatureHeader === 'sha256=test-bypass-signature')
-        return true;
     try {
         const hmac = crypto.createHmac('sha256', GITHUB_WEBHOOK_SECRET);
         const digest = 'sha256=' + hmac.update(payload).digest('hex');
-        return crypto.timingSafeEqual(Buffer.from(digest), Buffer.from(signatureHeader));
+        const bufDigest = Buffer.from(digest);
+        const bufSig = Buffer.from(signatureHeader);
+        if (bufDigest.length !== bufSig.length) {
+            return false;
+        }
+        return crypto.timingSafeEqual(bufDigest, bufSig);
     }
     catch (err) {
         return false;

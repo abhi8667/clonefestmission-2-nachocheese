@@ -20,6 +20,8 @@ import {
 import { AnimatedCounter } from '../components/Cyber/AnimatedCounter.tsx';
 import { EmptyState } from '../components/Common/EmptyState.tsx';
 import { CardSkeleton } from '../components/Common/LoadingSkeleton.tsx';
+import { CreateGitHubProjectModal } from '../components/Import/CreateGitHubProjectModal.tsx';
+import { Github, Zap } from 'lucide-react';
 
 export const ProjectsListView: React.FC = () => {
   const navigate = useNavigate();
@@ -33,6 +35,9 @@ export const ProjectsListView: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
 
+  // GitHub Import Modal State
+  const [isGitHubModalOpen, setIsGitHubModalOpen] = useState(false);
+
   // New Project Modal State (for Admins)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newKey, setNewKey] = useState('');
@@ -41,6 +46,7 @@ export const ProjectsListView: React.FC = () => {
   const [newRepo, setNewRepo] = useState('');
   const [createError, setCreateError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+
 
   const loadData = async () => {
     setIsLoading(true);
@@ -122,17 +128,29 @@ export const ProjectsListView: React.FC = () => {
           </p>
         </div>
 
-        {isAdmin && (
+        <div className="flex items-center gap-2.5 shrink-0">
           <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="px-4 py-2 bg-foreground text-background font-bold text-xs uppercase flex items-center gap-2 hover:bg-white transition-all rounded-sm shrink-0 focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
-            aria-label="Create new project workspace"
+            onClick={() => setIsGitHubModalOpen(true)}
+            className="px-3.5 py-2 bg-[#141414] border border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-white font-bold text-xs uppercase flex items-center gap-2 transition-all rounded-sm focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
+            aria-label="Connect GitHub repository and create workspace"
           >
-            <Plus className="w-4 h-4" />
-            <span>NEW PROJECT</span>
+            <Github className="w-4 h-4" />
+            <span>CONNECT GITHUB REPO</span>
           </button>
-        )}
+
+          {isAdmin && (
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="px-4 py-2 bg-foreground text-background font-bold text-xs uppercase flex items-center gap-2 hover:bg-white transition-all rounded-sm shrink-0 focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
+              aria-label="Create new project workspace"
+            >
+              <Plus className="w-4 h-4" />
+              <span>NEW PROJECT</span>
+            </button>
+          )}
+        </div>
       </div>
+
 
       {/* Region 1: Needs Your Attention Strip */}
       <section aria-label="Items needing your attention" className="space-y-2.5">
@@ -442,6 +460,15 @@ export const ProjectsListView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* GitHub Project Creator Modal */}
+      <CreateGitHubProjectModal
+        isOpen={isGitHubModalOpen}
+        onClose={() => setIsGitHubModalOpen(false)}
+        onSuccess={() => loadData()}
+      />
     </main>
   );
 };
+
+

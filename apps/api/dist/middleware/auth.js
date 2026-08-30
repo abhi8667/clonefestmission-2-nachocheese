@@ -1,8 +1,15 @@
 import jwt from 'jsonwebtoken';
 import { db } from '../db/database.js';
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+    throw new Error('FATAL: JWT_SECRET environment variable must be set in production mode.');
+}
 const JWT_SECRET = process.env.JWT_SECRET || 'triarc-dev-secret-key-2026';
+if (!process.env.JWT_SECRET && process.env.NODE_ENV !== 'test') {
+    console.warn('\x1b[33m⚠️  [SECURITY WARNING] Using default fallback JWT_SECRET. Set JWT_SECRET in production.\x1b[0m');
+}
 export function isDemoModeEnabled() {
-    return process.env.TRIARC_DEMO_MODE !== 'false';
+    // Demo mode is strictly opt-in and NEVER allowed in production
+    return process.env.TRIARC_DEMO_MODE === 'true' && process.env.NODE_ENV !== 'production';
 }
 // Log loud warning on boot when demo mode is active
 if (isDemoModeEnabled() && process.env.NODE_ENV !== 'test') {
@@ -72,9 +79,16 @@ export function authMiddleware(req, res, next) {
     }
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
+        // Finding 12: Validate decoded JWT structure
+        if (!decoded || typeof decoded.id !== 'string' || typeof decoded.username !== 'string' || typeof decoded.role !== 'string') {
+            return res.status(401).json({
+                error: 'Malformed token payload',
+                code: 'AUTH_MALFORMED_TOKEN'
+            });
+        }
         if (!decoded.security_group_ids && decoded.id) {
             const groups = db.prepare('SELECT group_id FROM user_group_map WHERE user_id = ?').all(decoded.id);
-            decoded.security_group_ids = groups.map(g => g.group_id);
+            decoded.security_group_ids = groups.map((g) => g.group_id);
         }
         req.user = decoded;
         next();

@@ -13,6 +13,10 @@ const SSEContext = createContext<SSEContextType>({
   isConnected: false,
 });
 
+/** Reconnect backoff bounds for the event stream. */
+const BASE_RECONNECT_MS = 1000;
+const MAX_RECONNECT_MS = 30000;
+
 /** Maps SSE event types → toast copy */
 function toastForEvent(event: SSEMessage, currentUserId?: string) {
   const data = event.data as any;
@@ -89,17 +93,32 @@ export const SSEProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     let eventSource: EventSource | null = null;
     let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+    let cancelled = false;
+    let attempt = 0;
+
+    // Exponential backoff with jitter: a downed API shouldn't be hammered
+    // once per 3s by every open tab.
+    function nextDelay(): number {
+      const base = Math.min(BASE_RECONNECT_MS * 2 ** attempt, MAX_RECONNECT_MS);
+      attempt++;
+      return base + Math.random() * (base * 0.3); // ±30% jitter, de-synchronises tabs
+    }
 
     function connect() {
+      if (cancelled) return;
       suppressUntil.current = Date.now() + 2000;
       const url = currentUser ? `/api/stream?userId=${currentUser.id}` : '/api/stream';
-      eventSource = new EventSource(url);
+      const es = new EventSource(url);
+      eventSource = es;
 
-      eventSource.onopen = () => {
+      es.onopen = () => {
+        if (es !== eventSource) return;
+        attempt = 0; // healthy again — next drop retries fast
         setIsConnected(true);
       };
 
-      eventSource.onmessage = (ev) => {
+      es.onmessage = (ev) => {
+        if (es !== eventSource) return;
         try {
           const parsed = JSON.parse(ev.data) as SSEMessage;
           setLastEvent(parsed);
@@ -114,16 +133,25 @@ export const SSEProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       };
 
-      eventSource.onerror = () => {
+      es.onerror = () => {
+        // onerror can fire repeatedly, and superseded streams can fire late.
+        // Both would stack reconnects and flatten the backoff, so retire this
+        // stream and keep exactly one retry in flight.
+        if (es !== eventSource || cancelled) return;
         setIsConnected(false);
-        eventSource?.close();
-        reconnectTimeout = setTimeout(connect, 3000);
+        es.onopen = null;
+        es.onmessage = null;
+        es.onerror = null;
+        es.close();
+        if (reconnectTimeout) clearTimeout(reconnectTimeout);
+        reconnectTimeout = setTimeout(connect, nextDelay());
       };
     }
 
     connect();
 
     return () => {
+      cancelled = true;
       eventSource?.close();
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
     };

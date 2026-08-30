@@ -85,13 +85,13 @@ export const LandingView: React.FC = () => {
           </a>
 
           <Link
-            to="/login?from=/projects&demo=alex"
+            to="/login?from=/workspace&demo=alex"
             className="px-3 py-1.5 bg-[#121212] hover:bg-[#1a1a1a] text-foreground border border-border hover:border-foreground text-xs font-bold uppercase transition-all rounded-xs focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
           >
             Demo Access
           </Link>
           <Link
-            to="/login?from=/projects"
+            to="/login?from=/workspace"
             className="px-3.5 py-1.5 bg-foreground text-background hover:bg-white text-xs font-bold uppercase tracking-wider transition-all rounded-xs shadow-sm focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none flex items-center gap-1.5"
           >
             <span>Sign In</span>
@@ -133,7 +133,7 @@ export const LandingView: React.FC = () => {
               />
             </h1>
 
-            <p className="text-sm sm:text-base md:text-lg text-muted-foreground uppercase leading-relaxed max-w-2xl font-mono">
+            <p className="text-sm sm:text-base md:text-lg text-muted-foreground leading-relaxed max-w-2xl">
               Bugzilla tracked where a bug is.{' '}
               <span className="text-[#ea580c] font-bold">
                 Triarc tracks how fast it&apos;s moving and why it&apos;s stuck
@@ -144,7 +144,7 @@ export const LandingView: React.FC = () => {
             {/* Central Action Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 w-full max-w-md">
               <Link
-                to="/login?from=/projects&demo=alex"
+                to="/login?from=/workspace&demo=alex"
                 className="w-full sm:w-auto px-8 py-4 bg-foreground text-background hover:bg-white text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2.5 transition-all rounded-xs shadow-lg focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
               >
                 <span>EXPLORE DEMO</span>
@@ -152,10 +152,10 @@ export const LandingView: React.FC = () => {
               </Link>
 
               <Link
-                to="/login?from=/projects"
+                to="/login?from=/workspace"
                 className="w-full sm:w-auto px-8 py-4 bg-[#121212] hover:bg-[#1a1a1a] text-foreground border-2 border-border hover:border-[#ea580c] text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all rounded-xs focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
               >
-                <span>SIGN IN / SIGN UP</span>
+                <span>SIGN IN</span>
                 <ChevronRight className="w-4 h-4 text-[#ea580c]" />
               </Link>
             </div>
@@ -259,7 +259,7 @@ export const LandingView: React.FC = () => {
             <h2 id="problem-heading" className="text-xl sm:text-3xl font-black text-foreground uppercase tracking-tight">
               The Evolution of Defect Tracking
             </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground uppercase max-w-2xl font-mono">
+            <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
               Trackers fail when they measure human status dropdowns instead of code-level event velocity.
             </p>
           </div>
@@ -277,7 +277,7 @@ export const LandingView: React.FC = () => {
                 <h3 className="text-sm font-bold text-foreground uppercase">
                   Static State Repository
                 </h3>
-                <p className="text-xs text-muted-foreground uppercase leading-relaxed font-mono">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   Measures manual status dropdowns. Siloed from code repositories with zero visibility into branch activity or pull request review queues.
                 </p>
               </div>
@@ -299,7 +299,7 @@ export const LandingView: React.FC = () => {
                 <h3 className="text-sm font-bold text-foreground uppercase">
                   Sprint Velocity Boards
                 </h3>
-                <p className="text-xs text-muted-foreground uppercase leading-relaxed font-mono">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   Measures estimated story points and manual card moves. Treats defect resolution as task completion rather than flow latency through engineering stages.
                 </p>
               </div>
@@ -321,7 +321,7 @@ export const LandingView: React.FC = () => {
                 <h3 className="text-sm font-bold text-foreground uppercase">
                   Flow Latency & Code Linkage
                 </h3>
-                <p className="text-xs text-muted-foreground uppercase leading-relaxed font-mono">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   Measures actual stage-by-stage cycle times via automated webhook transitions, highlighting quiet branches, stalled reviews, and typed approval blocks.
                 </p>
               </div>
@@ -344,7 +344,7 @@ export const LandingView: React.FC = () => {
             <h2 id="features-heading" className="text-xl sm:text-3xl font-black text-foreground uppercase tracking-tight">
               Engineered for Defect Velocity
             </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground uppercase max-w-2xl font-mono">
+            <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
               Three interconnected subsystems that eliminate triage bottlenecks and maintain visibility.
             </p>
           </div>
@@ -360,7 +360,7 @@ export const LandingView: React.FC = () => {
                   <h3 className="text-base font-bold text-foreground uppercase">
                     1. Flow Visualization
                   </h3>
-                  <p className="text-xs text-muted-foreground uppercase leading-relaxed font-mono">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     Per-bug unified timeline tracking every transition from report to verification. Detects quiet branches (&gt;3 days) and flags stalled review segments (&gt;24h).
                   </p>
                 </div>
@@ -401,7 +401,7 @@ export const LandingView: React.FC = () => {
                   <h3 className="text-base font-bold text-foreground uppercase">
                     2. Request Inbox
                   </h3>
-                  <p className="text-xs text-muted-foreground uppercase leading-relaxed font-mono">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     Typed, role-gated requests (<code className="text-[#ea580c]">review?</code>, <code className="text-blue-400">needinfo?</code>, <code className="text-purple-400">approval+</code>) structured into incoming actions and outgoing blockers.
                   </p>
                 </div>
@@ -442,7 +442,7 @@ export const LandingView: React.FC = () => {
                   <h3 className="text-base font-bold text-foreground uppercase">
                     3. Live Duplicate Radar
                   </h3>
-                  <p className="text-xs text-muted-foreground uppercase leading-relaxed font-mono">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     Token vector embedding similarity calculates duplicate probabilities in real-time as reports are typed, enforcing strict row-level security boundaries.
                   </p>
                 </div>
@@ -485,7 +485,7 @@ export const LandingView: React.FC = () => {
             <h2 id="pipeline-heading" className="text-xl sm:text-3xl font-black text-foreground uppercase tracking-tight">
               From Report to Verified Fix
             </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground uppercase max-w-2xl font-mono">
+            <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
               Four deterministic stages linking bug tracker state to live version control.
             </p>
           </div>
@@ -502,7 +502,7 @@ export const LandingView: React.FC = () => {
               <h3 className="text-sm font-bold text-foreground uppercase">
                 1. File Report
               </h3>
-              <p className="text-xs text-muted-foreground uppercase leading-relaxed font-mono">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 Reporter submits details. Duplicate Radar runs real-time semantic matching to intercept repeated bugs.
               </p>
             </div>
@@ -518,7 +518,7 @@ export const LandingView: React.FC = () => {
               <h3 className="text-sm font-bold text-foreground uppercase">
                 2. Triage & Assign
               </h3>
-              <p className="text-xs text-muted-foreground uppercase leading-relaxed font-mono">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 Triager verifies component, priority, and milestone. Issues typed flags (<code className="text-[#ea580c]">needinfo?</code>) if repro steps are missing.
               </p>
             </div>
@@ -534,7 +534,7 @@ export const LandingView: React.FC = () => {
               <h3 className="text-sm font-bold text-foreground uppercase">
                 3. Work in Git
               </h3>
-              <p className="text-xs text-muted-foreground uppercase leading-relaxed font-mono">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 Developer cuts branch and opens PR. Webhooks automatically advance status to In Progress and In Review.
               </p>
             </div>
@@ -550,7 +550,7 @@ export const LandingView: React.FC = () => {
               <h3 className="text-sm font-bold text-foreground uppercase">
                 4. Verify & Settle
               </h3>
-              <p className="text-xs text-muted-foreground uppercase leading-relaxed font-mono">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 Reviewer grants <code className="text-emerald-400">review+</code>. PR merge automatically resolves the bug and records full flow latency metrics.
               </p>
             </div>
@@ -568,7 +568,7 @@ export const LandingView: React.FC = () => {
             <h2 id="stack-heading" className="text-xl sm:text-3xl font-black text-foreground uppercase tracking-tight">
               Built on Deterministic Foundations
             </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground uppercase max-w-2xl font-mono">
+            <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
               Engineered for low latency and zero external SaaS dependencies.
             </p>
           </div>
@@ -630,13 +630,13 @@ export const LandingView: React.FC = () => {
 
           <div className="flex items-center gap-6">
             <Link
-              to="/login?from=/projects"
+              to="/login?from=/workspace"
               className="text-foreground hover:text-[#ea580c] font-bold uppercase transition-colors"
             >
               Sign In
             </Link>
             <Link
-              to="/login?from=/projects&demo=alex"
+              to="/login?from=/workspace&demo=alex"
               className="text-foreground hover:text-[#ea580c] font-bold uppercase transition-colors"
             >
               Demo Access

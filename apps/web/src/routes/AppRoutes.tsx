@@ -10,6 +10,8 @@ import { ProjectAnalyticsView } from '../views/ProjectAnalyticsView.tsx';
 import { ProjectSettingsView } from '../views/ProjectSettingsView.tsx';
 import { InboxView } from '../views/InboxView.tsx';
 import { AdminView } from '../views/AdminView.tsx';
+import { WorkspaceChooserView, getWorkspaceMode } from '../views/WorkspaceChooserView.tsx';
+import { GitHubWorkspaceView } from '../views/GitHubWorkspaceView.tsx';
 import { Loader2, AlertCircle } from 'lucide-react';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -19,37 +21,26 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-2 font-mono text-xs uppercase text-muted-foreground">
-        <Loader2 className="w-6 h-6 animate-spin text-foreground" />
-        <span>AUTHENTICATING SESSION...</span>
+        <Loader2 className="w-6 h-6 animate-spin text-[#ea580c]" />
+        <span>INITIALIZING WORKSPACE...</span>
       </div>
     );
-  }
-
-  if (!currentUser) {
-    return <Navigate to={`/login?from=${encodeURIComponent(location.pathname + location.search)}`} replace />;
   }
 
   return <>{children}</>;
 };
 
+/**
+ * Root sends returning users straight back to the workspace they last chose,
+ * and first-time users to the chooser.
+ */
 const RootRoute: React.FC = () => {
-  const { currentUser, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-2 font-mono text-xs uppercase text-muted-foreground">
-        <Loader2 className="w-6 h-6 animate-spin text-foreground" />
-        <span>INITIALIZING TRIARC...</span>
-      </div>
-    );
-  }
-
-  if (currentUser) {
-    return <Navigate to="/projects" replace />;
-  }
-
-  return <LandingView />;
+  const mode = getWorkspaceMode();
+  if (mode === 'personal') return <Navigate to="/github" replace />;
+  if (mode === 'org') return <Navigate to="/projects" replace />;
+  return <Navigate to="/workspace" replace />;
 };
+
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -60,6 +51,25 @@ export const AppRoutes: React.FC = () => {
 
       {/* Root route: / -> /projects if authenticated, /landing if unauthenticated */}
       <Route path="/" element={<RootRoute />} />
+
+      {/* Workspace fork: organization tracker vs personal repo view */}
+      <Route
+        path="/workspace"
+        element={
+          <ProtectedRoute>
+            <WorkspaceChooserView />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/github"
+        element={
+          <ProtectedRoute>
+            <GitHubWorkspaceView />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Project Navigation Flow */}
       <Route

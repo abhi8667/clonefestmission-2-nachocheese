@@ -1,6 +1,13 @@
 import { BugStatus, DuplicateMatch, User } from '@triarc/shared-types';
 import { db } from '../db/database.js';
-import { canUserViewBug } from '../middleware/security.js';
+import { getSecurityFilterSQL } from '../middleware/security.js';
+
+// In-memory vector cache to eliminate JSON parsing overhead on repeated keystrokes
+const vectorCache = new Map<number, number[]>();
+
+export function clearVectorCache() {
+  vectorCache.clear();
+}
 
 // Domain semantic synonym expansion dictionary for software engineering issue tracking
 const SYNONYM_CLUSTERS: Record<string, string[]> = {
@@ -123,6 +130,8 @@ export function cosineSimilarity(vecA: number[], vecB: number[]): number {
 
 export function indexBugEmbedding(bugId: number, title: string, description: string) {
   const vector = generateEmbedding(`${title} ${description}`);
+  vectorCache.set(bugId, vector);
+
   const json = JSON.stringify(vector);
   db.prepare(`
     INSERT INTO bug_embeddings (bug_id, vector_json)
@@ -140,13 +149,18 @@ export function findDuplicates(
   minScore: number = 0.40
 ): DuplicateMatch[] {
   const queryVector = generateEmbedding(`${title} ${description}`);
+  const secFilter = getSecurityFilterSQL(currentUser, 'b');
 
+  // Finding 08: Enforce security in single query rather than N+1 queries, with indexed candidate limit
   const rows = db.prepare(`
     SELECT b.id, b.title, b.status, b.security_group_id, e.vector_json
     FROM bugs b
     JOIN bug_embeddings e ON b.id = e.bug_id
     WHERE (? IS NULL OR b.id != ?)
-  `).all(excludeBugId || null, excludeBugId || null) as {
+      AND (${secFilter.sql})
+    ORDER BY b.id DESC
+    LIMIT 500
+  `).all(excludeBugId || null, excludeBugId || null, ...secFilter.params) as {
     id: number;
     title: string;
     status: BugStatus;
@@ -157,24 +171,24 @@ export function findDuplicates(
   const matches: DuplicateMatch[] = [];
 
   for (const row of rows) {
-    if (!canUserViewBug(currentUser, row.id)) {
-      continue;
+    let bugVector = vectorCache.get(row.id);
+    if (!bugVector) {
+      try {
+        bugVector = JSON.parse(row.vector_json) as number[];
+        vectorCache.set(row.id, bugVector);
+      } catch (err) {
+        continue;
+      }
     }
 
-    try {
-      const bugVector = JSON.parse(row.vector_json) as number[];
-      const score = cosineSimilarity(queryVector, bugVector);
-
-      if (score >= minScore) {
-        matches.push({
-          bug_id: row.id,
-          title: row.title,
-          status: row.status,
-          similarity_score: Math.round(score * 100) / 100
-        });
-      }
-    } catch (err) {
-      // Ignore parse error
+    const score = cosineSimilarity(queryVector, bugVector);
+    if (score >= minScore) {
+      matches.push({
+        bug_id: row.id,
+        title: row.title,
+        status: row.status,
+        similarity_score: Math.round(score * 100) / 100
+      });
     }
   }
 

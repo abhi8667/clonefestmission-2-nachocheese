@@ -1,6 +1,15 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User } from '@triarc/shared-types';
-import { fetchUsers, loginUser, quickLoginUser, fetchCurrentProfile, setAuthToken, getAuthToken } from '../services/api.ts';
+import {
+  fetchUsers,
+  loginUser,
+  registerUser,
+  quickLoginUser,
+  fetchCurrentProfile,
+  setAuthToken,
+  getAuthToken,
+  setUnauthorizedHandler
+} from '../services/api.ts';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -9,6 +18,7 @@ interface AuthContextType {
   setCurrentUser: (user: User) => void;
   switchUserById: (userId: string) => Promise<void>;
   login: (credentials: { username?: string; password?: string; userId?: string }) => Promise<void>;
+  register: (data: { username: string; name?: string; email: string; password: string }) => Promise<void>;
   quickLogin: (userId: string) => Promise<void>;
   logout: () => void;
   refreshProfile: () => Promise<void>;
@@ -16,6 +26,7 @@ interface AuthContextType {
   setIsLoginModalOpen: (open: boolean) => void;
   isLoading: boolean;
 }
+
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -62,21 +73,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (defaultUser) {
       try {
-        const res = await quickLoginUser(defaultUser.id);
+        const res = await loginUser({ username: defaultUser.username, password: 'password123' });
         setCurrentUser(res.user);
       } catch {
-        setCurrentUser(defaultUser);
+        try {
+          const res = await quickLoginUser(defaultUser.id);
+          setCurrentUser(res.user);
+        } catch {
+          setCurrentUser(defaultUser);
+        }
       }
     }
     setIsLoading(false);
   }, []);
 
+
   useEffect(() => {
     initAuth();
   }, [initAuth]);
 
+  // Any request that comes back 401 means the session is gone: drop the user
+  // and surface the login modal instead of leaving the UI in a half-broken
+  // state throwing generic errors on every subsequent call.
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      setCurrentUser(null);
+      setIsLoginModalOpen(true);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('triarc_active_user_id');
+      }
+    });
+    return () => setUnauthorizedHandler(null);
+  }, []);
+
   const login = async (credentials: { username?: string; password?: string; userId?: string }) => {
     const res = await loginUser(credentials);
+    setCurrentUser(res.user);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('triarc_active_user_id', res.user.id);
+    }
+    setIsLoginModalOpen(false);
+  };
+
+  const register = async (data: { username: string; name?: string; email: string; password: string }) => {
+    const res = await registerUser(data);
     setCurrentUser(res.user);
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('triarc_active_user_id', res.user.id);
@@ -125,6 +165,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCurrentUser: (u) => setCurrentUser(u),
         switchUserById,
         login,
+        register,
         quickLogin,
         logout,
         refreshProfile,
@@ -137,6 +178,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </AuthContext.Provider>
   );
 };
+
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

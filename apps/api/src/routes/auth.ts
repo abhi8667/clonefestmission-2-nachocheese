@@ -53,8 +53,56 @@ authRouter.get('/me', authMiddleware, (req: AuthenticatedRequest, res: Response)
   res.json({ user, token });
 });
 
-// POST /api/auth/login - Secure login with password verification
-authRouter.post('/login', (req, res) => {
+// POST /api/auth/register - Self-service account registration (Finding 07)
+authRouter.post('/register', async (req, res) => {
+  const { username, name, email, password } = req.body || {};
+
+  if (!username || !email || !password) {
+    return res.status(400).json({
+      error: 'Username, email, and password are required',
+      code: 'MISSING_FIELDS'
+    });
+  }
+
+  const cleanUsername = String(username).trim().toLowerCase();
+  const cleanEmail = String(email).trim().toLowerCase();
+
+  if (cleanUsername.length < 2 || cleanUsername.length > 32) {
+    return res.status(400).json({ error: 'Username must be between 2 and 32 characters', code: 'INVALID_USERNAME' });
+  }
+
+  // Check for existing username or email
+  const existing = db.prepare('SELECT id FROM users WHERE lower(username) = ? OR lower(email) = ?').get(cleanUsername, cleanEmail);
+  if (existing) {
+    return res.status(409).json({ error: 'Username or email already in use', code: 'USER_EXISTS' });
+  }
+
+  const password_hash = await bcrypt.hash(password, 10);
+  const userId = `usr_${cleanUsername.replace(/[^a-z0-9]/g, '')}_${Date.now().toString(36)}`;
+  const displayName = name ? String(name).trim() : username;
+  const avatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${cleanUsername}`;
+  // Role is strictly 'reporter' by default; caller-supplied role is never accepted
+  db.prepare(`
+    INSERT INTO users (id, username, name, email, role, avatar_url, password_hash, is_external)
+    VALUES (?, ?, ?, ?, 'reporter', ?, ?, 0)
+  `).run(userId, cleanUsername, displayName, cleanEmail, avatarUrl, password_hash);
+
+  const newUser: User = {
+    id: userId,
+    username: cleanUsername,
+    name: displayName,
+    email: cleanEmail,
+    role: 'reporter',
+    avatar_url: avatarUrl,
+    security_group_ids: []
+  };
+
+  const token = generateToken(newUser);
+  res.status(201).json({ user: newUser, token });
+});
+
+// POST /api/auth/login - Secure login with password verification (Finding 11: non-blocking async)
+authRouter.post('/login', async (req, res) => {
   const { username, password, userId } = req.body || {};
 
   if (!username && !userId) {
@@ -73,7 +121,7 @@ authRouter.post('/login', (req, res) => {
     userRow = db.prepare(`
       SELECT id, username, name, email, role, avatar_url, password_hash, is_external
       FROM users
-      WHERE username = ? OR email = ?
+      WHERE lower(username) = lower(?) OR lower(email) = lower(?)
     `).get(username, username) as any;
   }
 
@@ -94,7 +142,7 @@ authRouter.post('/login', (req, res) => {
     if (!userRow.password_hash) {
       return res.status(401).json({ error: 'Account has no password configured', code: 'AUTH_FAILED' });
     }
-    const isValid = bcrypt.compareSync(password, userRow.password_hash);
+    const isValid = await bcrypt.compare(password, userRow.password_hash);
     if (!isValid) {
       return res.status(401).json({ error: 'Invalid username or password', code: 'INVALID_CREDENTIALS' });
     }
