@@ -245,7 +245,7 @@ export const ProjectSettingsView: React.FC = () => {
             to={`/projects/${key}/settings`}
             className="py-3 px-4 font-bold border-b-2 border-foreground text-foreground flex items-center gap-2 uppercase ml-auto"
           >
-            <Settings className="w-4 h-4 text-[#ea580c]" />
+            <Settings className="w-4 h-4 text-[#B497CF]" />
             <span>SETTINGS</span>
           </Link>
         </nav>
@@ -262,7 +262,7 @@ export const ProjectSettingsView: React.FC = () => {
       <section aria-labelledby="general-settings-title" className="bg-[#0d0d0d] border border-border rounded-sm p-6 space-y-4">
         <div className="flex items-center justify-between border-b border-border pb-3">
           <div className="flex items-center gap-2">
-            <Settings className="w-4 h-4 text-[#ea580c]" />
+            <Settings className="w-4 h-4 text-[#B497CF]" />
             <h2 id="general-settings-title" className="text-xs font-bold text-foreground uppercase tracking-wider">
               GENERAL PROJECT ATTRIBUTES
             </h2>

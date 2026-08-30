@@ -83,7 +83,7 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({ onSelectBug }) => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case '?':
-        return 'bg-[#ea580c] text-background font-bold animate-blink';
+        return 'bg-[#B497CF] text-background font-bold animate-blink';
       case '+':
         return 'bg-emerald-600 text-black font-bold';
       case '-':
@@ -108,7 +108,7 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({ onSelectBug }) => {
           // SECTION: CLEARANCE_QUEUE
         </span>
         <div className="flex-1 border-t border-border"></div>
-        <span className="inline-block h-2 w-2 bg-[#ea580c] animate-blink"></span>
+        <span className="inline-block h-2 w-2 bg-[#B497CF] animate-blink"></span>
         <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">
           002
         </span>
@@ -139,7 +139,7 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({ onSelectBug }) => {
           >
             <span>INCOMING</span>
             {data?.incoming?.length ? (
-              <span className="px-1.5 py-0.2 bg-[#ea580c] text-background text-[9px] font-bold animate-blink">
+              <span className="px-1.5 py-0.2 bg-[#B497CF] text-background text-[9px] font-bold animate-blink">
                 <AnimatedCounter value={data.incoming.length} />
               </span>
             ) : null}
@@ -209,7 +209,7 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({ onSelectBug }) => {
 
                         <span
                           onClick={() => onSelectBug(flag.bug_id)}
-                          className="font-bold text-xs text-[#ea580c] hover:underline cursor-pointer"
+                          className="font-bold text-xs text-[#B497CF] hover:underline cursor-pointer"
                         >
                           #{flag.bug_id}
                         </span>
@@ -225,7 +225,7 @@ export const RequestInbox: React.FC<RequestInboxProps> = ({ onSelectBug }) => {
                         </span>
                         {flag.requestee && (
                           <span>
-                            → ASSIGNED TO <strong className="text-[#ea580c]">@{flag.requestee.username}</strong>
+                            → ASSIGNED TO <strong className="text-[#B497CF]">@{flag.requestee.username}</strong>
                           </span>
                         )}
                         <span>•</span>

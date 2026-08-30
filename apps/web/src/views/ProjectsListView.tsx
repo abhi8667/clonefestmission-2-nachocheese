@@ -115,7 +115,7 @@ export const ProjectsListView: React.FC = () => {
               <FolderKanban className="w-4 h-4 text-background" />
             </div>
             <div>
-              <span className="text-[10px] text-[#ea580c] font-bold tracking-wider uppercase block">
+              <span className="text-[10px] text-[#B497CF] font-bold tracking-wider uppercase block">
                 PROJECT PORTFOLIO
               </span>
               <h1 id="projects-heading" className="text-lg font-black text-foreground uppercase tracking-wide">
@@ -131,7 +131,7 @@ export const ProjectsListView: React.FC = () => {
         <div className="flex items-center gap-2.5 shrink-0">
           <button
             onClick={() => setIsGitHubModalOpen(true)}
-            className="px-3.5 py-2 bg-[#141414] border border-[#ea580c] text-[#ea580c] hover:bg-[#ea580c] hover:text-white font-bold text-xs uppercase flex items-center gap-2 transition-all rounded-sm focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
+            className="px-3.5 py-2 bg-[#141414] border border-[#B497CF] text-[#B497CF] hover:bg-[#B497CF] hover:text-white font-bold text-xs uppercase flex items-center gap-2 transition-all rounded-sm focus-visible:ring-2 focus-visible:ring-[#B497CF] outline-none"
             aria-label="Connect GitHub repository and create workspace"
           >
             <Github className="w-4 h-4" />
@@ -141,7 +141,7 @@ export const ProjectsListView: React.FC = () => {
           {isAdmin && (
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="px-4 py-2 bg-foreground text-background font-bold text-xs uppercase flex items-center gap-2 hover:bg-white transition-all rounded-sm shrink-0 focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
+              className="px-4 py-2 bg-foreground text-background font-bold text-xs uppercase flex items-center gap-2 hover:bg-white transition-all rounded-sm shrink-0 focus-visible:ring-2 focus-visible:ring-[#B497CF] outline-none"
               aria-label="Create new project workspace"
             >
               <Plus className="w-4 h-4" />
@@ -155,7 +155,7 @@ export const ProjectsListView: React.FC = () => {
       {/* Region 1: Needs Your Attention Strip */}
       <section aria-label="Items needing your attention" className="space-y-2.5">
         <h2 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-          <Activity className="w-3.5 h-3.5 text-[#ea580c]" />
+          <Activity className="w-3.5 h-3.5 text-[#B497CF]" />
           <span>NEEDS YOUR ATTENTION</span>
         </h2>
 
@@ -166,7 +166,7 @@ export const ProjectsListView: React.FC = () => {
               const defaultKey = projects[0]?.key || 'CORE';
               navigate(`/projects/${defaultKey}?assignee=me`);
             }}
-            className="p-4 bg-[#0d0d0d] hover:bg-[#141414] border border-border hover:border-foreground text-left transition-all rounded-sm flex items-center justify-between group focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
+            className="p-4 bg-[#0d0d0d] hover:bg-[#141414] border border-border hover:border-foreground text-left transition-all rounded-sm flex items-center justify-between group focus-visible:ring-2 focus-visible:ring-[#B497CF] outline-none"
           >
             <div className="space-y-1">
               <span className="text-[10px] uppercase font-bold text-muted-foreground block tracking-wider">
@@ -183,19 +183,19 @@ export const ProjectsListView: React.FC = () => {
           {/* Incoming Requests */}
           <button
             onClick={() => navigate('/inbox')}
-            className="p-4 bg-[#0d0d0d] hover:bg-[#141414] border border-border hover:border-[#ea580c] text-left transition-all rounded-sm flex items-center justify-between group focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
+            className="p-4 bg-[#0d0d0d] hover:bg-[#141414] border border-border hover:border-[#B497CF] text-left transition-all rounded-sm flex items-center justify-between group focus-visible:ring-2 focus-visible:ring-[#B497CF] outline-none"
           >
             <div className="space-y-1">
-              <span className="text-[10px] uppercase font-bold text-[#ea580c] block tracking-wider flex items-center gap-1.5">
-                <Inbox className="w-3 h-3 text-[#ea580c]" />
+              <span className="text-[10px] uppercase font-bold text-[#B497CF] block tracking-wider flex items-center gap-1.5">
+                <Inbox className="w-3 h-3 text-[#B497CF]" />
                 <span>INCOMING REQUESTS</span>
               </span>
-              <p className="text-2xl font-black text-[#ea580c]">
+              <p className="text-2xl font-black text-[#B497CF]">
                 {isLoading ? '—' : <AnimatedCounter value={attention.incoming_requests ?? 0} />}
               </p>
               <span className="text-[10px] text-muted-foreground uppercase">Awaiting review? / approval?</span>
             </div>
-            <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-[#ea580c] group-hover:translate-x-1 transition-all" />
+            <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-[#B497CF] group-hover:translate-x-1 transition-all" />
           </button>
 
           {/* Watched Bugs Changed */}
@@ -204,7 +204,7 @@ export const ProjectsListView: React.FC = () => {
               const defaultKey = projects[0]?.key || 'CORE';
               navigate(`/projects/${defaultKey}?is_watched=true`);
             }}
-            className="p-4 bg-[#0d0d0d] hover:bg-[#141414] border border-border hover:border-foreground text-left transition-all rounded-sm flex items-center justify-between group focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
+            className="p-4 bg-[#0d0d0d] hover:bg-[#141414] border border-border hover:border-foreground text-left transition-all rounded-sm flex items-center justify-between group focus-visible:ring-2 focus-visible:ring-[#B497CF] outline-none"
           >
             <div className="space-y-1">
               <span className="text-[10px] uppercase font-bold text-muted-foreground block tracking-wider flex items-center gap-1.5">
@@ -255,7 +255,7 @@ export const ProjectsListView: React.FC = () => {
                       navigate(`/projects/${project.key}`);
                     }
                   }}
-                  className="p-5 bg-[#0d0d0d] hover:bg-[#121212] border border-border hover:border-foreground transition-all rounded-sm flex flex-col justify-between cursor-pointer group shadow-sm focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
+                  className="p-5 bg-[#0d0d0d] hover:bg-[#121212] border border-border hover:border-foreground transition-all rounded-sm flex flex-col justify-between cursor-pointer group shadow-sm focus-visible:ring-2 focus-visible:ring-[#B497CF] outline-none"
                 >
                   <div className="space-y-3">
                     {/* Top row: Key + Role + Health */}
@@ -278,7 +278,7 @@ export const ProjectsListView: React.FC = () => {
                         </span>
 
                         {isStalled ? (
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.2 text-[9px] font-bold bg-[#ea580c] text-background uppercase rounded-xs">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.2 text-[9px] font-bold bg-[#B497CF] text-background uppercase rounded-xs">
                             <AlertTriangle className="w-2.5 h-2.5" />
                             <span>{project.stalled_bugs_count} STALLED</span>
                           </span>
@@ -293,7 +293,7 @@ export const ProjectsListView: React.FC = () => {
 
                     {/* Title & Description */}
                     <div>
-                      <h3 className="text-sm font-bold text-foreground group-hover:text-[#ea580c] transition-colors uppercase leading-snug">
+                      <h3 className="text-sm font-bold text-foreground group-hover:text-[#B497CF] transition-colors uppercase leading-snug">
                         {project.name}
                       </h3>
                       <p className="text-[11px] text-muted-foreground line-clamp-2 mt-1 uppercase leading-relaxed">
@@ -315,7 +315,7 @@ export const ProjectsListView: React.FC = () => {
                         <span className="text-[9px] text-muted-foreground uppercase font-bold block">
                           ASSIGNED TO ME
                         </span>
-                        <span className="text-base font-bold text-[#ea580c]">
+                        <span className="text-base font-bold text-[#B497CF]">
                           {project.assigned_to_me_count || 0}
                         </span>
                       </div>
@@ -331,7 +331,7 @@ export const ProjectsListView: React.FC = () => {
                   </div>
 
                   {/* Open Project CTA */}
-                  <div className="pt-4 mt-4 border-t border-border flex items-center justify-between text-xs font-bold text-foreground group-hover:text-[#ea580c] transition-colors uppercase">
+                  <div className="pt-4 mt-4 border-t border-border flex items-center justify-between text-xs font-bold text-foreground group-hover:text-[#B497CF] transition-colors uppercase">
                     <span>EXPLORE ISSUES</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </div>
@@ -357,7 +357,7 @@ export const ProjectsListView: React.FC = () => {
           >
             <div className="flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2">
-                <FolderKanban className="w-4 h-4 text-[#ea580c]" />
+                <FolderKanban className="w-4 h-4 text-[#B497CF]" />
                 <h3 id="new-project-title" className="text-xs font-bold text-foreground uppercase tracking-wider">
                   CREATE NEW PROJECT WORKSPACE
                 </h3>

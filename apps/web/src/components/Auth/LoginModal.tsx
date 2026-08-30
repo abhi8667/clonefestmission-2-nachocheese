@@ -122,7 +122,7 @@ export const LoginModal: React.FC = () => {
       name: 'Alex River',
       role: 'developer',
       clearance: 'LEVEL 3 - CORE DEV',
-      roleColor: 'border-[#ea580c] text-[#ea580c] bg-black',
+      roleColor: 'border-[#B497CF] text-[#B497CF] bg-black',
       description: 'Senior Engineer · Assigned issues, Request Inbox & PR code reviews',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'
     },
@@ -132,7 +132,7 @@ export const LoginModal: React.FC = () => {
       name: 'Sam Patel',
       role: 'developer',
       clearance: 'LEVEL 3 - CORE DEV',
-      roleColor: 'border-[#ea580c] text-[#ea580c] bg-black',
+      roleColor: 'border-[#B497CF] text-[#B497CF] bg-black',
       description: 'Core Engineer · Bug #412 author & transition state driver',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100'
     },
@@ -172,7 +172,7 @@ export const LoginModal: React.FC = () => {
         {/* Header HUD */}
         <div className="flex items-center justify-between px-4 py-2 border-b-2 border-foreground bg-[#121212] font-mono text-[10px]">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 bg-[#ea580c]" />
+            <span className="h-2 w-2 bg-[#B497CF]" />
             <span className="h-2 w-2 bg-foreground" />
             <div>
               <h2 id="login-dialog-title" className="text-xs font-bold text-foreground tracking-wide uppercase">
@@ -229,7 +229,7 @@ export const LoginModal: React.FC = () => {
                 onClick={() => { setAuthMode('register'); setError(null); }}
                 className={`py-1.5 text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1.5 ${
                   authMode === 'register'
-                    ? 'bg-[#ea580c] text-white shadow-xs'
+                    ? 'bg-[#B497CF] text-white shadow-xs'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -370,7 +370,7 @@ export const LoginModal: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-2 bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold text-xs uppercase flex items-center justify-center gap-1.5 transition-all shadow-sm rounded-xs mt-1"
+                  className="w-full py-2 bg-[#B497CF] hover:bg-[#c2410c] text-white font-bold text-xs uppercase flex items-center justify-center gap-1.5 transition-all shadow-sm rounded-xs mt-1"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   <span>{isSubmitting ? 'REGISTERING...' : 'REGISTER & ENTER'}</span>
@@ -391,9 +391,9 @@ export const LoginModal: React.FC = () => {
               onClick={() => setShowPersonas((v) => !v)}
               aria-expanded={showPersonas}
               aria-controls="persona-list"
-              className="w-full flex items-center gap-2 px-5 py-3 text-left hover:bg-[#131313] transition-colors focus-visible:ring-2 focus-visible:ring-[#ea580c] focus-visible:ring-inset outline-none"
+              className="w-full flex items-center gap-2 px-5 py-3 text-left hover:bg-[#131313] transition-colors focus-visible:ring-2 focus-visible:ring-[#B497CF] focus-visible:ring-inset outline-none"
             >
-              <UserCheck className="w-3.5 h-3.5 text-[#ea580c] shrink-0" />
+              <UserCheck className="w-3.5 h-3.5 text-[#B497CF] shrink-0" />
               <span className="text-[11px] font-bold text-foreground uppercase tracking-wider flex-1">
                 Just exploring? Use a demo account
               </span>

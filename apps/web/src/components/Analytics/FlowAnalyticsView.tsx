@@ -52,7 +52,7 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
 
   const stateColors: Record<string, string> = {
     'Unconfirmed': '#525252',
-    'Confirmed': '#ea580c',
+    'Confirmed': '#B497CF',
     'In Progress': '#d97706',
     'In Review': '#7c3aed',
     'Resolved': '#10b981',
@@ -119,9 +119,9 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
               <span className="text-[9px] font-mono text-muted-foreground uppercase block">UNCONF → CONF</span>
             </div>
 
-            <div className="p-4 bg-[#0d0d0d] border border-border hover:border-[#ea580c] shadow-sm space-y-1 transition-all rounded-sm">
+            <div className="p-4 bg-[#0d0d0d] border border-border hover:border-[#B497CF] shadow-sm space-y-1 transition-all rounded-sm">
               <span className="text-[10px] font-mono uppercase font-bold text-muted-foreground block tracking-wider">DEV VELOCITY</span>
-              <p className="text-xl font-black text-[#ea580c] font-mono">
+              <p className="text-xl font-black text-[#B497CF] font-mono">
                 <AnimatedCounter value={data?.summary?.averages?.dev_hours || 0} suffix="H" />
               </p>
               <span className="text-[9px] font-mono text-muted-foreground uppercase block">IN PROGRESS RES</span>
@@ -151,8 +151,8 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
               <span className="text-[9px] font-mono text-muted-foreground uppercase block">DEFECT REGRESSION</span>
             </div>
 
-            <div className="p-4 bg-[#0d0d0d] border border-[#ea580c] shadow-sm space-y-1 transition-all rounded-sm">
-              <span className="text-[10px] font-mono uppercase font-bold text-[#ea580c] block tracking-wider">STALLED BUGS</span>
+            <div className="p-4 bg-[#0d0d0d] border border-[#B497CF] shadow-sm space-y-1 transition-all rounded-sm">
+              <span className="text-[10px] font-mono uppercase font-bold text-[#B497CF] block tracking-wider">STALLED BUGS</span>
               <p className="text-xl font-black text-foreground font-mono">
                 <AnimatedCounter value={data?.summary?.stalled_count || 0} />
               </p>
@@ -165,7 +165,7 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
                 <h3 className="text-xs font-bold font-mono text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-[#ea580c]" />
+                  <TrendingUp className="w-4 h-4 text-[#B497CF]" />
                   <span>CUMULATIVE FLOW DIAGRAM (CFD)</span>
                 </h3>
                 <p className="text-[10px] font-mono text-muted-foreground uppercase">Reconstructed from historical activity audit trail</p>
@@ -279,7 +279,7 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
                       </div>
                       <div className="w-full h-2 bg-[#1a1a1a] overflow-hidden border border-border rounded-xs">
                         <div
-                          className="h-full bg-[#ea580c] transition-all duration-500"
+                          className="h-full bg-[#B497CF] transition-all duration-500"
                           style={{ width: `${mf.completion_pct}%` }}
                         />
                       </div>
@@ -290,7 +290,7 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
                         EFFORT: <strong className="text-foreground">{mf.remaining_hours}H</strong>
                       </span>
                       <span>
-                        ETA: <strong className="text-[#ea580c]">{mf.predicted_completion_date}</strong>
+                        ETA: <strong className="text-[#B497CF]">{mf.predicted_completion_date}</strong>
                       </span>
                     </div>
                   </div>
@@ -305,7 +305,7 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
             <div className="p-5 bg-[#0d0d0d] border border-border shadow-sm space-y-3 rounded-sm">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold font-mono text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <GitBranch className="w-4 h-4 text-[#ea580c]" />
+                  <GitBranch className="w-4 h-4 text-[#B497CF]" />
                   <span>SLEEPER BRANCHES ({data?.sleeper_branches?.length || 0})</span>
                 </h3>
                 <span className="text-[9px] text-muted-foreground uppercase font-mono">QUIET &gt; 3D</span>
@@ -320,7 +320,7 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
                   >
                     <div className="min-w-0 font-mono">
                       <div className="flex items-center gap-2">
-                        <span className="text-[#ea580c] font-bold">#{sl.bug_id}</span>
+                        <span className="text-[#B497CF] font-bold">#{sl.bug_id}</span>
                         <span className="font-bold text-foreground group-hover:underline truncate uppercase">{sl.title}</span>
                       </div>
                       <p className="text-[9px] text-muted-foreground mt-0.5 uppercase">
@@ -346,7 +346,7 @@ export const FlowAnalyticsView: React.FC<FlowAnalyticsViewProps> = ({ onSelectBu
             <div className="p-4 bg-[#0d0d0d] border-2 border-border shadow-brutalist space-y-2.5">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold font-mono text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Flame className="w-4 h-4 text-[#ea580c]" />
+                  <Flame className="w-4 h-4 text-[#B497CF]" />
                   <span>// STALLED BOTTLENECKS ({data?.stalled_bugs?.length || 0})</span>
                 </h3>
                 <span className="text-[9px] text-muted-foreground uppercase font-mono">DELAYS IN TRIAGE / REVIEW</span>

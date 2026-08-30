@@ -122,7 +122,7 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
         {/* Brutalist Window Header */}
         <div className="flex items-center justify-between px-4 py-2 bg-[#121212] border-b-2 border-foreground text-[10px]">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 bg-[#ea580c]" />
+            <span className="h-2 w-2 bg-[#B497CF]" />
             <span className="h-2 w-2 bg-foreground" />
             <span className="font-bold uppercase tracking-wider">// INGEST // GITHUB_TELEMETRY</span>
           </div>
@@ -144,13 +144,13 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
           )}
 
           {/* 1-Click Offline Demo Fixtures */}
-          <div className="p-4 bg-[#0d0d0d] border-2 border-[#ea580c] space-y-3 shadow-brutalist">
+          <div className="p-4 bg-[#0d0d0d] border-2 border-[#B497CF] space-y-3 shadow-brutalist">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-[#ea580c] text-xs font-bold uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-[#B497CF] text-xs font-bold uppercase tracking-wider">
                 <Zap className="w-4 h-4" />
                 <span>// OFFLINE BENCHMARK DATASETS (RATE-LIMIT FREE)</span>
               </div>
-              <span className="text-[9px] bg-[#ea580c] text-background px-1.5 py-0.2 font-mono font-bold uppercase">
+              <span className="text-[9px] bg-[#B497CF] text-background px-1.5 py-0.2 font-mono font-bold uppercase">
                 &lt; 1.5S LOAD
               </span>
             </div>
@@ -226,7 +226,7 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
                   step="10"
                   value={maxIssues}
                   onChange={(e) => setMaxIssues(Number(e.target.value))}
-                  className="w-full accent-[#ea580c]"
+                  className="w-full accent-[#B497CF]"
                   disabled={isImporting}
                 />
               </div>
@@ -258,7 +258,7 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
 
               <div className="w-full bg-black border border-border h-2 overflow-hidden">
                 <div
-                  className="bg-[#ea580c] h-full transition-all duration-300"
+                  className="bg-[#B497CF] h-full transition-all duration-300"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>

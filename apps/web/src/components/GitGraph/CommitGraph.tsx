@@ -10,7 +10,7 @@ const DOT_R = 6;
 
 /** Lane colours. Lane 0 (the trunk) is always the app accent. */
 const LANE_COLORS = [
-  '#ea580c', // trunk — accent orange
+  '#B497CF', // trunk — accent orange
   '#10b981',
   '#00e5ff',
   '#a855f7',
@@ -123,7 +123,7 @@ export const CommitGraph: React.FC<Props> = ({ graph, onSelectCommit }) => {
           <Moon className="w-3 h-3 text-amber-400" /> sleeper &gt;3d
         </span>
         <span className="flex items-center gap-1.5">
-          <Bug className="w-3 h-3 text-[#ea580c]" /> linked issue
+          <Bug className="w-3 h-3 text-[#B497CF]" /> linked issue
         </span>
         <span className="ml-auto tabular-nums">
           {graph.stats.total_commits} commits · {graph.stats.total_branches} branches · {graph.stats.spans_days}d
@@ -276,7 +276,7 @@ export const CommitGraph: React.FC<Props> = ({ graph, onSelectCommit }) => {
                 {hovered.bug_id && (
                   <>
                     <span>·</span>
-                    <span className="text-[#ea580c] font-bold">#{hovered.bug_id}</span>
+                    <span className="text-[#B497CF] font-bold">#{hovered.bug_id}</span>
                   </>
                 )}
               </div>

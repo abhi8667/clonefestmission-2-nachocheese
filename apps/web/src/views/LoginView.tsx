@@ -180,7 +180,7 @@ export const LoginView: React.FC = () => {
                 <Shield className="w-5 h-5 text-background" />
               </div>
               <div>
-                <span className="text-[10px] text-[#ea580c] font-bold tracking-widest uppercase block">
+                <span className="text-[10px] text-[#B497CF] font-bold tracking-widest uppercase block">
                   ZERO TRUST IDENTITY
                 </span>
                 <span className="text-sm font-bold text-foreground tracking-wider uppercase">
@@ -207,7 +207,7 @@ export const LoginView: React.FC = () => {
                 onClick={() => { setAuthMode('register'); setError(null); }}
                 className={`py-2 text-xs font-bold uppercase transition-all rounded-xs flex items-center justify-center gap-1.5 ${
                   authMode === 'register'
-                    ? 'bg-[#ea580c] text-white shadow-xs'
+                    ? 'bg-[#B497CF] text-white shadow-xs'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -274,7 +274,7 @@ export const LoginView: React.FC = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="alex@triarc.dev or alex"
-                      className="w-full pl-9 pr-3 py-2.5 bg-[#080808] border border-border focus:border-foreground text-foreground text-xs font-mono outline-none rounded-sm transition-all focus-visible:ring-1 focus-visible:ring-[#ea580c]"
+                      className="w-full pl-9 pr-3 py-2.5 bg-[#080808] border border-border focus:border-foreground text-foreground text-xs font-mono outline-none rounded-sm transition-all focus-visible:ring-1 focus-visible:ring-[#B497CF]"
                     />
                   </div>
                 </div>
@@ -300,7 +300,7 @@ export const LoginView: React.FC = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••••••"
-                      className="w-full pl-9 pr-3 py-2.5 bg-[#080808] border border-border focus:border-foreground text-foreground text-xs font-mono outline-none rounded-sm transition-all focus-visible:ring-1 focus-visible:ring-[#ea580c]"
+                      className="w-full pl-9 pr-3 py-2.5 bg-[#080808] border border-border focus:border-foreground text-foreground text-xs font-mono outline-none rounded-sm transition-all focus-visible:ring-1 focus-visible:ring-[#B497CF]"
                     />
                   </div>
                 </div>
@@ -308,7 +308,7 @@ export const LoginView: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 bg-foreground text-background font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-white transition-all rounded-sm disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
+                  className="w-full py-3 bg-foreground text-background font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-white transition-all rounded-sm disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#B497CF] outline-none"
                 >
                   {isSubmitting ? (
                     <>
@@ -404,7 +404,7 @@ export const LoginView: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all rounded-sm disabled:opacity-50 mt-2 shadow-sm"
+                  className="w-full py-3 bg-[#B497CF] hover:bg-[#c2410c] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all rounded-sm disabled:opacity-50 mt-2 shadow-sm"
                 >
                   {isSubmitting ? (
                     <>
@@ -433,9 +433,9 @@ export const LoginView: React.FC = () => {
               onClick={() => setShowDemo((v) => !v)}
               aria-expanded={showDemo}
               aria-controls="demo-accounts"
-              className="w-full flex items-center gap-2 px-6 sm:px-8 py-3.5 text-left hover:bg-[#101010] transition-colors focus-visible:ring-2 focus-visible:ring-[#ea580c] focus-visible:ring-inset outline-none"
+              className="w-full flex items-center gap-2 px-6 sm:px-8 py-3.5 text-left hover:bg-[#101010] transition-colors focus-visible:ring-2 focus-visible:ring-[#B497CF] focus-visible:ring-inset outline-none"
             >
-              <UserCheck className="w-3.5 h-3.5 text-[#ea580c] shrink-0" />
+              <UserCheck className="w-3.5 h-3.5 text-[#B497CF] shrink-0" />
               <span className="text-[11px] font-bold text-foreground uppercase tracking-wider flex-1">
                 Just exploring? Use a demo account
               </span>
@@ -461,14 +461,14 @@ export const LoginView: React.FC = () => {
                       type="button"
                       onClick={() => handleQuickSignIn(account)}
                       disabled={isSubmitting}
-                      className={`text-left p-2.5 bg-[#080808] hover:bg-[#181818] border transition-all rounded-sm group disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none ${
+                      className={`text-left p-2.5 bg-[#080808] hover:bg-[#181818] border transition-all rounded-sm group disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#B497CF] outline-none ${
                         isSelectedDemo
-                          ? 'border-[#ea580c] ring-1 ring-[#ea580c] bg-[#140c06]'
+                          ? 'border-[#B497CF] ring-1 ring-[#B497CF] bg-[#140c06]'
                           : 'border-border hover:border-foreground'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-1.5 mb-0.5">
-                        <span className="text-[11px] font-bold text-foreground group-hover:text-[#ea580c] transition-colors truncate">
+                        <span className="text-[11px] font-bold text-foreground group-hover:text-[#B497CF] transition-colors truncate">
                           {account.name}
                         </span>
                         <span className={`px-1.5 py-0.5 text-[8px] font-bold uppercase border rounded-xs shrink-0 ${account.badge}`}>
@@ -485,7 +485,7 @@ export const LoginView: React.FC = () => {
 
               <p className="mt-3 text-[10px] text-muted-foreground">
                 All seed accounts share the password{' '}
-                <code className="text-[#ea580c]">password123</code>.
+                <code className="text-[#B497CF]">password123</code>.
               </p>
             </div>
           )}
@@ -495,7 +495,7 @@ export const LoginView: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsGitHubModalOpen(true)}
-            className="flex items-center gap-1.5 hover:text-foreground transition-colors focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none rounded-xs"
+            className="flex items-center gap-1.5 hover:text-foreground transition-colors focus-visible:ring-2 focus-visible:ring-[#B497CF] outline-none rounded-xs"
           >
             <Github className="w-3 h-3" />
             <span>Import a repo</span>

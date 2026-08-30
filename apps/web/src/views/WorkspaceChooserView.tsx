@@ -43,7 +43,7 @@ export const WorkspaceChooserView: React.FC = () => {
   return (
     <main id="main-content" className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
       <header className="mb-10">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-[#ea580c] mb-2">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-[#B497CF] mb-2">
           Choose your workspace
         </p>
         <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground mb-2">
@@ -59,11 +59,11 @@ export const WorkspaceChooserView: React.FC = () => {
         {/* Organization — the tracker */}
         <button
           onClick={() => choose('org', '/projects')}
-          className="group text-left bg-[#0e0e0e] border-2 border-border hover:border-[#ea580c] p-6 transition-all focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none flex flex-col"
+          className="group text-left bg-[#0e0e0e] border-2 border-border hover:border-[#B497CF] p-6 transition-all focus-visible:ring-2 focus-visible:ring-[#B497CF] outline-none flex flex-col"
         >
           <div className="flex items-start justify-between mb-5">
-            <span className="w-11 h-11 grid place-items-center bg-[#1a1a1a] border border-border group-hover:border-[#ea580c] transition-colors">
-              <Building2 className="w-5 h-5 text-[#ea580c]" />
+            <span className="w-11 h-11 grid place-items-center bg-[#1a1a1a] border border-border group-hover:border-[#B497CF] transition-colors">
+              <Building2 className="w-5 h-5 text-[#B497CF]" />
             </span>
             <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-1 bg-[#1a1a1a] text-muted-foreground border border-border">
               Team
@@ -85,13 +85,13 @@ export const WorkspaceChooserView: React.FC = () => {
               [ShieldCheck, 'Security groups & audit log']
             ].map(([Icon, label]: any, i) => (
               <li key={i} className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                <Icon className="w-3.5 h-3.5 text-[#ea580c] shrink-0" />
+                <Icon className="w-3.5 h-3.5 text-[#B497CF] shrink-0" />
                 {label}
               </li>
             ))}
           </ul>
 
-          <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-foreground group-hover:text-[#ea580c] transition-colors">
+          <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-foreground group-hover:text-[#B497CF] transition-colors">
             Enter workspace <ArrowRight className="w-3.5 h-3.5" />
           </span>
         </button>

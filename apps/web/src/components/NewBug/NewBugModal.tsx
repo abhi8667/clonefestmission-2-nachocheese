@@ -154,7 +154,7 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
         {/* Brutalist Window Header */}
         <div className="flex items-center justify-between px-4 py-2 bg-[#121212] border-b-2 border-foreground">
           <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 bg-[#ea580c]" />
+            <span className="h-2.5 w-2.5 bg-[#B497CF]" />
             <span className="h-2.5 w-2.5 bg-foreground" />
             <span className="h-2.5 w-2.5 border border-foreground" />
             <span className="ml-2 text-xs font-mono font-bold uppercase tracking-widest text-foreground">
@@ -183,7 +183,7 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
           {/* Title */}
           <div>
             <label htmlFor="new-bug-title" className="block text-xs font-mono font-bold text-foreground mb-1.5 uppercase">
-              // SUMMARY / INCIDENT TITLE <span className="text-[#ea580c]">*</span>
+              // SUMMARY / INCIDENT TITLE <span className="text-[#B497CF]">*</span>
             </label>
             <input
               id="new-bug-title"
@@ -202,11 +202,11 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
               role="region"
               aria-live="polite"
               aria-label="Duplicate radar suggestions"
-              className="p-3.5 bg-[#0d0d0d] border-2 border-[#ea580c] shadow-brutalist space-y-2.5 animate-slide-up"
+              className="p-3.5 bg-[#0d0d0d] border-2 border-[#B497CF] shadow-brutalist space-y-2.5 animate-slide-up"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Radar className={`w-4 h-4 text-[#ea580c] ${isCheckingDuplicates ? 'animate-spin' : 'animate-blink'}`} />
+                  <Radar className={`w-4 h-4 text-[#B497CF] ${isCheckingDuplicates ? 'animate-spin' : 'animate-blink'}`} />
                   <span className="text-xs font-bold font-mono text-foreground uppercase">
                     // RADAR VECTOR MATCHES ({duplicates.length})
                   </span>
@@ -227,7 +227,7 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
                       <div className="flex items-center gap-2 min-w-0 font-mono">
                         <span
                           className={`px-1.5 py-0.2 text-[9px] font-bold uppercase ${isHighMatch
-                              ? 'bg-[#ea580c] text-background'
+                              ? 'bg-[#B497CF] text-background'
                               : 'bg-foreground text-background'
                             }`}
                         >
@@ -258,7 +258,7 @@ export const NewBugModal: React.FC<NewBugModalProps> = ({
           {/* Description */}
           <div>
             <label className="block text-xs font-mono font-bold text-foreground mb-1.5 uppercase">
-              // REPRODUCTION STEPS & LOGS <span className="text-[#ea580c]">*</span>
+              // REPRODUCTION STEPS & LOGS <span className="text-[#B497CF]">*</span>
             </label>
             <textarea
               required

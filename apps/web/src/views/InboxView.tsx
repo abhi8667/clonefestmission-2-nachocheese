@@ -21,7 +21,7 @@ export const InboxView: React.FC = () => {
               <Inbox className="w-4 h-4 text-background" />
             </div>
             <div>
-              <span className="text-[10px] text-[#ea580c] font-bold tracking-wider uppercase block">
+              <span className="text-[10px] text-[#B497CF] font-bold tracking-wider uppercase block">
                 CROSS-PROJECT INBOX
               </span>
               <h1 className="text-lg font-black text-foreground uppercase tracking-wide">

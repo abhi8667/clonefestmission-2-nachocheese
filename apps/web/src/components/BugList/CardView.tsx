@@ -12,7 +12,7 @@ export const CardView: React.FC<CardViewProps> = ({ bugs, onSelectBug }) => {
   const columns: { status: BugStatus; label: string; headerClass: string }[] = [
     { status: 'Unconfirmed', label: 'UNCONFIRMED', headerClass: 'border-border text-muted-foreground' },
     { status: 'Confirmed', label: 'CONFIRMED', headerClass: 'border-foreground text-foreground' },
-    { status: 'In Progress', label: 'IN PROGRESS', headerClass: 'border-[#ea580c] text-[#ea580c]' },
+    { status: 'In Progress', label: 'IN PROGRESS', headerClass: 'border-[#B497CF] text-[#B497CF]' },
     { status: 'In Review', label: 'IN REVIEW', headerClass: 'border-purple-500 text-purple-400' },
     { status: 'Resolved', label: 'RESOLVED', headerClass: 'border-emerald-500 text-emerald-400' },
     { status: 'Verified', label: 'VERIFIED', headerClass: 'border-teal-500 text-teal-400' }
@@ -46,7 +46,7 @@ export const CardView: React.FC<CardViewProps> = ({ bugs, onSelectBug }) => {
                     key={bug.id}
                     onClick={() => onSelectBug(bug.id)}
                     className={`p-2.5 border-2 cursor-pointer transition-all ${isBug412Stalled
-                        ? 'border-[#ea580c] bg-[#ea580c]/10'
+                        ? 'border-[#B497CF] bg-[#B497CF]/10'
                         : isConfidential
                           ? 'border-purple-500/60 bg-purple-950/20'
                           : 'border-border hover:border-foreground bg-[#080808]'
@@ -67,7 +67,7 @@ export const CardView: React.FC<CardViewProps> = ({ bugs, onSelectBug }) => {
                     </p>
 
                     {isBug412Stalled && (
-                      <div className="flex items-center gap-1 text-[9px] font-mono font-bold bg-[#ea580c] text-background px-1.5 py-0.5 uppercase mb-2 animate-blink">
+                      <div className="flex items-center gap-1 text-[9px] font-mono font-bold bg-[#B497CF] text-background px-1.5 py-0.5 uppercase mb-2 animate-blink">
                         <AlertTriangle className="w-3 h-3" />
                         STALLED // REVIEW?
                       </div>

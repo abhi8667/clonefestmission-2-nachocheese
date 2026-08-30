@@ -133,7 +133,7 @@ export const RelationshipsPanel: React.FC<RelationshipsPanelProps> = ({
                 <span className="px-1.5 py-0.2 bg-foreground text-background text-[9px] font-bold uppercase">
                   {rel.type}
                 </span>
-                <span className="font-bold text-[#ea580c]">#{otherId}</span>
+                <span className="font-bold text-[#B497CF]">#{otherId}</span>
                 <span className="text-foreground uppercase">{isSource ? `→ #${rel.to_bug_id}` : `← #${rel.from_bug_id}`}</span>
               </div>
 

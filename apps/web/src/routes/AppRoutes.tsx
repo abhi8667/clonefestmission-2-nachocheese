@@ -13,6 +13,7 @@ import { AdminView } from '../views/AdminView.tsx';
 import { WorkspaceChooserView, getWorkspaceMode } from '../views/WorkspaceChooserView.tsx';
 import { GitHubWorkspaceView } from '../views/GitHubWorkspaceView.tsx';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { LandingPage } from '../components/LandingPage.tsx';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUser, isLoading } = useAuth();
@@ -21,7 +22,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-2 font-mono text-xs uppercase text-muted-foreground">
-        <Loader2 className="w-6 h-6 animate-spin text-[#ea580c]" />
+        <Loader2 className="w-6 h-6 animate-spin text-[#B497CF]" />
         <span>INITIALIZING WORKSPACE...</span>
       </div>
     );
@@ -35,9 +36,32 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
  * and first-time users to the chooser.
  */
 const RootRoute: React.FC = () => {
+  const { currentUser, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white font-mono">
+        INITIALIZING...
+      </div>
+    );
+  }
+
+  // Logged out → landing page
+  if (!currentUser) {
+    return <Navigate to="/" replace />;
+  }
+
+  // Logged in → preserve existing workspace behavior
   const mode = getWorkspaceMode();
-  if (mode === 'personal') return <Navigate to="/github" replace />;
-  if (mode === 'org') return <Navigate to="/projects" replace />;
+
+  if (mode === 'personal') {
+    return <Navigate to="/github" replace />;
+  }
+
+  if (mode === 'org') {
+    return <Navigate to="/projects" replace />;
+  }
+
   return <Navigate to="/workspace" replace />;
 };
 
@@ -46,8 +70,12 @@ export const AppRoutes: React.FC = () => {
   return (
     <Routes>
       {/* Public Landing & Login Routes */}
+<<<<<<< HEAD
       <Route path="/" element={<LandingView />} />
       <Route path="/landing" element={<LandingView />} />
+=======
+      <Route path="/" element={<LandingPage />} />
+>>>>>>> 4a521e3 (UI Changes)
       <Route path="/login" element={<LoginView />} />
 
       {/* Workspace fork: organization tracker vs personal repo view */}
@@ -141,7 +169,7 @@ export const AppRoutes: React.FC = () => {
         path="*"
         element={
           <div className="min-h-[50vh] flex flex-col items-center justify-center p-6 text-center font-mono space-y-4">
-            <AlertCircle className="w-10 h-10 text-[#ea580c]" />
+            <AlertCircle className="w-10 h-10 text-[#B497CF]" />
             <h1 className="text-base font-black uppercase text-foreground">404 — ROUTE NOT FOUND</h1>
             <p className="text-xs text-muted-foreground uppercase max-w-sm">
               The requested navigation path does not exist in the Triarc telemetry matrix.

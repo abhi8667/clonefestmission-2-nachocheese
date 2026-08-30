@@ -227,7 +227,7 @@ export const AdminPanelView: React.FC = () => {
           // SECTION: ADMIN_GOVERNANCE
         </span>
         <div className="flex-1 border-t border-border"></div>
-        <span className="inline-block h-2 w-2 bg-[#ea580c] animate-blink"></span>
+        <span className="inline-block h-2 w-2 bg-[#B497CF] animate-blink"></span>
         <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">
           004
         </span>
@@ -242,7 +242,7 @@ export const AdminPanelView: React.FC = () => {
           <div>
             <h1 className="text-base font-bold font-mono text-foreground uppercase tracking-wider flex items-center gap-2">
               <span>// ADMINISTRATION & SECURITY GOVERNANCE</span>
-              <span className="text-[9px] bg-[#ea580c] text-background px-1.5 py-0.2 font-mono font-bold">
+              <span className="text-[9px] bg-[#B497CF] text-background px-1.5 py-0.2 font-mono font-bold">
                 CLEARANCE: LEVEL 5
               </span>
             </h1>
@@ -436,7 +436,7 @@ export const AdminPanelView: React.FC = () => {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-foreground text-xs uppercase">{c.name}</span>
-                      <code className="text-[9px] bg-black text-[#ea580c] px-1 py-0.2 border border-border uppercase">
+                      <code className="text-[9px] bg-black text-[#B497CF] px-1 py-0.2 border border-border uppercase">
                         {c.id}
                       </code>
                     </div>
@@ -514,7 +514,7 @@ export const AdminPanelView: React.FC = () => {
               {milestones.map((m) => (
                 <div key={m.id} className="flex items-center justify-between p-2 bg-black border border-border">
                   <div className="flex items-center gap-2">
-                    <Milestone className="w-3.5 h-3.5 text-[#ea580c]" />
+                    <Milestone className="w-3.5 h-3.5 text-[#B497CF]" />
                     <span className="font-bold text-foreground text-xs uppercase">{m.name}</span>
                     {m.due_date && (
                       <span className="text-[9px] text-muted-foreground uppercase border border-border px-1 py-0.2">
@@ -612,10 +612,10 @@ export const AdminPanelView: React.FC = () => {
               <div key={ft.id} className="p-3 bg-black border-2 border-border space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <Flag className="w-3.5 h-3.5 text-[#ea580c]" />
+                    <Flag className="w-3.5 h-3.5 text-[#B497CF]" />
                     <span className="font-bold text-foreground text-xs uppercase">{ft.name}</span>
                   </div>
-                  <code className="text-[9px] text-[#ea580c] bg-[#141414] px-1.5 py-0.2 border border-border uppercase">{ft.id}</code>
+                  <code className="text-[9px] text-[#B497CF] bg-[#141414] px-1.5 py-0.2 border border-border uppercase">{ft.id}</code>
                 </div>
 
                 <div className="text-[10px] space-y-1 text-muted-foreground uppercase">
@@ -625,7 +625,7 @@ export const AdminPanelView: React.FC = () => {
                   </div>
                   <div className="flex justify-between">
                     <span>GRANT ROLE (+/-):</span>
-                    <span className="font-bold text-[#ea580c]">{ft.grant_role}</span>
+                    <span className="font-bold text-[#B497CF]">{ft.grant_role}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>TARGET:</span>

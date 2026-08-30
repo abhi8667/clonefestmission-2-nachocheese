@@ -28,7 +28,7 @@ export const ActivityLogPanel: React.FC<ActivityLogPanelProps> = ({ activity }) 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {isAutomated ? (
-                    <span className="px-1.5 py-0.2 bg-[#ea580c] text-background text-[9px] font-bold uppercase">
+                    <span className="px-1.5 py-0.2 bg-[#B497CF] text-background text-[9px] font-bold uppercase">
                       AUTOMATED
                     </span>
                   ) : (

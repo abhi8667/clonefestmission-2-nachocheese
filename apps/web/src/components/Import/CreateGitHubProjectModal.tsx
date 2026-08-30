@@ -175,9 +175,9 @@ export const CreateGitHubProjectModal: React.FC<CreateGitHubProjectModalProps> =
         {/* Brutalist Header */}
         <div className="flex items-center justify-between px-5 py-3 bg-[#141414] border-b-2 border-foreground text-xs">
           <div className="flex items-center gap-2.5">
-            <span className="w-2.5 h-2.5 bg-[#ea580c] animate-pulse" />
+            <span className="w-2.5 h-2.5 bg-[#B497CF] animate-pulse" />
             <span className="font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
-              <Github className="w-4 h-4 text-[#ea580c]" />
+              <Github className="w-4 h-4 text-[#B497CF]" />
               <span>// CONNECT GITHUB REPOSITORY // NEW PROJECT WORKSPACE</span>
             </span>
           </div>
@@ -201,7 +201,7 @@ export const CreateGitHubProjectModal: React.FC<CreateGitHubProjectModalProps> =
           {/* Quick Presets Strip */}
           <div className="p-3.5 bg-[#101010] border border-border space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] text-[#ea580c] font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <span className="text-[10px] text-[#B497CF] font-bold uppercase tracking-wider flex items-center gap-1.5">
                 <Zap className="w-3.5 h-3.5" />
                 <span>POPULAR OPEN SOURCE REPOSITORIES (1-CLICK SYNC):</span>
               </span>
@@ -211,34 +211,34 @@ export const CreateGitHubProjectModal: React.FC<CreateGitHubProjectModalProps> =
               <button
                 type="button"
                 onClick={() => handleSelectPreset('facebook/react', 'React Framework Platform', 'REACT')}
-                className="px-2.5 py-2 bg-[#080808] border border-border hover:border-[#ea580c] hover:bg-[#181818] text-left transition-all text-xs flex flex-col"
+                className="px-2.5 py-2 bg-[#080808] border border-border hover:border-[#B497CF] hover:bg-[#181818] text-left transition-all text-xs flex flex-col"
               >
                 <span className="font-bold text-foreground truncate">facebook/react</span>
-                <span className="text-[9px] text-[#ea580c] font-mono font-bold">KEY: REACT</span>
+                <span className="text-[9px] text-[#B497CF] font-mono font-bold">KEY: REACT</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleSelectPreset('expressjs/express', 'Express.js Routing Platform', 'EXPR')}
-                className="px-2.5 py-2 bg-[#080808] border border-border hover:border-[#ea580c] hover:bg-[#181818] text-left transition-all text-xs flex flex-col"
+                className="px-2.5 py-2 bg-[#080808] border border-border hover:border-[#B497CF] hover:bg-[#181818] text-left transition-all text-xs flex flex-col"
               >
                 <span className="font-bold text-foreground truncate">expressjs/express</span>
-                <span className="text-[9px] text-[#ea580c] font-mono font-bold">KEY: EXPR</span>
+                <span className="text-[9px] text-[#B497CF] font-mono font-bold">KEY: EXPR</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleSelectPreset('fastify/fastify', 'Fastify HTTP Platform', 'FAST')}
-                className="px-2.5 py-2 bg-[#080808] border border-border hover:border-[#ea580c] hover:bg-[#181818] text-left transition-all text-xs flex flex-col"
+                className="px-2.5 py-2 bg-[#080808] border border-border hover:border-[#B497CF] hover:bg-[#181818] text-left transition-all text-xs flex flex-col"
               >
                 <span className="font-bold text-foreground truncate">fastify/fastify</span>
-                <span className="text-[9px] text-[#ea580c] font-mono font-bold">KEY: FAST</span>
+                <span className="text-[9px] text-[#B497CF] font-mono font-bold">KEY: FAST</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleSelectPreset('torvalds/linux', 'Linux Subsystem Workspace', 'LINUX')}
-                className="px-2.5 py-2 bg-[#080808] border border-border hover:border-[#ea580c] hover:bg-[#181818] text-left transition-all text-xs flex flex-col"
+                className="px-2.5 py-2 bg-[#080808] border border-border hover:border-[#B497CF] hover:bg-[#181818] text-left transition-all text-xs flex flex-col"
               >
                 <span className="font-bold text-foreground truncate">torvalds/linux</span>
-                <span className="text-[9px] text-[#ea580c] font-mono font-bold">KEY: LINUX</span>
+                <span className="text-[9px] text-[#B497CF] font-mono font-bold">KEY: LINUX</span>
               </button>
             </div>
           </div>
@@ -246,7 +246,7 @@ export const CreateGitHubProjectModal: React.FC<CreateGitHubProjectModalProps> =
           {/* Repository Link Input */}
           <div className="space-y-1.5">
             <label className="block text-xs font-bold text-foreground uppercase tracking-wider">
-              GitHub Repository URL or <code className="text-[#ea580c]">owner/repo</code>
+              GitHub Repository URL or <code className="text-[#B497CF]">owner/repo</code>
             </label>
             <div className="relative">
               <input
@@ -255,7 +255,7 @@ export const CreateGitHubProjectModal: React.FC<CreateGitHubProjectModalProps> =
                 value={repoUrl}
                 onChange={(e) => handleRepoUrlChange(e.target.value)}
                 placeholder="https://github.com/my-org/my-project or username/repo"
-                className="w-full bg-[#080808] border-2 border-border p-3 text-xs text-foreground focus:outline-none focus:border-[#ea580c] font-mono"
+                className="w-full bg-[#080808] border-2 border-border p-3 text-xs text-foreground focus:outline-none focus:border-[#B497CF] font-mono"
                 disabled={isCreating}
               />
             </div>
@@ -316,17 +316,17 @@ export const CreateGitHubProjectModal: React.FC<CreateGitHubProjectModalProps> =
 
           {/* Live Progress Bar */}
           {progress && (
-            <div className="p-3.5 bg-[#101010] border border-[#ea580c] space-y-2.5">
+            <div className="p-3.5 bg-[#101010] border border-[#B497CF] space-y-2.5">
               <div className="flex items-center justify-between text-xs font-bold">
                 <span className="text-foreground flex items-center gap-2 uppercase">
-                  <RefreshCw className={`w-3.5 h-3.5 text-[#ea580c] ${isCreating ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`w-3.5 h-3.5 text-[#B497CF] ${isCreating ? 'animate-spin' : ''}`} />
                   <span>{progress.stage === 'complete' ? 'WORKSPACE INITIALIZED' : 'INGESTING REPO TELEMETRY...'}</span>
                 </span>
-                <span className="font-mono text-[#ea580c]">{progressPercent}%</span>
+                <span className="font-mono text-[#B497CF]">{progressPercent}%</span>
               </div>
               <div className="w-full bg-black border border-border h-2 overflow-hidden">
                 <div
-                  className="bg-[#ea580c] h-full transition-all duration-300"
+                  className="bg-[#B497CF] h-full transition-all duration-300"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>

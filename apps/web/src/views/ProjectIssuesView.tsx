@@ -179,11 +179,11 @@ export const ProjectIssuesView: React.FC = () => {
             to={`/projects/${key}`}
             className={`py-3 px-4 font-bold border-b-2 flex items-center gap-2 uppercase transition-all ${
               activeTab === 'issues'
-                ? 'border-[#ea580c] text-foreground'
+                ? 'border-[#B497CF] text-foreground'
                 : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
             }`}
           >
-            <Activity className={`w-4 h-4 ${activeTab === 'issues' ? 'text-[#ea580c]' : ''}`} />
+            <Activity className={`w-4 h-4 ${activeTab === 'issues' ? 'text-[#B497CF]' : ''}`} />
             <span>ISSUES ({totalCount})</span>
           </Link>
 
@@ -191,11 +191,11 @@ export const ProjectIssuesView: React.FC = () => {
             to={`/projects/${key}?tab=git`}
             className={`py-3 px-4 font-bold border-b-2 flex items-center gap-2 uppercase transition-all ${
               activeTab === 'git'
-                ? 'border-[#ea580c] text-foreground'
+                ? 'border-[#B497CF] text-foreground'
                 : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
             }`}
           >
-            <GitCommit className={`w-4 h-4 ${activeTab === 'git' ? 'text-[#ea580c]' : ''}`} />
+            <GitCommit className={`w-4 h-4 ${activeTab === 'git' ? 'text-[#B497CF]' : ''}`} />
             <span>COMMITS & COLLABORATORS</span>
           </Link>
 

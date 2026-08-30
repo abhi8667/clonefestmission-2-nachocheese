@@ -29,9 +29,9 @@ export const StatusTransitionDropdown: React.FC<StatusTransitionDropdownProps> =
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Unconfirmed': return 'bg-[#141414] text-muted-foreground border-border';
-      case 'Confirmed': return 'bg-[#ea580c]/20 text-[#ea580c] border-[#ea580c]';
+      case 'Confirmed': return 'bg-[#B497CF]/20 text-[#B497CF] border-[#B497CF]';
       case 'In Progress': return 'bg-amber-950 text-amber-300 border-amber-500';
-      case 'In Review': return 'bg-[#ea580c] text-background border-[#ea580c] font-bold';
+      case 'In Review': return 'bg-[#B497CF] text-background border-[#B497CF] font-bold';
       case 'Resolved': return 'bg-emerald-950 text-emerald-300 border-emerald-500 font-bold';
       case 'Verified': return 'bg-foreground text-background border-foreground font-bold';
       case 'Closed': return 'bg-black text-muted-foreground border-border';
@@ -117,7 +117,7 @@ export const StatusTransitionDropdown: React.FC<StatusTransitionDropdownProps> =
                   <span>{t.to}</span>
                 </div>
                 {t.guards && (
-                  <span className="text-[9px] text-[#ea580c] bg-black px-1 py-0.2 border border-[#ea580c]">
+                  <span className="text-[9px] text-[#B497CF] bg-black px-1 py-0.2 border border-[#B497CF]">
                     GUARDED
                   </span>
                 )}

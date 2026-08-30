@@ -154,7 +154,7 @@ export const SecurityTelemetryFeed: React.FC<SecurityTelemetryFeedProps> = ({ on
       case 'TRAFFIC':
         return 'text-foreground bg-[#141414] border border-border';
       case 'WARN':
-        return 'text-[#ea580c] bg-black border border-[#ea580c]';
+        return 'text-[#B497CF] bg-black border border-[#B497CF]';
       case 'THREAT':
       case 'ANOMALY':
         return 'text-red-300 bg-red-950 border border-red-500';
@@ -178,12 +178,12 @@ export const SecurityTelemetryFeed: React.FC<SecurityTelemetryFeedProps> = ({ on
           className="px-3 py-2 bg-[#121212] border-b border-border flex items-center justify-between cursor-pointer select-none hover:bg-[#1a1a1a] transition-colors"
         >
           <div className="flex items-center space-x-2">
-            <span className="h-2 w-2 bg-[#ea580c] rounded-full" />
+            <span className="h-2 w-2 bg-[#B497CF] rounded-full" />
             <div className="flex items-center space-x-2">
               <span className="text-xs font-mono font-bold text-foreground tracking-wider uppercase">
                 TELEMETRY
               </span>
-              <span className="px-1.5 py-0.2 bg-[#ea580c] text-background text-[9px] font-mono font-bold rounded-xs animate-blink">
+              <span className="px-1.5 py-0.2 bg-[#B497CF] text-background text-[9px] font-mono font-bold rounded-xs animate-blink">
                 LIVE
               </span>
             </div>
@@ -233,7 +233,7 @@ export const SecurityTelemetryFeed: React.FC<SecurityTelemetryFeedProps> = ({ on
                   onClick={() => setIsPaused(!isPaused)}
                   className="flex items-center space-x-1 hover:text-foreground transition-colors"
                 >
-                  {isPaused ? <Play className="w-3 h-3 text-emerald-400" /> : <Pause className="w-3 h-3 text-[#ea580c]" />}
+                  {isPaused ? <Play className="w-3 h-3 text-emerald-400" /> : <Pause className="w-3 h-3 text-[#B497CF]" />}
                   <span>{isPaused ? 'RESUME' : 'PAUSE'}</span>
                 </button>
                 <button
@@ -288,7 +288,7 @@ export const SecurityTelemetryFeed: React.FC<SecurityTelemetryFeedProps> = ({ on
               {/* Blinking Terminal Prompt Cursor */}
               <div className="flex items-center space-x-1.5 text-foreground pt-1 text-[11px]">
                 <span className="text-muted-foreground select-none">triarc@soc-node-01:~$</span>
-                <span className="w-2 h-3.5 bg-[#ea580c] animate-blink inline-block" />
+                <span className="w-2 h-3.5 bg-[#B497CF] animate-blink inline-block" />
               </div>
             </div>
           </div>

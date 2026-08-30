@@ -111,7 +111,7 @@ export const FlowTimeline: React.FC<FlowTimelineProps> = ({
     <div className="bg-[#0d0d0d] border border-border p-4 sm:p-5 shadow-sm rounded-sm">
       <div className="flex items-center justify-between mb-3.5 border-b border-border pb-2.5">
         <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-[#ea580c]" />
+          <Clock className="w-4 h-4 text-[#B497CF]" />
           <h4 className="text-xs font-bold font-mono text-foreground uppercase tracking-wider">
             LIFECYCLE FLOW TIMELINE (GIT + AUDIT ENGINE)
           </h4>
@@ -132,11 +132,11 @@ export const FlowTimeline: React.FC<FlowTimelineProps> = ({
                 <div className="flex flex-col items-center flex-1 min-w-[90px] text-center">
                   <div
                     className={`w-6 h-6 flex items-center justify-center text-[10px] font-mono font-bold transition-all border ${st.isStalled
-                        ? 'bg-[#ea580c] text-background border-[#ea580c] animate-blink'
+                        ? 'bg-[#B497CF] text-background border-[#B497CF] animate-blink'
                         : st.isComplete
                           ? 'bg-foreground text-background border-foreground'
                           : st.isActive
-                            ? 'bg-[#ea580c]/20 text-[#ea580c] border-[#ea580c]'
+                            ? 'bg-[#B497CF]/20 text-[#B497CF] border-[#B497CF]'
                             : 'bg-[#141414] text-muted-foreground border-border'
                       }`}
                   >
@@ -150,7 +150,7 @@ export const FlowTimeline: React.FC<FlowTimelineProps> = ({
                   {/* Stage Duration Chip */}
                   <span
                     className={`text-[9px] font-mono mt-0.5 px-1 py-0.2 border uppercase ${st.isStalled
-                        ? 'bg-[#ea580c] text-background border-[#ea580c] font-bold'
+                        ? 'bg-[#B497CF] text-background border-[#B497CF] font-bold'
                         : 'bg-black text-muted-foreground border-border'
                       }`}
                   >
@@ -161,9 +161,9 @@ export const FlowTimeline: React.FC<FlowTimelineProps> = ({
                   {st.isStalled && (
                     <div
                       onClick={() => onOpenFlag && flowMetrics.stalled_flag_id && onOpenFlag(flowMetrics.stalled_flag_id)}
-                      className="mt-2 p-1.5 bg-[#ea580c]/15 border-2 border-[#ea580c] text-foreground text-[9px] font-mono leading-tight cursor-pointer hover:bg-[#ea580c]/25 transition-all text-left"
+                      className="mt-2 p-1.5 bg-[#B497CF]/15 border-2 border-[#B497CF] text-foreground text-[9px] font-mono leading-tight cursor-pointer hover:bg-[#B497CF]/25 transition-all text-left"
                     >
-                      <div className="flex items-center gap-1 font-bold text-[#ea580c] uppercase">
+                      <div className="flex items-center gap-1 font-bold text-[#B497CF] uppercase">
                         <AlertTriangle className="w-3 h-3 shrink-0" />
                         <span>STALLED BOTTLENECK</span>
                       </div>

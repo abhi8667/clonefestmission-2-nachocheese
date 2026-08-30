@@ -33,7 +33,7 @@ export const CyberPetAvatar: React.FC = () => {
         return '#eab308'; // Amber
       case 'idle':
       default:
-        return '#ea580c'; // Neon Orange
+        return '#B497CF'; // Neon Orange
     }
   };
 

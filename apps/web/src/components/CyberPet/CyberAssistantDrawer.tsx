@@ -64,7 +64,7 @@ export const CyberAssistantDrawer: React.FC = () => {
       id: 'duplicate_radar',
       label: 'DUPLICATE RADAR',
       desc: 'Scan issues for vector embedding matches',
-      icon: <Layers className="w-3 h-3 text-[#ea580c]" />
+      icon: <Layers className="w-3 h-3 text-[#B497CF]" />
     },
     {
       id: 'bottleneck_analysis',
@@ -100,12 +100,12 @@ export const CyberAssistantDrawer: React.FC = () => {
       <div
         ref={drawerRef}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg h-full bg-[#0a0a0a] border-l-2 border-[#ea580c] shadow-2xl flex flex-col justify-between text-foreground animate-in slide-in-from-right duration-200"
+        className="w-full max-w-lg h-full bg-[#0a0a0a] border-l-2 border-[#B497CF] shadow-2xl flex flex-col justify-between text-foreground animate-in slide-in-from-right duration-200"
       >
         {/* Terminal Header */}
         <div className="p-3.5 bg-[#121212] border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className={`w-7 h-7 ${skin === 'lizard' ? 'bg-[#22c55e]' : 'bg-[#ea580c]'} text-black font-bold flex items-center justify-center rounded-xs`}>
+            <div className={`w-7 h-7 ${skin === 'lizard' ? 'bg-[#22c55e]' : 'bg-[#B497CF]'} text-black font-bold flex items-center justify-center rounded-xs`}>
               {skin === 'lizard' ? <span className="text-base">🦎</span> : <Bot className="w-4 h-4 text-black" />}
             </div>
             <div>
@@ -132,7 +132,7 @@ export const CyberAssistantDrawer: React.FC = () => {
               title={soundEnabled ? 'Mute' : 'Unmute'}
             >
               {soundEnabled ? (
-                <Volume2 className={`w-3.5 h-3.5 ${skin === 'lizard' ? 'text-[#22c55e]' : 'text-[#ea580c]'}`} />
+                <Volume2 className={`w-3.5 h-3.5 ${skin === 'lizard' ? 'text-[#22c55e]' : 'text-[#B497CF]'}`} />
               ) : (
                 <VolumeX className="w-3.5 h-3.5" />
               )}
@@ -173,7 +173,7 @@ export const CyberAssistantDrawer: React.FC = () => {
               onClick={() => setSkin('drone')}
               className={`px-2 py-0.5 border rounded-xs transition-all uppercase font-bold flex items-center gap-1 ${
                 skin === 'drone'
-                  ? 'bg-orange-950 text-[#ea580c] border-[#ea580c] shadow-xs'
+                  ? 'bg-orange-950 text-[#B497CF] border-[#B497CF] shadow-xs'
                   : 'bg-[#181818] text-muted-foreground border-border hover:border-foreground'
               }`}
             >
@@ -205,7 +205,7 @@ export const CyberAssistantDrawer: React.FC = () => {
               <button
                 key={act.id}
                 onClick={() => runAssistantAction(act.id as any)}
-                className="px-2 py-1 bg-[#181818] hover:bg-[#222222] border border-border hover:border-[#ea580c] text-[10px] uppercase font-bold text-foreground flex items-center gap-1.5 transition-all rounded-xs shadow-xs"
+                className="px-2 py-1 bg-[#181818] hover:bg-[#222222] border border-border hover:border-[#B497CF] text-[10px] uppercase font-bold text-foreground flex items-center gap-1.5 transition-all rounded-xs shadow-xs"
               >
                 {act.icon}
                 <span>{act.label}</span>
@@ -225,7 +225,7 @@ export const CyberAssistantDrawer: React.FC = () => {
                 {msg.sender === 'user' ? (
                   <span>YOU // OPERATOR</span>
                 ) : (
-                  <span className="text-[#ea580c] font-bold flex items-center gap-1">
+                  <span className="text-[#B497CF] font-bold flex items-center gap-1">
                     <Sparkles className="w-2.5 h-2.5" />
                     BYTE SENTINEL
                   </span>
@@ -237,7 +237,7 @@ export const CyberAssistantDrawer: React.FC = () => {
                 className={`p-3 rounded-xs max-w-[90%] whitespace-pre-wrap leading-relaxed ${
                   msg.sender === 'user'
                     ? 'bg-[#181818] border border-border text-foreground font-mono'
-                    : 'bg-[#111111] border border-[#ea580c]/50 text-foreground shadow-md'
+                    : 'bg-[#111111] border border-[#B497CF]/50 text-foreground shadow-md'
                 }`}
               >
                 {msg.text}
@@ -250,19 +250,19 @@ export const CyberAssistantDrawer: React.FC = () => {
         {/* Command Line Input Footer */}
         <form onSubmit={handleSend} className="p-3 bg-[#121212] border-t border-border flex items-center gap-2">
           <div className="relative flex-1">
-            <span className="absolute left-2.5 top-2.5 text-[#ea580c] font-bold text-xs">&gt;</span>
+            <span className="absolute left-2.5 top-2.5 text-[#B497CF] font-bold text-xs">&gt;</span>
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask Byte anything... (e.g. 'Show stalled reviews', 'Check duplicates')"
-              className="w-full pl-6 pr-3 py-2 bg-[#080808] border border-border focus:border-[#ea580c] text-foreground text-xs font-mono outline-none rounded-xs uppercase"
+              className="w-full pl-6 pr-3 py-2 bg-[#080808] border border-border focus:border-[#B497CF] text-foreground text-xs font-mono outline-none rounded-xs uppercase"
             />
           </div>
           <button
             type="submit"
             disabled={!input.trim()}
-            className="px-3.5 py-2 bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold text-xs uppercase flex items-center gap-1.5 transition-all rounded-xs disabled:opacity-40 shadow-sm"
+            className="px-3.5 py-2 bg-[#B497CF] hover:bg-[#c2410c] text-white font-bold text-xs uppercase flex items-center gap-1.5 transition-all rounded-xs disabled:opacity-40 shadow-sm"
           >
             <Send className="w-3.5 h-3.5" />
             <span>SEND</span>

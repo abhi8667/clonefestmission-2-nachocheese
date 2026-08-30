@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,15 +7,17 @@
 
 @layer base {
   :root {
-    --bg: #080808;
+    --bg: #070512;
     --fg: #F2F1EA;
-    --border: rgba(242, 241, 234, 0.2);
-    --accent-orange: #ea580c;
+    --border: rgba(180, 151, 207, 0.25);
+    --accent-purple: #5227FF;
+    --accent-pink: #FF9FFC;
+    --accent-lavender: #B497CF;
   }
 
   body {
-    @apply bg-[#080808] text-[#F2F1EA] font-mono antialiased overflow-x-hidden selection:bg-[#ea580c] selection:text-[#080808];
-    background-color: #080808;
+    @apply bg-[#070512] text-[#F2F1EA] font-mono antialiased overflow-x-hidden selection:bg-[#FF9FFC] selection:text-[#070512];
+    background-color: #070512;
   }
 
   /* Crisp Brutalist Scrollbar */
@@ -23,68 +26,68 @@
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #080808;
-    border-left: 1px solid rgba(242, 241, 234, 0.1);
+    background: #070512;
+    border-left: 1px solid rgba(180, 151, 207, 0.15);
   }
   ::-webkit-scrollbar-thumb {
-    background: #2a2a2a;
-    border: 1px solid rgba(242, 241, 234, 0.2);
+    background: #140E33;
+    border: 1px solid rgba(180, 151, 207, 0.3);
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #ea580c;
+    background: #5227FF;
   }
 }
 
 /* Mathematical Dot Grid Matrix */
 .dot-grid-bg {
-  background-color: #080808;
-  background-image: radial-gradient(circle, rgba(242, 241, 234, 0.12) 1px, transparent 1px);
+  background-color: #070512;
+  background-image: radial-gradient(circle, rgba(180, 151, 207, 0.18) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
 /* Brutalist 2px Borders & Cards */
 .brutalist-card {
-  background: #0d0d0d;
-  border: 2px solid rgba(242, 241, 234, 0.25);
-  box-shadow: 4px 4px 0px 0px rgba(242, 241, 234, 0.08);
+  background: #0D0922;
+  border: 2px solid rgba(180, 151, 207, 0.3);
+  box-shadow: 4px 4px 0px 0px rgba(82, 39, 255, 0.25);
   transition: all 0.15s ease;
 }
 .brutalist-card:hover {
-  border-color: rgba(242, 241, 234, 0.5);
-  box-shadow: 4px 4px 0px 0px rgba(234, 88, 12, 0.4);
+  border-color: #B497CF;
+  box-shadow: 4px 4px 0px 0px rgba(255, 159, 252, 0.45);
 }
 
 .brutalist-card-orange {
-  background: #0d0d0d;
-  border: 2px solid #ea580c;
-  box-shadow: 4px 4px 0px 0px rgba(234, 88, 12, 0.35);
+  background: #0D0922;
+  border: 2px solid #5227FF;
+  box-shadow: 4px 4px 0px 0px rgba(255, 159, 252, 0.35);
 }
 
 .brutalist-header {
-  border-bottom: 2px solid rgba(242, 241, 234, 0.2);
+  border-bottom: 2px solid rgba(180, 151, 207, 0.25);
   padding: 0.5rem 1rem;
-  background: #121212;
+  background: #140E33;
 }
 
 /* Split Icon Action Button */
 .brutalist-btn {
   display: inline-flex;
   align-items: stretch;
-  background: #F2F1EA;
-  color: #080808;
+  background: #5227FF;
+  color: #FFFFFF;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  border: 2px solid #F2F1EA;
+  border: 2px solid #5227FF;
   transition: all 0.15s ease;
   cursor: pointer;
   user-select: none;
 }
 .brutalist-btn:hover {
-  background: #ffffff;
-  box-shadow: 3px 3px 0px 0px #ea580c;
+  background: #6238FF;
+  box-shadow: 3px 3px 0px 0px #FF9FFC;
   transform: translate(-1px, -1px);
 }
 .brutalist-btn:active {
@@ -96,14 +99,22 @@
   align-items: center;
   justify-content: center;
   padding: 0.5rem 0.65rem;
-  background: #ea580c;
-  color: #F2F1EA;
-  border-right: 2px solid #F2F1EA;
+  background: #FF9FFC;
+  color: #070512;
+  border-right: 2px solid #5227FF;
 }
+
 .brutalist-btn .btn-text-block {
   display: flex;
   align-items: center;
   padding: 0.5rem 0.85rem;
+}
+
+.cinzel {
+  font-family: "Cinzel", serif;
+  font-optical-sizing: auto;
+  font-weight: 100;
+  font-style: normal;
 }
 
 /* Secondary Brutalist Outline Button */
@@ -119,14 +130,15 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  border: 2px solid rgba(242, 241, 234, 0.3);
+  border: 2px solid rgba(180, 151, 207, 0.4);
   transition: all 0.15s ease;
   cursor: pointer;
 }
 .brutalist-btn-secondary:hover {
-  background: rgba(242, 241, 234, 0.08);
-  border-color: #F2F1EA;
-  box-shadow: 2px 2px 0px 0px #F2F1EA;
+  background: rgba(82, 39, 255, 0.15);
+  border-color: #FF9FFC;
+  color: #FF9FFC;
+  box-shadow: 2px 2px 0px 0px #FF9FFC;
 }
 
 /* Brutalist Badge & Tag */
@@ -139,9 +151,9 @@
   font-family: 'JetBrains Mono', monospace;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  border: 1px solid rgba(242, 241, 234, 0.25);
-  background: #111111;
-  color: #F2F1EA;
+  border: 1px solid rgba(180, 151, 207, 0.3);
+  background: #140E33;
+  color: #FF9FFC;
 }
 
 /* Blinking Cursor Animation */

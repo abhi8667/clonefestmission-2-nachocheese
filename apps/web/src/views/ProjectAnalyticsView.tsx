@@ -77,7 +77,7 @@ export const ProjectAnalyticsView: React.FC = () => {
             to={`/projects/${key}/analytics`}
             className="py-3 px-4 font-bold border-b-2 border-foreground text-foreground flex items-center gap-2 uppercase"
           >
-            <TrendingUp className="w-4 h-4 text-[#ea580c]" />
+            <TrendingUp className="w-4 h-4 text-[#B497CF]" />
             <span>FLOW ANALYTICS</span>
           </Link>
 

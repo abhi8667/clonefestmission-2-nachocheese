@@ -127,7 +127,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         {/* Window Header */}
         <div className="flex items-center justify-between px-4 py-2 bg-[#121212] border-b border-border text-[10px]">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 bg-[#ea580c] rounded-full" />
+            <span className="h-2 w-2 bg-[#B497CF] rounded-full" />
             <span className="font-bold uppercase tracking-wider text-foreground">COMMAND PALETTE (CTRL+K)</span>
           </div>
           <span className="text-muted-foreground uppercase">[ESC TO CLOSE]</span>
@@ -218,7 +218,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   <span className="px-1.5 py-0.2 bg-black text-[9px] border border-border uppercase">
                     {bug.component_id}
                   </span>
-                  <span className="px-1.5 py-0.2 bg-[#ea580c] text-background text-[9px] font-bold uppercase">
+                  <span className="px-1.5 py-0.2 bg-[#B497CF] text-background text-[9px] font-bold uppercase">
                     {bug.status}
                   </span>
                 </div>

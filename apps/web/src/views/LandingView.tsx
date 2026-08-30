@@ -31,7 +31,7 @@ export const LandingView: React.FC = () => {
 
   return (
     <GlowCursor
-      color="#ea580c"
+      color="#B497CF"
       secondaryColor="#f59e0b"
       trailLength={40}
       trailWidth={8}
@@ -40,7 +40,7 @@ export const LandingView: React.FC = () => {
       hotspot={0.7}
       brightness={1.25}
       blendMode="screen"
-      className="min-h-screen bg-[#080808] text-[#F2F1EA] font-mono selection:bg-[#ea580c] selection:text-[#080808] relative overflow-x-hidden"
+      className="min-h-screen bg-[#080808] text-[#F2F1EA] font-mono selection:bg-[#B497CF] selection:text-[#080808] relative overflow-x-hidden"
     >
       {/* Top Header / Navigation Bar */}
       <header className="sticky top-0 z-40 bg-[#080808]/90 backdrop-blur-md border-b-2 border-border/40 px-4 sm:px-8 py-3.5 flex items-center justify-between">
@@ -52,7 +52,7 @@ export const LandingView: React.FC = () => {
             <span className="text-base font-black tracking-widest uppercase text-foreground">
               TRIARC
             </span>
-            <span className="text-[10px] text-[#ea580c] font-bold tracking-widest uppercase hidden sm:inline-block">
+            <span className="text-[10px] text-[#B497CF] font-bold tracking-widest uppercase hidden sm:inline-block">
               SYSTEM v3.2
             </span>
           </div>
@@ -85,14 +85,24 @@ export const LandingView: React.FC = () => {
           </a>
 
           <Link
+<<<<<<< HEAD
             to="/workspace"
             className="px-3 py-1.5 bg-[#121212] hover:bg-[#ea580c] text-foreground hover:text-black border border-border hover:border-[#ea580c] text-xs font-bold uppercase transition-all rounded-xs focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
+=======
+            to="/login?from=/workspace&demo=alex"
+            className="px-3 py-1.5 bg-[#121212] hover:bg-[#1a1a1a] text-foreground border border-border hover:border-foreground text-xs font-bold uppercase transition-all rounded-xs focus-visible:ring-2 focus-visible:ring-[#B497CF] outline-none"
+>>>>>>> 4a521e3 (UI Changes)
           >
             Workspace
           </Link>
           <Link
+<<<<<<< HEAD
             to="/login"
             className="px-3.5 py-1.5 bg-foreground text-background hover:bg-white text-xs font-bold uppercase tracking-wider transition-all rounded-xs shadow-sm focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none flex items-center gap-1.5"
+=======
+            to="/login?from=/workspace"
+            className="px-3.5 py-1.5 bg-foreground text-background hover:bg-white text-xs font-bold uppercase tracking-wider transition-all rounded-xs shadow-sm focus-visible:ring-2 focus-visible:ring-[#B497CF] outline-none flex items-center gap-1.5"
+>>>>>>> 4a521e3 (UI Changes)
           >
             <span>Sign In</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -109,8 +119,8 @@ export const LandingView: React.FC = () => {
           className="min-h-[82vh] sm:min-h-[88vh] flex flex-col items-center justify-center text-center space-y-8 py-12 relative"
         >
           <div className="space-y-6 max-w-4xl mx-auto flex flex-col items-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#121212] border border-border text-[11px] font-bold text-[#ea580c] uppercase rounded-xs tracking-widest">
-              <Activity className="w-3.5 h-3.5 animate-pulse text-[#ea580c]" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#121212] border border-border text-[11px] font-bold text-[#B497CF] uppercase rounded-xs tracking-widest">
+              <Activity className="w-3.5 h-3.5 animate-pulse text-[#B497CF]" />
               <span>DEFECT TELEMETRY &amp; FLOW MATRIX</span>
             </div>
 
@@ -135,7 +145,7 @@ export const LandingView: React.FC = () => {
 
             <p className="text-sm sm:text-base md:text-lg text-muted-foreground leading-relaxed max-w-2xl">
               Bugzilla tracked where a bug is.{' '}
-              <span className="text-[#ea580c] font-bold">
+              <span className="text-[#B497CF] font-bold">
                 Triarc tracks how fast it&apos;s moving and why it&apos;s stuck
               </span>{' '}
               — by connecting the tracker to the code.
@@ -144,19 +154,32 @@ export const LandingView: React.FC = () => {
             {/* Central Action Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 w-full max-w-md">
               <Link
+<<<<<<< HEAD
                 to="/workspace"
                 className="w-full sm:w-auto px-8 py-4 bg-foreground text-background hover:bg-white text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2.5 transition-all rounded-xs shadow-lg focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
+=======
+                to="/login?from=/workspace&demo=alex"
+                className="w-full sm:w-auto px-8 py-4 bg-foreground text-background hover:bg-white text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2.5 transition-all rounded-xs shadow-lg focus-visible:ring-2 focus-visible:ring-[#B497CF] outline-none"
+>>>>>>> 4a521e3 (UI Changes)
               >
                 <span>LAUNCH WORKSPACE</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
 
               <Link
+<<<<<<< HEAD
                 to="/login"
                 className="w-full sm:w-auto px-8 py-4 bg-[#121212] hover:bg-[#1a1a1a] text-foreground border-2 border-border hover:border-[#ea580c] text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all rounded-xs focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
               >
                 <span>SIGN IN / OPERATORS</span>
                 <ChevronRight className="w-4 h-4 text-[#ea580c]" />
+=======
+                to="/login?from=/workspace"
+                className="w-full sm:w-auto px-8 py-4 bg-[#121212] hover:bg-[#1a1a1a] text-foreground border-2 border-border hover:border-[#B497CF] text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all rounded-xs focus-visible:ring-2 focus-visible:ring-[#B497CF] outline-none"
+              >
+                <span>SIGN IN</span>
+                <ChevronRight className="w-4 h-4 text-[#B497CF]" />
+>>>>>>> 4a521e3 (UI Changes)
               </Link>
             </div>
           </div>
@@ -168,7 +191,7 @@ export const LandingView: React.FC = () => {
             className="pt-8 text-[11px] text-muted-foreground hover:text-foreground uppercase tracking-widest flex items-center gap-1.5 transition-colors font-mono"
           >
             <span>INSPECT TELEMETRY ARCHITECTURE</span>
-            <ChevronRight className="w-3.5 h-3.5 rotate-90 text-[#ea580c]" />
+            <ChevronRight className="w-3.5 h-3.5 rotate-90 text-[#B497CF]" />
           </a>
         </section>
 
@@ -179,7 +202,7 @@ export const LandingView: React.FC = () => {
           <div className="brutalist-card p-4 sm:p-6 bg-[#0d0d0d] border-2 border-border shadow-brutalist rounded-xs space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-3 flex-wrap gap-2">
               <div className="flex items-center gap-2 font-mono text-xs">
-                <span className="px-2 py-0.5 bg-[#ea580c] text-background font-black uppercase rounded-xs">
+                <span className="px-2 py-0.5 bg-[#B497CF] text-background font-black uppercase rounded-xs">
                   CORE-412
                 </span>
                 <span className="font-bold text-foreground uppercase truncate max-w-xs sm:max-w-md">
@@ -238,7 +261,7 @@ export const LandingView: React.FC = () => {
             {/* Telemetry Metric Summary Row */}
             <div className="pt-2 flex flex-wrap items-center justify-between gap-3 text-[11px] text-muted-foreground font-mono">
               <div className="flex items-center gap-2">
-                <GitPullRequest className="w-3.5 h-3.5 text-[#ea580c]" />
+                <GitPullRequest className="w-3.5 h-3.5 text-[#B497CF]" />
                 <span>GITHUB WEBHOOK INTEGRATION: <code className="text-foreground">github.com/triarc/core</code></span>
               </div>
               <div className="flex items-center gap-4">
@@ -254,7 +277,7 @@ export const LandingView: React.FC = () => {
         {/* ========================================================================= */}
         <section id="problem" aria-labelledby="problem-heading" className="space-y-6">
           <div className="space-y-2">
-            <span className="text-[10px] text-[#ea580c] font-bold tracking-widest uppercase block">
+            <span className="text-[10px] text-[#B497CF] font-bold tracking-widest uppercase block">
               PARADIGM COMPARISON
             </span>
             <h2 id="problem-heading" className="text-xl sm:text-3xl font-black text-foreground uppercase tracking-tight">
@@ -311,10 +334,10 @@ export const LandingView: React.FC = () => {
             </div>
 
             {/* Column 3: Triarc */}
-            <div className="brutalist-card-orange p-6 bg-[#0d0d0d] border-2 border-[#ea580c] rounded-xs space-y-4 shadow-brutalist">
-              <div className="flex items-center justify-between border-b border-[#ea580c]/40 pb-3">
-                <span className="text-xs font-black text-[#ea580c] uppercase">03 / TRIARC TELEMETRY</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 bg-[#ea580c] text-background font-black uppercase rounded-xs">
+            <div className="brutalist-card-orange p-6 bg-[#0d0d0d] border-2 border-[#B497CF] rounded-xs space-y-4 shadow-brutalist">
+              <div className="flex items-center justify-between border-b border-[#B497CF]/40 pb-3">
+                <span className="text-xs font-black text-[#B497CF] uppercase">03 / TRIARC TELEMETRY</span>
+                <span className="text-[10px] font-mono px-2 py-0.5 bg-[#B497CF] text-background font-black uppercase rounded-xs">
                   Code-Coupled
                 </span>
               </div>
@@ -326,8 +349,8 @@ export const LandingView: React.FC = () => {
                   Measures actual stage-by-stage cycle times via automated webhook transitions, highlighting quiet branches, stalled reviews, and typed approval blocks.
                 </p>
               </div>
-              <div className="p-3 bg-[#120a05] border border-[#ea580c]/60 text-[11px] font-mono text-foreground uppercase">
-                <span className="text-[#ea580c] font-bold block mb-0.5">Primary Metric:</span>
+              <div className="p-3 bg-[#120a05] border border-[#B497CF]/60 text-[11px] font-mono text-foreground uppercase">
+                <span className="text-[#B497CF] font-bold block mb-0.5">Primary Metric:</span>
                 Stage duration & review stall latency
               </div>
             </div>
@@ -339,7 +362,7 @@ export const LandingView: React.FC = () => {
         {/* ========================================================================= */}
         <section id="features" aria-labelledby="features-heading" className="space-y-6">
           <div className="space-y-2">
-            <span className="text-[10px] text-[#ea580c] font-bold tracking-widest uppercase block">
+            <span className="text-[10px] text-[#B497CF] font-bold tracking-widest uppercase block">
               CORE CAPABILITIES
             </span>
             <h2 id="features-heading" className="text-xl sm:text-3xl font-black text-foreground uppercase tracking-tight">
@@ -403,7 +426,7 @@ export const LandingView: React.FC = () => {
                     2. Request Inbox
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Typed, role-gated requests (<code className="text-[#ea580c]">review?</code>, <code className="text-blue-400">needinfo?</code>, <code className="text-purple-400">approval+</code>) structured into incoming actions and outgoing blockers.
+                    Typed, role-gated requests (<code className="text-[#B497CF]">review?</code>, <code className="text-blue-400">needinfo?</code>, <code className="text-purple-400">approval+</code>) structured into incoming actions and outgoing blockers.
                   </p>
                 </div>
 
@@ -437,7 +460,7 @@ export const LandingView: React.FC = () => {
             <article className="brutalist-card p-6 bg-[#0d0d0d] border-2 border-border rounded-xs flex flex-col justify-between space-y-6">
               <div className="space-y-4">
                 <div className="w-10 h-10 bg-foreground text-background flex items-center justify-center font-bold rounded-xs">
-                  <Radio className="w-5 h-5 text-[#ea580c]" />
+                  <Radio className="w-5 h-5 text-[#B497CF]" />
                 </div>
                 <div className="space-y-1.5">
                   <h3 className="text-base font-bold text-foreground uppercase">
@@ -480,7 +503,7 @@ export const LandingView: React.FC = () => {
         {/* ========================================================================= */}
         <section id="how-it-works" aria-labelledby="pipeline-heading" className="space-y-6">
           <div className="space-y-2">
-            <span className="text-[10px] text-[#ea580c] font-bold tracking-widest uppercase block">
+            <span className="text-[10px] text-[#B497CF] font-bold tracking-widest uppercase block">
               EXECUTION PIPELINE
             </span>
             <h2 id="pipeline-heading" className="text-xl sm:text-3xl font-black text-foreground uppercase tracking-tight">
@@ -520,7 +543,7 @@ export const LandingView: React.FC = () => {
                 2. Triage & Assign
               </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Triager verifies component, priority, and milestone. Issues typed flags (<code className="text-[#ea580c]">needinfo?</code>) if repro steps are missing.
+                Triager verifies component, priority, and milestone. Issues typed flags (<code className="text-[#B497CF]">needinfo?</code>) if repro steps are missing.
               </p>
             </div>
 
@@ -528,7 +551,7 @@ export const LandingView: React.FC = () => {
             <div className="brutalist-card p-5 bg-[#0d0d0d] border-2 border-border rounded-xs space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-2xl font-black text-muted-foreground">03</span>
-                <span className="px-2 py-0.5 bg-[#ea580c] text-[10px] font-black text-background uppercase rounded-xs">
+                <span className="px-2 py-0.5 bg-[#B497CF] text-[10px] font-black text-background uppercase rounded-xs">
                   AUTOMATED
                 </span>
               </div>
@@ -563,7 +586,7 @@ export const LandingView: React.FC = () => {
         {/* ========================================================================= */}
         <section id="stack" aria-labelledby="stack-heading" className="space-y-6">
           <div className="space-y-2">
-            <span className="text-[10px] text-[#ea580c] font-bold tracking-widest uppercase block">
+            <span className="text-[10px] text-[#B497CF] font-bold tracking-widest uppercase block">
               ARCHITECTURE SPECIFICATION
             </span>
             <h2 id="stack-heading" className="text-xl sm:text-3xl font-black text-foreground uppercase tracking-tight">
@@ -576,7 +599,7 @@ export const LandingView: React.FC = () => {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <div className="p-4 bg-[#0d0d0d] border border-border rounded-xs space-y-1.5">
-              <Code2 className="w-4 h-4 text-[#ea580c]" />
+              <Code2 className="w-4 h-4 text-[#B497CF]" />
               <span className="text-xs font-bold text-foreground uppercase block">React 18 + Vite</span>
               <span className="text-[10px] text-muted-foreground uppercase block">TypeScript UI</span>
             </div>
@@ -588,7 +611,7 @@ export const LandingView: React.FC = () => {
             </div>
 
             <div className="p-4 bg-[#0d0d0d] border border-border rounded-xs space-y-1.5">
-              <Terminal className="w-4 h-4 text-[#ea580c]" />
+              <Terminal className="w-4 h-4 text-[#B497CF]" />
               <span className="text-xs font-bold text-foreground uppercase block">Express + TS</span>
               <span className="text-[10px] text-muted-foreground uppercase block">Node.js API</span>
             </div>
@@ -600,7 +623,7 @@ export const LandingView: React.FC = () => {
             </div>
 
             <div className="p-4 bg-[#0d0d0d] border border-border rounded-xs space-y-1.5">
-              <Radio className="w-4 h-4 text-[#ea580c]" />
+              <Radio className="w-4 h-4 text-[#B497CF]" />
               <span className="text-xs font-bold text-foreground uppercase block">SSE Stream</span>
               <span className="text-[10px] text-muted-foreground uppercase block">Live Telemetry</span>
             </div>
@@ -632,13 +655,13 @@ export const LandingView: React.FC = () => {
           <div className="flex items-center gap-6">
             <Link
               to="/login?from=/workspace"
-              className="text-foreground hover:text-[#ea580c] font-bold uppercase transition-colors"
+              className="text-foreground hover:text-[#B497CF] font-bold uppercase transition-colors"
             >
               Sign In
             </Link>
             <Link
               to="/login?from=/workspace&demo=alex"
-              className="text-foreground hover:text-[#ea580c] font-bold uppercase transition-colors"
+              className="text-foreground hover:text-[#B497CF] font-bold uppercase transition-colors"
             >
               Demo Access
             </Link>

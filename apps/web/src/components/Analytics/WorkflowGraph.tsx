@@ -26,9 +26,9 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
   // Position nodes in a 2-tier layout
   const nodes: NodeLayout[] = [
     { id: 'Unconfirmed', x: 70, y: 70, label: 'UNCONFIRMED', color: '#737373' },
-    { id: 'Confirmed', x: 230, y: 70, label: 'CONFIRMED', color: '#ea580c' },
+    { id: 'Confirmed', x: 230, y: 70, label: 'CONFIRMED', color: '#B497CF' },
     { id: 'In Progress', x: 390, y: 70, label: 'IN PROGRESS', color: '#f59e0b' },
-    { id: 'In Review', x: 550, y: 70, label: 'IN REVIEW', color: '#ea580c' },
+    { id: 'In Review', x: 550, y: 70, label: 'IN REVIEW', color: '#B497CF' },
     { id: 'Resolved', x: 710, y: 70, label: 'RESOLVED', color: '#10b981' },
     { id: 'Verified', x: 870, y: 70, label: 'VERIFIED', color: '#059669' },
     { id: 'Closed', x: 990, y: 70, label: 'CLOSED', color: '#525252' },
@@ -68,7 +68,7 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h3 className="text-xs font-bold font-mono text-foreground uppercase tracking-wider flex items-center gap-2">
-            <GitBranch className="w-4 h-4 text-[#ea580c]" />
+            <GitBranch className="w-4 h-4 text-[#B497CF]" />
             <span>// WORKFLOW FINITE STATE MACHINE ENGINE</span>
           </h3>
           <p className="text-[10px] font-mono text-muted-foreground uppercase">
@@ -81,7 +81,7 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
             <span className="w-2 h-2 bg-foreground" /> ACTIVE STATE
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 bg-[#ea580c]" /> GUARDED TRANSITION
+            <span className="w-2 h-2 bg-[#B497CF]" /> GUARDED TRANSITION
           </span>
         </div>
       </div>
@@ -110,7 +110,7 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
               markerHeight="6"
               orient="auto-start-reverse"
             >
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#ea580c" />
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#B497CF" />
             </marker>
           </defs>
 
@@ -126,7 +126,7 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
                 <path
                   d={path}
                   fill="none"
-                  stroke={isHovered ? '#ea580c' : '#262626'}
+                  stroke={isHovered ? '#B497CF' : '#262626'}
                   strokeWidth={isHovered ? 2.5 : 1.5}
                   strokeDasharray={t.guards ? '4 3' : undefined}
                   markerEnd={isHovered ? 'url(#arrow-active)' : 'url(#arrow)'}
@@ -159,7 +159,7 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
                   height="44"
                   rx="0"
                   fill={isHovered || isSelected ? '#080808' : '#0d0d0d'}
-                  stroke={isSelected ? '#F2F1EA' : isHovered ? '#ea580c' : isConnected ? '#ea580c' : '#262626'}
+                  stroke={isSelected ? '#F2F1EA' : isHovered ? '#B497CF' : isConnected ? '#B497CF' : '#262626'}
                   strokeWidth={isSelected || isHovered ? 2.5 : 1.5}
                   className="transition-all"
                 />
@@ -169,7 +169,7 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
                   x="0"
                   y="4"
                   textAnchor="middle"
-                  fill={isSelected ? '#FFFFFF' : isHovered ? '#ea580c' : '#F2F1EA'}
+                  fill={isSelected ? '#FFFFFF' : isHovered ? '#B497CF' : '#F2F1EA'}
                   fontSize="10"
                   fontWeight="bold"
                   fontFamily="JetBrains Mono, monospace"
@@ -197,7 +197,7 @@ export const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
               >
                 <span>→ {t.to}</span>
                 {t.guards && (
-                  <span className="px-1 py-0.2 bg-[#ea580c] text-background font-bold text-[9px]">
+                  <span className="px-1 py-0.2 bg-[#B497CF] text-background font-bold text-[9px]">
                     GUARDED
                   </span>
                 )}

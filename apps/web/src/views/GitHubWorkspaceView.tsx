@@ -149,9 +149,9 @@ export const GitHubWorkspaceView: React.FC = () => {
           </div>
           <Link
             to="/projects"
-            className="flex items-center gap-1.5 px-3 py-2 bg-[#121212] border border-border hover:border-[#ea580c] text-[10px] font-bold uppercase tracking-widest transition-colors focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
+            className="flex items-center gap-1.5 px-3 py-2 bg-[#121212] border border-border hover:border-[#B497CF] text-[10px] font-bold uppercase tracking-widest transition-colors focus-visible:ring-2 focus-visible:ring-[#B497CF] outline-none"
           >
-            <Building2 className="w-3.5 h-3.5 text-[#ea580c]" />
+            <Building2 className="w-3.5 h-3.5 text-[#B497CF]" />
             Organization workspace
           </Link>
         </div>
@@ -306,7 +306,7 @@ export const GitHubWorkspaceView: React.FC = () => {
           <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
             @{selected.author_username} · {new Date(selected.created_at).toLocaleString()}
             {selected.bug_id && (
-              <> · <span className="text-[#ea580c] font-bold">linked to #{selected.bug_id}</span></>
+              <> · <span className="text-[#B497CF] font-bold">linked to #{selected.bug_id}</span></>
             )}
           </p>
         </section>

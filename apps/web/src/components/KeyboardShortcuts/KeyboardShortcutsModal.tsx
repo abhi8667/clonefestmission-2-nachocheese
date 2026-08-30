@@ -70,7 +70,7 @@ export const KeyboardShortcutsModal: React.FC<ShortcutsModalProps> = ({ isOpen, 
         {/* Brutalist Header */}
         <div className="flex items-center justify-between px-4 py-2 bg-[#121212] border-b-2 border-foreground text-[10px]">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 bg-[#ea580c]" />
+            <span className="h-2 w-2 bg-[#B497CF]" />
             <span className="h-2 w-2 bg-foreground" />
             <span className="font-bold uppercase tracking-wider">// REFERENCE // KEYBOARD_HOTKEYS</span>
           </div>
@@ -87,7 +87,7 @@ export const KeyboardShortcutsModal: React.FC<ShortcutsModalProps> = ({ isOpen, 
         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
           {SHORTCUTS.map((section) => (
             <div key={section.section} className="p-3 bg-[#0d0d0d] border-2 border-border space-y-2">
-              <h3 className="text-[9px] font-bold uppercase tracking-widest text-[#ea580c]">
+              <h3 className="text-[9px] font-bold uppercase tracking-widest text-[#B497CF]">
                 // {section.section}
               </h3>
               <div className="space-y-1.5">

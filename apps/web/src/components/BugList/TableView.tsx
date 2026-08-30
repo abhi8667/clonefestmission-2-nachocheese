@@ -116,7 +116,7 @@ export const TableView: React.FC<TableViewProps> = ({
       case 'Confirmed':
         return 'bg-foreground/10 text-foreground border-foreground/40';
       case 'In Progress':
-        return 'bg-[#ea580c]/15 text-[#ea580c] border-[#ea580c] font-bold';
+        return 'bg-[#B497CF]/15 text-[#B497CF] border-[#B497CF] font-bold';
       case 'In Review':
         return 'bg-purple-950 text-purple-300 border-purple-500 font-bold';
       case 'Resolved':
@@ -145,7 +145,7 @@ export const TableView: React.FC<TableViewProps> = ({
       case 'critical':
         return (
           <span title="Critical Threat" className="flex items-center justify-center">
-            <span className="w-2.5 h-2.5 bg-[#ea580c] inline-block" />
+            <span className="w-2.5 h-2.5 bg-[#B497CF] inline-block" />
           </span>
         );
       case 'major':
@@ -165,7 +165,7 @@ export const TableView: React.FC<TableViewProps> = ({
     switch (prio) {
       case 'highest':
         return (
-          <span className="text-[10px] font-mono font-bold text-background bg-[#ea580c] px-1.5 py-0.5 uppercase">
+          <span className="text-[10px] font-mono font-bold text-background bg-[#B497CF] px-1.5 py-0.5 uppercase">
             P1
           </span>
         );
@@ -203,7 +203,7 @@ export const TableView: React.FC<TableViewProps> = ({
             <div
               key={idx}
               style={{ height: `${heightPct}%` }}
-              className={`w-0.5 transition-all ${val > 0 ? 'bg-[#ea580c]' : 'bg-[#222222]'
+              className={`w-0.5 transition-all ${val > 0 ? 'bg-[#B497CF]' : 'bg-[#222222]'
                 }`}
             />
           );
@@ -216,9 +216,9 @@ export const TableView: React.FC<TableViewProps> = ({
     <div className="space-y-4">
       {/* Floating Bulk Action Bar */}
       {canTriage && selectedBugIds.length > 0 && (
-        <div className="p-3.5 bg-[#0d0d0d] border border-[#ea580c] shadow-lg flex items-center justify-between gap-4 animate-slide-up flex-wrap rounded-sm">
+        <div className="p-3.5 bg-[#0d0d0d] border border-[#B497CF] shadow-lg flex items-center justify-between gap-4 animate-slide-up flex-wrap rounded-sm">
           <div className="flex items-center gap-3">
-            <span className="px-2 py-0.5 bg-[#ea580c] text-background font-mono font-bold text-xs uppercase rounded-sm">
+            <span className="px-2 py-0.5 bg-[#B497CF] text-background font-mono font-bold text-xs uppercase rounded-sm">
               {selectedBugIds.length} SELECTED
             </span>
             <span className="text-xs font-mono uppercase text-foreground font-semibold">Bulk Transition Action:</span>
@@ -330,7 +330,7 @@ export const TableView: React.FC<TableViewProps> = ({
                     }}
                     aria-label={`Incident #${bug.id}: ${bug.title}`}
                     className={`group cursor-pointer transition-colors duration-150 focus:outline-none ${isSelected
-                        ? 'bg-foreground/15 border-l-4 border-l-[#ea580c]'
+                        ? 'bg-foreground/15 border-l-4 border-l-[#B497CF]'
                         : isChecked
                           ? 'bg-[#1a1a1a]'
                           : isFocused
@@ -338,7 +338,7 @@ export const TableView: React.FC<TableViewProps> = ({
                             : isConfidential
                               ? 'bg-purple-950/20 hover:bg-purple-950/40'
                               : isBug412Stalled
-                                ? 'bg-[#ea580c]/10 hover:bg-[#ea580c]/20'
+                                ? 'bg-[#B497CF]/10 hover:bg-[#B497CF]/20'
                                 : 'hover:bg-[#111111]'
                       }`}
                   >
@@ -346,7 +346,7 @@ export const TableView: React.FC<TableViewProps> = ({
                     {canTriage && (
                       <td className="py-2.5 px-3 text-center border-r border-border" onClick={(e) => handleToggleSelect(e, bug.id)}>
                         {isChecked ? (
-                          <CheckSquare className="w-3.5 h-3.5 text-[#ea580c] inline-block" />
+                          <CheckSquare className="w-3.5 h-3.5 text-[#B497CF] inline-block" />
                         ) : (
                           <Square className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground inline-block" />
                         )}
@@ -380,7 +380,7 @@ export const TableView: React.FC<TableViewProps> = ({
                           </span>
                         )}
 
-                        <span className="font-bold text-foreground group-hover:text-[#ea580c] transition-colors truncate">
+                        <span className="font-bold text-foreground group-hover:text-[#B497CF] transition-colors truncate">
                           {bug.title}
                         </span>
 
@@ -404,7 +404,7 @@ export const TableView: React.FC<TableViewProps> = ({
 
                         {/* Review Stall Badge */}
                         {isBug412Stalled && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.2 text-[9px] font-bold bg-[#ea580c] text-background uppercase animate-blink whitespace-nowrap shrink-0">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.2 text-[9px] font-bold bg-[#B497CF] text-background uppercase animate-blink whitespace-nowrap shrink-0">
                             [STALLED 4D // REVIEW?]
                           </span>
                         )}

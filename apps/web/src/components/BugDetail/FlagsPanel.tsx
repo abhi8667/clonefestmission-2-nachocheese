@@ -53,7 +53,7 @@ export const FlagsPanel: React.FC<FlagsPanelProps> = ({ bugId, flags, onRefresh 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case '?':
-        return 'bg-[#ea580c] text-background font-bold animate-blink';
+        return 'bg-[#B497CF] text-background font-bold animate-blink';
       case '+':
         return 'bg-emerald-600 text-black font-bold';
       case '-':
@@ -163,7 +163,7 @@ export const FlagsPanel: React.FC<FlagsPanelProps> = ({ bugId, flags, onRefresh 
                     </span>
                     {flag.requestee && (
                       <span className="text-muted-foreground uppercase text-[10px]">
-                        → <strong className="text-[#ea580c]">@{flag.requestee.username}</strong>
+                        → <strong className="text-[#B497CF]">@{flag.requestee.username}</strong>
                       </span>
                     )}
                   </div>

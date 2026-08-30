@@ -55,13 +55,13 @@ export const DigestBanner: React.FC<DigestBannerProps> = ({ onSelectBug }) => {
         {/* Left: Icon + Intelligence Briefing */}
         <div className="flex items-center gap-3.5">
           <div className="w-8 h-8 bg-foreground/10 text-foreground border border-border flex items-center justify-center font-mono font-bold shrink-0 rounded-sm">
-            <Radio className="w-4 h-4 text-[#ea580c]" />
+            <Radio className="w-4 h-4 text-[#B497CF]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-xs font-bold font-mono text-foreground uppercase tracking-wider flex items-center gap-2">
                 <span>ACTIVITY DIGEST ({digest.period_label.toUpperCase()})</span>
-                <span className="px-1.5 py-0.2 text-[10px] font-mono font-bold bg-[#ea580c] text-background rounded-sm">
+                <span className="px-1.5 py-0.2 text-[10px] font-mono font-bold bg-[#B497CF] text-background rounded-sm">
                   <AnimatedCounter value={digest.total_events} /> EVENTS
                 </span>
               </h3>
@@ -71,7 +71,7 @@ export const DigestBanner: React.FC<DigestBannerProps> = ({ onSelectBug }) => {
                 <strong><AnimatedCounter value={digest.status_changes_count} /></strong> TRANSITIONS
               </span>
               <span>·</span>
-              <span className="text-[#ea580c]">
+              <span className="text-[#B497CF]">
                 <strong><AnimatedCounter value={digest.new_flags_count} /></strong> REVIEW FLAGS
               </span>
               <span>·</span>
@@ -117,7 +117,7 @@ export const DigestBanner: React.FC<DigestBannerProps> = ({ onSelectBug }) => {
                 className="p-2 border border-border hover:border-foreground bg-[#111] cursor-pointer flex items-center justify-between transition-all"
               >
                 <div className="flex items-center gap-2 truncate">
-                  <span className="font-bold text-[#ea580c]">#{item.bug_id}</span>
+                  <span className="font-bold text-[#B497CF]">#{item.bug_id}</span>
                   <span className="truncate text-foreground font-medium uppercase">{item.bug_title}</span>
                 </div>
                 <span className="px-1.5 py-0.2 text-[9px] bg-black text-muted-foreground border border-border uppercase shrink-0">

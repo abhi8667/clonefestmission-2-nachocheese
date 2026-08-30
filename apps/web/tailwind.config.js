@@ -27,7 +27,7 @@ export default {
           foreground: '#8A8A8A'
         },
         accent: {
-          orange: '#ea580c',
+          orange: '#B497CF',
           amber: '#f59e0b',
           emerald: '#10b981',
           rose: '#ef4444',
@@ -40,7 +40,7 @@ export default {
           cardHover: '#141414',
           border: 'rgba(242, 241, 234, 0.2)',
           borderHover: 'rgba(234, 88, 12, 0.8)',
-          orange: '#ea580c',
+          orange: '#B497CF',
           neon: '#10b981',
           cyan: '#00e5ff',
           amber: '#f59e0b',
@@ -49,7 +49,7 @@ export default {
         },
         stalled: {
           bg: 'rgba(234, 88, 12, 0.12)',
-          border: '#ea580c',
+          border: '#B497CF',
           text: '#fb923c',
           glow: 'rgba(234, 88, 12, 0.35)'
         }
@@ -62,7 +62,7 @@ export default {
       },
       boxShadow: {
         'brutalist': '4px 4px 0px 0px rgba(242, 241, 234, 0.2)',
-        'brutalist-orange': '4px 4px 0px 0px #ea580c',
+        'brutalist-orange': '4px 4px 0px 0px #B497CF',
         'brutalist-white': '4px 4px 0px 0px #F2F1EA',
         'glow-orange': '0 0 25px -3px rgba(234, 88, 12, 0.45)',
         'glow-cyan': '0 0 25px -3px rgba(0, 229, 255, 0.4)',

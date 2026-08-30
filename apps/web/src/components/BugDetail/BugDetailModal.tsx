@@ -194,7 +194,7 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
         {/* Window Header */}
         <div className="flex items-center justify-between px-5 py-2.5 bg-[#121212] border-b border-border">
           <div className="flex items-center gap-2.5">
-            <span className="h-2 w-2 bg-[#ea580c] rounded-full" />
+            <span className="h-2 w-2 bg-[#B497CF] rounded-full" />
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-foreground">
               INCIDENT DOSSIER #{bugId}
             </span>
@@ -309,7 +309,7 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
               </div>
               <div className="p-3.5 border-r border-b sm:border-b-0 border-border">
                 <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">ASSIGNEE</span>
-                <span className="font-bold text-[#ea580c] mt-1 block uppercase">
+                <span className="font-bold text-[#B497CF] mt-1 block uppercase">
                   {data?.bug?.assignee ? `@${data.bug.assignee.username}` : 'UNASSIGNED'}
                 </span>
               </div>
@@ -418,7 +418,7 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
                 <div className="grid grid-cols-3 gap-2 text-center pt-1 font-mono text-[11px]">
                   <div className="p-2 border border-border bg-black rounded-sm">
                     <span className="text-muted-foreground block text-[9px] uppercase font-bold">LOGGED</span>
-                    <span className="text-[#ea580c] font-bold text-sm">{totalLoggedWorkHours}H</span>
+                    <span className="text-[#B497CF] font-bold text-sm">{totalLoggedWorkHours}H</span>
                   </div>
                   <div className="p-2 border border-border bg-black rounded-sm">
                     <span className="text-muted-foreground block text-[9px] uppercase font-bold">REMAINING</span>
@@ -514,7 +514,7 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
                               @{c.author?.username || c.author_id}
                             </span>
                             {Number(c.work_time) > 0 && (
-                              <span className="px-1 py-0.2 bg-[#ea580c] text-background font-bold uppercase">
+                              <span className="px-1 py-0.2 bg-[#B497CF] text-background font-bold uppercase">
                                 +{c.work_time}H WORK
                               </span>
                             )}
@@ -621,7 +621,7 @@ export const BugDetailModal: React.FC<BugDetailModalProps> = ({
                         className="flex items-center justify-between p-3 border-2 border-border bg-[#0d0d0d] text-xs font-mono"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="px-2 py-0.5 bg-[#ea580c] text-background text-[10px] font-bold uppercase">
+                          <span className="px-2 py-0.5 bg-[#B497CF] text-background text-[10px] font-bold uppercase">
                             {g.kind}
                           </span>
                           <div>

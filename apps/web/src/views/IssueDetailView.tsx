@@ -319,7 +319,7 @@ export const IssueDetailView: React.FC = () => {
           <div className="bg-[#0d0d0d] border border-border rounded-sm p-5 sm:p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h2 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-[#ea580c]" />
+                <MessageSquare className="w-4 h-4 text-[#B497CF]" />
                 <span>ACTIVITY & AUDIT TRAIL ({data.comments?.length || 0} NOTES)</span>
               </h2>
               <span className="text-[10px] text-muted-foreground uppercase">
@@ -359,7 +359,7 @@ export const IssueDetailView: React.FC = () => {
                       </div>
 
                       {comment.work_time > 0 && (
-                        <span className="px-2 py-0.5 bg-[#ea580c]/15 text-[#ea580c] border border-[#ea580c] text-[10px] font-bold uppercase rounded-xs flex items-center gap-1">
+                        <span className="px-2 py-0.5 bg-[#B497CF]/15 text-[#B497CF] border border-[#B497CF] text-[10px] font-bold uppercase rounded-xs flex items-center gap-1">
                           <Clock className="w-2.5 h-2.5" />
                           <span>+{comment.work_time}H WORK</span>
                         </span>
@@ -414,7 +414,7 @@ export const IssueDetailView: React.FC = () => {
                       type="checkbox"
                       checked={isPrivateComment}
                       onChange={(e) => setIsPrivateComment(e.target.checked)}
-                      className="accent-[#ea580c]"
+                      className="accent-[#B497CF]"
                     />
                     <span>PRIVATE (SECURITY CORE)</span>
                   </label>
@@ -449,7 +449,7 @@ export const IssueDetailView: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground uppercase font-bold">ASSIGNEE</span>
-                <span className="text-[#ea580c] uppercase font-bold">
+                <span className="text-[#B497CF] uppercase font-bold">
                   {bug.assignee ? `@${bug.assignee.username}` : 'UNASSIGNED'}
                 </span>
               </div>
@@ -485,7 +485,7 @@ export const IssueDetailView: React.FC = () => {
             <div className="grid grid-cols-3 gap-2 text-center text-xs">
               <div className="p-2 border border-border bg-black rounded-xs">
                 <span className="text-[9px] text-muted-foreground uppercase block font-bold">LOGGED</span>
-                <span className="text-[#ea580c] font-bold text-sm">{totalLoggedWorkHours}H</span>
+                <span className="text-[#B497CF] font-bold text-sm">{totalLoggedWorkHours}H</span>
               </div>
               <div className="p-2 border border-border bg-black rounded-xs">
                 <span className="text-[9px] text-muted-foreground uppercase block font-bold">REMAINING</span>

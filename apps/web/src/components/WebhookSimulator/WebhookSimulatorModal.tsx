@@ -79,12 +79,12 @@ export const WebhookSimulatorModal: React.FC<WebhookSimulatorModalProps> = ({
         {/* Brutalist Header */}
         <div className="p-3 border-b-2 border-foreground bg-[#121212] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 bg-[#ea580c]" />
+            <span className="h-2 w-2 bg-[#B497CF]" />
             <span className="h-2 w-2 bg-foreground" />
             <div>
               <h2 id="webhook-sim-title" className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
                 <span>// REPLAY // GITHUB_WEBHOOK_EVENT</span>
-                <span className="text-[9px] px-1.5 py-0.2 bg-[#ea580c] text-background font-bold uppercase">
+                <span className="text-[9px] px-1.5 py-0.2 bg-[#B497CF] text-background font-bold uppercase">
                   AUTOMATED: TRUE
                 </span>
               </h2>
@@ -119,7 +119,7 @@ export const WebhookSimulatorModal: React.FC<WebhookSimulatorModalProps> = ({
                 className="p-3 bg-[#0d0d0d] border-2 border-border hover:border-foreground text-left transition-all group"
               >
                 <div className="flex items-center gap-1.5 font-bold text-xs text-foreground uppercase">
-                  <GitCommit className="w-3.5 h-3.5 text-[#ea580c]" />
+                  <GitCommit className="w-3.5 h-3.5 text-[#B497CF]" />
                   <span>PUSH 'FIXES #412' COMMIT</span>
                 </div>
                 <p className="text-[9px] text-muted-foreground mt-1 uppercase font-mono">
@@ -157,7 +157,7 @@ export const WebhookSimulatorModal: React.FC<WebhookSimulatorModalProps> = ({
                 className="p-3 bg-[#0d0d0d] border-2 border-border hover:border-foreground text-left transition-all group"
               >
                 <div className="flex items-center gap-1.5 font-bold text-xs text-foreground uppercase">
-                  <GitPullRequest className="w-3.5 h-3.5 text-[#ea580c]" />
+                  <GitPullRequest className="w-3.5 h-3.5 text-[#B497CF]" />
                   <span>OPEN PR FOR #412</span>
                 </div>
                 <p className="text-[9px] text-muted-foreground mt-1 uppercase font-mono">
@@ -191,14 +191,14 @@ export const WebhookSimulatorModal: React.FC<WebhookSimulatorModalProps> = ({
             <div className="p-3 bg-black border-2 border-border space-y-2 font-mono text-xs animate-slide-up">
               <div className="flex items-center justify-between text-muted-foreground pb-1 border-b border-border">
                 <span className="flex items-center gap-1.5 text-foreground font-bold uppercase">
-                  <Terminal className="w-3.5 h-3.5 text-[#ea580c]" /> RESULT LOG:
+                  <Terminal className="w-3.5 h-3.5 text-[#B497CF]" /> RESULT LOG:
                 </span>
                 <button
                   onClick={() => {
                     onClose();
                     onSelectBug(bugId);
                   }}
-                  className="text-[#ea580c] hover:underline flex items-center gap-1 text-[10px] uppercase font-bold"
+                  className="text-[#B497CF] hover:underline flex items-center gap-1 text-[10px] uppercase font-bold"
                 >
                   <span>OPEN INCIDENT #{bugId} DOSSIER</span>
                 </button>
