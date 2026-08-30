@@ -161,6 +161,20 @@ Modern software engineering organizations face a painful dilemma in defect track
 
 ---
 
+### 10. Bug Dossier & Guarded Flow Timeline (`/projects/:key/issues/:id`)
+*Comprehensive defect dossier featuring real-time stage progression (`REPORTED` → `TRIAGED` → `BRANCH` → `PR OPEN` → `REVIEW` → `VERIFIED`), stalled bottleneck alert indicators (`WAITING ON REVIEW`), personal request & approval flag resolution (`[+] GRANT` / `[-] DENY`), and roaming desktop pet integration.*
+
+![Bug Dossier & Guarded Flow Timeline](readme_images/10_bug_dossier_flow_timeline.png)
+
+---
+
+### 11. Tom the Lizard AI Triage Copilot & Sentinel Terminal
+*Interactive AI Triage Copilot with 1-click diagnostic suites (**Duplicate Radar**, **SLA Bottleneck Advisor**, **Executive Brief**, **Simulate Commit**, **RBAC Audit**), cycle-time latency breakdown, and pet personality selectors (**Tom Lizard**, **Byte Drone**, **Glitch Fox**).*
+
+![Tom the Lizard AI Copilot Terminal](readme_images/11_tom_ai_copilot_drawer.png)
+
+---
+
 ## 🏗️ System Architecture
 
 Triarc is engineered as a high-cohesion, low-coupling TypeScript monorepo with an **isolated, zero-I/O pure state engine**:
@@ -264,20 +278,11 @@ $$\text{Reported} \xrightarrow{\text{2d 4h}} \text{Triaged} \xrightarrow{\text{1
 - **Visually Distinct Stalled Segments**: If a bug gets stuck (e.g. Bug #412 waiting in review for > 24 hours), the timeline highlights the stalled segment with an animated glowing alert and attributes the bottleneck directly to the blocking flag: `stalled 4d — waiting on review (flag review? → @alex)`.
 - **Graceful Degradation**: If GitHub is disconnected, the timeline renders purely from Bugzilla-style `activity` status transitions.
 
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│ BUG #412 FLOW TIMELINE                                                                 │
-├────────────────────────────────────────────────────────────────────────────────────────┤
-│  [Reported] ──(2d 4h)──► [Triaged] ──(1d 2h)──► [Branch] ──(3h)──► [PR #108]           │
-│                                                                        │               │
-│  ┌─────────────────────────────────────────────────────────────────────▼────────────┐  │
-│  │ ⚠️ STALLED SEGMENT: IN REVIEW (4 days elapsed)                                   │  │
-│  │ Bottleneck: review? flag pending for @alex · SLA Target (+12h Breached)          │  │
-│  └─────────────────────────────────────────────────────────────────────┬────────────┘  │
-│                                                                        │ (1-click +)   │
-│  [Verified (FIXED)] ◄──────── (12m) ──────── [Merged to main] ◄────────┘               │
-└────────────────────────────────────────────────────────────────────────────────────────┘
-```
+<div align="center">
+  <img src="readme_images/10_bug_dossier_flow_timeline.png" alt="Bug Dossier & Guarded Flow Timeline" width="100%" />
+</div>
+
+<br />
 
 ---
 
@@ -365,21 +370,36 @@ Triarc features **Tom the Lizard** — an authentic, animated screen-roaming des
          └───────────────────────────────────────────────┘
 ```
 
-### Pet Features & Behaviors
-- **Official 9-Row Animated Spritesheet**: Rendered frame-by-frame from `/pet/tom-lizard/spritesheet.webp` with realistic running, eating, waving, and sleeping animations.
-- **Autonomous Roaming**: Tom walks back and forth across the bottom of the screen with natural walk cycles, tail undulations, and resting naps (`Zzz...`).
-- **Interactive Feeding & Ball Play**:
-  - `[ 🪲 FEED BUG ]`: Spawns a software bug on screen; Tom tracks it down and snaps it up with his tongue (`*NOM!* +10 XP`)!
-  - `[ 🎾 PLAY ]`: Throws a bouncing ball across the workspace that Tom chases and catches.
-- **AI Triage Terminal**:
-  - 🔍 **Duplicate Radar**: Identifies high-similarity bug pairs using vector embeddings.
-  - ⏱️ **SLA Bottleneck Advisor**: Scans review queues and flags stalled triage steps.
-  - 📋 **Executive Briefings**: Formats instant Markdown incident summaries for stakeholders.
-  - 🛡️ **RBAC Audit**: Validates confidential group boundaries.
-
 <div align="center">
-  <img src="readme_images/05_project_telemetry_and_ai_copilot.png" alt="Tom the Lizard AI Copilot & Real-Time Flow Diagnostics" width="85%" />
+  <img src="readme_images/11_tom_ai_copilot_drawer.png" alt="Tom the Lizard AI Copilot & Real-Time Flow Diagnostics" width="100%" />
 </div>
+
+<br />
+
+### 🧠 Autonomous AI Copilot Capabilities
+Tom is not just a companion — he is an intelligent operational triage assistant connected to the live telemetry stream:
+
+1. **🔍 Zero-Cold-Start Duplicate Radar**:
+   - Executes sub-millisecond vector similarity calculations across all active bug summaries.
+   - Detects duplicate bug clusters before they are filed, preserving engineering bandwidth.
+2. **⏱️ SLA Bottleneck & Flow Advisor**:
+   - Analyzes lifecycle audit trails in real time.
+   - Instantly highlights stalled bottlenecks (e.g., *“Bug #412 has been waiting on @alex for review for 10+ days”*) and recommends escalation actions.
+3. **📋 Executive Stakeholder Briefings**:
+   - Formats instant, structured Markdown digests summarizing open defect severity, milestone progress, and team velocity for leadership.
+4. **⚡ Real-Time Simulated Commits**:
+   - Simulates multi-developer Git workflows with realistic commit messages, triggering automated state transitions (`automated: 1`) broadcasted via Server-Sent Events.
+5. **🛡️ RBAC & Group Isolation Audit**:
+   - Scans security group boundaries (`GRP_SEC`) and verifies zero confidential data leakage across public triage views.
+
+### 🎮 Pet Companionship & Gamification
+- **Official 9-Row Animated Spritesheet**: Rendered frame-by-frame from `/pet/tom-lizard/spritesheet.webp` with realistic running, bug-snapping, waving, and sleeping animations.
+- **Autonomous Roaming**: Tom wanders across the bottom bar of every app screen, tracks cursor interactions, and takes cozy naps (`Zzz...`).
+- **Interactive Feeding & Ball Play**:
+  - `[ 🪲 FEED BUG ]`: Spawns a software bug on screen; Tom sprints to catch it with his tongue (`*NOM!* +10 XP`)!
+  - `[ 🎾 PLAY ]`: Throws a bouncing ball across the workspace that Tom chases and catches.
+- **Customizable Avatar Skins**: Switch dynamically between **Tom Lizard**, **Byte Drone**, and **Glitch Fox**.
+- **Retro Cyber Sound FX**: Synthesized 8-bit audio feedback for actions, alerts, and level-ups.
 
 ---
 
