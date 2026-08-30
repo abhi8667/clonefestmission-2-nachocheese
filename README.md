@@ -207,7 +207,7 @@ flowchart TD
     EXPRESS --> STATE_MACHINE
     STATE_MACHINE --> FLAGS
     EXPRESS --> CFD_CALC
-    PET -->|Context & Diagnostics| DRAWER
+    PET -->|"Context & Diagnostics"| DRAWER
     DRAWER -->|REST Commands| EXPRESS
 ```
 
@@ -456,11 +456,11 @@ Triarc implements a multi-tier security model designed for enterprise compliance
 
 ```mermaid
 graph TD
-    User([Authenticated Operator]) -->|Bearer JWT| Gate{Security Middleware}
-    Gate -->|Public Bug| ReadPublic[(Database: Public Bugs)]
-    Gate -->|Confidential / CVE Bug| CheckGroup{Member of Security Group?}
-    CheckGroup -->|Yes (e.g. @sarah, @marcus)| ReadProtected[(Database: Confidential Vulnerabilities)]
-    CheckGroup -->|No| Reject[404 Not Found / Zero-Leakage]
+    User(["Authenticated Operator"]) -->|"Bearer JWT"| Gate{"Security Middleware"}
+    Gate -->|"Public Bug"| ReadPublic[("Database: Public Bugs")]
+    Gate -->|"Confidential / CVE Bug"| CheckGroup{"Member of Security Group?"}
+    CheckGroup -->|"Yes (e.g. @sarah, @marcus)"| ReadProtected[("Database: Confidential Vulnerabilities")]
+    CheckGroup -->|"No"| Reject["404 Not Found / Zero-Leakage"]
 ```
 
 1. **Row-Level Security (RLS)**: Confidential bugs (e.g. Bug #413) are strictly inaccessible to non-group members across all endpoints, search results, autocomplete, duplicate radar, and SSE notifications.
