@@ -101,49 +101,65 @@ export const LandingView: React.FC = () => {
 
       <main id="landing-main" className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-16 space-y-20 sm:space-y-28">
         {/* ========================================================================= */}
-        {/* SECTION 1: HERO                                                          */}
+        {/* SECTION 1: FULL SCREEN CENTERED HERO                                      */}
         {/* ========================================================================= */}
-        <section aria-labelledby="hero-heading" className="space-y-8 sm:space-y-12">
-          <div className="max-w-4xl space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#121212] border border-border text-[11px] font-bold text-[#ea580c] uppercase rounded-xs tracking-wider">
-              <Activity className="w-3.5 h-3.5 animate-pulse" />
-              <span>CODE-COUPLED DEFECT TELEMETRY MATRIX</span>
+        <section
+          aria-labelledby="hero-heading"
+          className="min-h-[82vh] sm:min-h-[88vh] flex flex-col items-center justify-center text-center space-y-8 py-12 relative"
+        >
+          <div className="space-y-6 max-w-4xl mx-auto flex flex-col items-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#121212] border border-border text-[11px] font-bold text-[#ea580c] uppercase rounded-xs tracking-widest">
+              <Activity className="w-3.5 h-3.5 animate-pulse text-[#ea580c]" />
+              <span>DEFECT TELEMETRY &amp; FLOW MATRIX</span>
             </div>
 
             <h1
               id="hero-heading"
-              className="text-3xl sm:text-5xl lg:text-6xl font-black text-foreground uppercase tracking-tight leading-[1.08]"
+              className="text-6xl sm:text-8xl md:text-9xl font-black text-foreground uppercase tracking-tight leading-none select-none font-mono"
             >
-              Bugzilla tracked where a bug is.{' '}
-              <span className="text-[#ea580c]">
-                Triarc tracks how fast it&apos;s moving and why it&apos;s stuck.
-              </span>
+              TRIARC
             </h1>
 
-            <p className="text-sm sm:text-base text-muted-foreground uppercase leading-relaxed max-w-3xl font-mono">
-              An industrial issue tracker connected directly to your git commits, pull requests, and review workflows.
-              Measure flow latency, pinpoint stalled reviews, and eliminate duplicate triage before code touches staging.
+            <p className="text-sm sm:text-base md:text-lg text-muted-foreground uppercase leading-relaxed max-w-2xl font-mono">
+              Bugzilla tracked where a bug is.{' '}
+              <span className="text-[#ea580c] font-bold">
+                Triarc tracks how fast it&apos;s moving and why it&apos;s stuck
+              </span>{' '}
+              — by connecting the tracker to the code.
             </p>
 
-            {/* Hero Actions */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2">
+            {/* Central Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 w-full max-w-md">
               <Link
-                to="/login?from=/projects"
-                className="px-6 py-3.5 bg-foreground text-background hover:bg-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all rounded-xs shadow-md focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
+                to="/login?from=/projects&demo=alex"
+                className="w-full sm:w-auto px-8 py-4 bg-foreground text-background hover:bg-white text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2.5 transition-all rounded-xs shadow-lg focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
               >
-                <span>SIGN IN TO WORKSPACE</span>
+                <span>EXPLORE DEMO</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
 
               <Link
-                to="/login?from=/projects&demo=alex"
-                className="px-6 py-3.5 bg-[#121212] hover:bg-[#1a1a1a] text-foreground border-2 border-border hover:border-[#ea580c] text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all rounded-xs focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
+                to="/login?from=/projects"
+                className="w-full sm:w-auto px-8 py-4 bg-[#121212] hover:bg-[#1a1a1a] text-foreground border-2 border-border hover:border-[#ea580c] text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all rounded-xs focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
               >
-                <span>EXPLORE LIVE DEMO (OPERATOR @ALEX)</span>
+                <span>SIGN IN / SIGN UP</span>
                 <ChevronRight className="w-4 h-4 text-[#ea580c]" />
               </Link>
             </div>
           </div>
+
+          {/* Subtle scroll down indicator */}
+          <a
+            href="#live-preview"
+            className="pt-8 text-[11px] text-muted-foreground hover:text-foreground uppercase tracking-widest flex items-center gap-1.5 transition-colors font-mono"
+          >
+            <span>INSPECT TELEMETRY ARCHITECTURE</span>
+            <ChevronRight className="w-3.5 h-3.5 rotate-90 text-[#ea580c]" />
+          </a>
+        </section>
+
+        {/* Live Preview Container */}
+        <section id="live-preview" aria-label="Live flow timeline preview" className="pt-6">
 
           {/* Above-the-fold Flow Timeline Live Preview */}
           <div className="brutalist-card p-4 sm:p-6 bg-[#0d0d0d] border-2 border-border shadow-brutalist rounded-xs space-y-4">
