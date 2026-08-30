@@ -26,10 +26,12 @@ export function runSeed() {
     DELETE FROM milestones;
     DELETE FROM versions;
     DELETE FROM groups;
+    DELETE FROM project_members;
+    DELETE FROM projects;
     DELETE FROM users;
   `);
     db.pragma('foreign_keys = ON');
-    console.log('  Cleaned tables. Seeding users, groups, milestones, and keywords...');
+    console.log('  Cleaned tables. Seeding users, projects, groups, milestones, and keywords...');
     // 1. Seed Users with bcrypt hashed passwords (password123)
     const defaultPasswordHash = bcrypt.hashSync('password123', 10);
     const insertUser = db.prepare(`
@@ -42,6 +44,37 @@ export function runSeed() {
     insertUser.run('u_marcus', 'marcus', 'Marcus Vance', 'marcus@triarc.dev', 'admin', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100', defaultPasswordHash);
     insertUser.run('u_sarah', 'sarah', 'Sarah Connor', 'sarah@triarc.dev', 'security', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100', defaultPasswordHash);
     insertUser.run('u_chen', 'chen', 'Chen Wei', 'chen@triarc.dev', 'reporter', 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100', defaultPasswordHash);
+    // 1b. Seed Projects
+    const insertProject = db.prepare(`
+    INSERT INTO projects (id, key, name, description, department_id, repo_url, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+  `);
+    insertProject.run('prj_core', 'CORE', 'Triarc Core Platform', 'Central system engine, workflow telemetry, zero-I/O state machines, and real-time streaming services', 'dept_eng', 'https://github.com/triarc/core-engine');
+    insertProject.run('prj_pay', 'PAY', 'Payment Gateway & Settlement', 'High-throughput payment orchestration, double-entry ledger consistency, and multi-currency billing pipeline', 'dept_fintech', 'https://github.com/triarc/payment-gateway');
+    insertProject.run('prj_sec', 'SEC', 'Security & Zero Trust Auth', 'Identity provider, OAuth/JWT verification, confidential dossiers, and RBAC enforcement', 'dept_secops', 'https://github.com/triarc/zero-trust-auth');
+    // 1c. Seed Project Members with Per-Project Roles
+    const insertProjectMember = db.prepare(`
+    INSERT INTO project_members (project_id, user_id, role)
+    VALUES (?, ?, ?)
+  `);
+    // Core: Alex=developer, Sam=developer, Priya=triager, Marcus=admin, Sarah=developer, Chen=reporter
+    insertProjectMember.run('prj_core', 'u_alex', 'developer');
+    insertProjectMember.run('prj_core', 'u_sam', 'developer');
+    insertProjectMember.run('prj_core', 'u_priya', 'triager');
+    insertProjectMember.run('prj_core', 'u_marcus', 'admin');
+    insertProjectMember.run('prj_core', 'u_sarah', 'developer');
+    insertProjectMember.run('prj_core', 'u_chen', 'reporter');
+    // Pay: Alex=triager, Sam=developer, Priya=developer, Marcus=admin, Chen=reporter
+    insertProjectMember.run('prj_pay', 'u_alex', 'triager');
+    insertProjectMember.run('prj_pay', 'u_sam', 'developer');
+    insertProjectMember.run('prj_pay', 'u_priya', 'developer');
+    insertProjectMember.run('prj_pay', 'u_marcus', 'admin');
+    insertProjectMember.run('prj_pay', 'u_chen', 'reporter');
+    // Sec: Marcus=admin, Sarah=admin, Priya=triager, Alex=developer
+    insertProjectMember.run('prj_sec', 'u_marcus', 'admin');
+    insertProjectMember.run('prj_sec', 'u_sarah', 'admin');
+    insertProjectMember.run('prj_sec', 'u_priya', 'triager');
+    insertProjectMember.run('prj_sec', 'u_alex', 'developer');
     // 2. Seed Groups
     const insertGroup = db.prepare('INSERT INTO groups (id, name, description) VALUES (?, ?, ?)');
     insertGroup.run('grp_sec', 'Security Core Team', 'Confidential vulnerability reports and cryptographic secrets');
@@ -74,10 +107,10 @@ export function runSeed() {
     const bug412CreatedAt = new Date(now - 14 * DAY_MS).toISOString();
     const insertBug = db.prepare(`
     INSERT INTO bugs (
-      id, title, description, status, severity, priority, component_id, reporter_id, assignee_id, version, target_milestone, estimated_time, remaining_time, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      id, title, description, status, severity, priority, component_id, project_id, reporter_id, assignee_id, version, target_milestone, estimated_time, remaining_time, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
-    insertBug.run(412, 'Crash on save when offline', 'Application throws uncaught NullPointerException in SyncEngine when attempting to persist document while network state is disconnected. Needs fallback to local SQLite queue.', 'In Review', 'critical', 'highest', 'core', 'u_sam', 'u_sam', '2.1.0-beta', 'v2.1', 12.0, 4.0, bug412CreatedAt, new Date(now - 4 * DAY_MS).toISOString());
+    insertBug.run(412, 'Crash on save when offline', 'Application throws uncaught NullPointerException in SyncEngine when attempting to persist document while network state is disconnected. Needs fallback to local SQLite queue.', 'In Review', 'critical', 'highest', 'core', 'prj_core', 'u_sam', 'u_sam', '2.1.0-beta', 'v2.1', 12.0, 4.0, bug412CreatedAt, new Date(now - 4 * DAY_MS).toISOString());
     // Link Keywords to #412
     const insertBugKw = db.prepare('INSERT INTO bug_keywords (bug_id, keyword_id) VALUES (?, ?)');
     insertBugKw.run(412, 'kw_crash');
@@ -121,7 +154,7 @@ export function runSeed() {
     insertComment.run(412, 'u_sam', 'I have pushed PR #89 with the local queue fallback. @alex please review the SQLite locking logic.', 3.5, 0, new Date(now - 4.1 * DAY_MS).toISOString());
     indexBugEmbedding(412, 'Crash on save when offline', 'Application throws uncaught NullPointerException in SyncEngine when attempting to persist document while network state is disconnected.');
     // 6. Headline Bug #398 (Login fails on mobile Safari - needinfo? requested from Priya)
-    insertBug.run(398, 'Login fails on mobile Safari with cookies disabled', 'Authentication session handshake returns 401 loop when third-party cookie restrictions are active on iOS Safari 17.5+.', 'Confirmed', 'major', 'high', 'auth', 'u_chen', 'u_sam', '2.0.4', 'v2.1', 6.0, 6.0, new Date(now - 2 * DAY_MS).toISOString(), new Date(now - 6 * HOUR_MS).toISOString());
+    insertBug.run(398, 'Login fails on mobile Safari with cookies disabled', 'Authentication session handshake returns 401 loop when third-party cookie restrictions are active on iOS Safari 17.5+.', 'Confirmed', 'major', 'high', 'auth', 'prj_sec', 'u_chen', 'u_sam', '2.0.4', 'v2.1', 6.0, 6.0, new Date(now - 2 * DAY_MS).toISOString(), new Date(now - 6 * HOUR_MS).toISOString());
     insertBugKw.run(398, 'kw_security');
     insertBugKw.run(398, 'kw_ux');
     insertWatcher.run(398, 'u_chen', new Date(now - 2 * DAY_MS).toISOString());
@@ -133,20 +166,20 @@ export function runSeed() {
     insertComment.run(398, 'u_sam', '@priya Could you confirm if this happens on standard Safari or Private Browsing mode specifically?', 0.5, 0, new Date(now - 6 * HOUR_MS).toISOString());
     indexBugEmbedding(398, 'Login fails on mobile Safari with cookies disabled', 'Authentication session handshake returns 401 loop when third-party cookie restrictions are active on iOS Safari 17.5+.');
     // 7. Seed Duplicate Radar Match Candidates (for live dedup demo testing)
-    insertBug.run(102, 'Fatal error when saving file while disconnected from internet', 'When user loses wifi connectivity and hits cmd+s, editor throws fatal exception and loses dirty buffer changes.', 'Resolved', 'critical', 'high', 'core', 'u_chen', 'u_alex', '2.0.4', 'v2.1', 4.0, 0.0, new Date(now - 20 * DAY_MS).toISOString(), new Date(now - 18 * DAY_MS).toISOString());
+    insertBug.run(102, 'Fatal error when saving file while disconnected from internet', 'When user loses wifi connectivity and hits cmd+s, editor throws fatal exception and loses dirty buffer changes.', 'Resolved', 'critical', 'high', 'core', 'prj_core', 'u_chen', 'u_alex', '2.0.4', 'v2.1', 4.0, 0.0, new Date(now - 20 * DAY_MS).toISOString(), new Date(now - 18 * DAY_MS).toISOString());
     insertBugKw.run(102, 'kw_crash');
     indexBugEmbedding(102, 'Fatal error when saving file while disconnected from internet', 'When user loses wifi connectivity and hits cmd+s, editor throws fatal exception and loses dirty buffer changes.');
-    insertBug.run(103, 'Uncaught exception in SyncEngine during offline document save', 'SyncEngine does not check network reachable state prior to calling HTTP sync endpoint, resulting in unhandled promise rejection.', 'Resolved', 'major', 'high', 'core', 'u_sam', 'u_sam', '2.0.4', 'v2.1', 4.0, 0.0, new Date(now - 25 * DAY_MS).toISOString(), new Date(now - 22 * DAY_MS).toISOString());
+    insertBug.run(103, 'Uncaught exception in SyncEngine during offline document save', 'SyncEngine does not check network reachable state prior to calling HTTP sync endpoint, resulting in unhandled promise rejection.', 'Resolved', 'major', 'high', 'core', 'prj_core', 'u_sam', 'u_sam', '2.0.4', 'v2.1', 4.0, 0.0, new Date(now - 25 * DAY_MS).toISOString(), new Date(now - 22 * DAY_MS).toISOString());
     insertBugKw.run(103, 'kw_crash');
     indexBugEmbedding(103, 'Uncaught exception in SyncEngine during offline document save', 'SyncEngine does not check network reachable state prior to calling HTTP sync endpoint, resulting in unhandled promise rejection.');
     // 8. Seed Sleeper Branch Bug (branch quiet for > 3 days while In Progress)
-    insertBug.run(250, 'Refactor SSE connection recovery and exponential backoff', 'Improve reconnection jitter and handle network sleep wake-up events on background tab restoration.', 'In Progress', 'normal', 'normal', 'api', 'u_priya', 'u_alex', '2.1.0-beta', 'v2.2', 16.0, 10.0, new Date(now - 8 * DAY_MS).toISOString(), new Date(now - 5 * DAY_MS).toISOString());
+    insertBug.run(250, 'Refactor SSE connection recovery and exponential backoff', 'Improve reconnection jitter and handle network sleep wake-up events on background tab restoration.', 'In Progress', 'normal', 'normal', 'api', 'prj_core', 'u_priya', 'u_alex', '2.1.0-beta', 'v2.2', 16.0, 10.0, new Date(now - 8 * DAY_MS).toISOString(), new Date(now - 5 * DAY_MS).toISOString());
     insertBugKw.run(250, 'kw_perf');
     insertActivity.run(250, 'u_priya', 'status', null, 'In Progress', 0, new Date(now - 8 * DAY_MS).toISOString());
     insertGitLink.run(250, 'BRANCH', 'refactor/sse-backoff', 'https://github.com/triarc/api/tree/refactor/sse-backoff', 'active', new Date(now - 4.5 * DAY_MS).toISOString());
     indexBugEmbedding(250, 'Refactor SSE connection recovery and exponential backoff', 'Improve reconnection jitter and handle network sleep wake-up events on background tab restoration.');
     // 9. Seed Confidential Security Bug
-    insertBug.run(999, 'Potential JWT token confusion with asymmetric public keys', 'Algorithm validation must reject none and HMAC when RS256 key is expected in verification headers.', 'In Progress', 'blocker', 'highest', 'auth', 'u_sarah', 'u_marcus', '2.1.0-beta', 'v2.1', 8.0, 4.0, new Date(now - 3 * DAY_MS).toISOString(), new Date(now - 1 * DAY_MS).toISOString());
+    insertBug.run(999, 'Potential JWT token confusion with asymmetric public keys', 'Algorithm validation must reject none and HMAC when RS256 key is expected in verification headers.', 'In Progress', 'blocker', 'highest', 'auth', 'prj_sec', 'u_sarah', 'u_marcus', '2.1.0-beta', 'v2.1', 8.0, 4.0, new Date(now - 3 * DAY_MS).toISOString(), new Date(now - 1 * DAY_MS).toISOString());
     insertBugKw.run(999, 'kw_security');
     db.prepare("UPDATE bugs SET security_group_id = 'grp_sec' WHERE id = 999").run();
     indexBugEmbedding(999, 'Potential JWT token confusion with asymmetric public keys', 'Algorithm validation must reject none and HMAC when RS256 key is expected in verification headers.');
@@ -199,6 +232,8 @@ export function runSeed() {
         const targetMilestone = i % 2 === 0 ? 'v2.1' : 'v2.2';
         const version = i % 3 === 0 ? '2.1.0-beta' : '2.0.4';
         const estTime = (i % 8) + 2;
+        // Distribute projects: 65% CORE, 25% PAY, 10% SEC
+        const projectId = i % 10 === 0 ? 'prj_sec' : i % 4 === 0 ? 'prj_pay' : 'prj_core';
         // Distribute creation across past 45 days
         const daysAgo = (140 - i) * 0.3 + (i % 5);
         const createdDate = new Date(now - daysAgo * DAY_MS);
@@ -219,7 +254,7 @@ export function runSeed() {
             status = 'Closed';
         else if (i % 23 === 0)
             status = 'Duplicate';
-        const result = insertBug.run(null, title, `Detailed investigation report for issue #${i}. This occurs intermittently during high volume batch processing and requires verification of state invariants across asynchronous worker boundaries.`, status, severity, priority, component, reporter, assignee, version, targetMilestone, estTime, status === 'Resolved' || status === 'Verified' || status === 'Closed' ? 0 : Math.max(1, estTime - 2), createdIso, new Date(createdDate.getTime() + 1.5 * DAY_MS).toISOString());
+        const result = insertBug.run(null, title, `Detailed investigation report for issue #${i}. This occurs intermittently during high volume batch processing and requires verification of state invariants across asynchronous worker boundaries.`, status, severity, priority, component, projectId, reporter, assignee, version, targetMilestone, estTime, status === 'Resolved' || status === 'Verified' || status === 'Closed' ? 0 : Math.max(1, estTime - 2), createdIso, new Date(createdDate.getTime() + 1.5 * DAY_MS).toISOString());
         const bugId = Number(result.lastInsertRowid);
         // Add keywords
         const kwId = kws[i % kws.length];

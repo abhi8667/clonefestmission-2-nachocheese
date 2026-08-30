@@ -54,6 +54,7 @@ bugsRouter.get('/versions', (req, res) => {
 // GET /api/bugs - List and search bugs
 bugsRouter.get('/bugs', (req, res) => {
     const queryParam = req.query.query;
+    const projectParam = (req.query.project || req.query.project_id);
     const statusParam = req.query.status;
     const priorityParam = req.query.priority;
     const severityParam = req.query.severity;
@@ -64,6 +65,10 @@ bugsRouter.get('/bugs', (req, res) => {
     const security = getSecurityFilterSQL(req.user);
     let whereClauses = [security.sql];
     let params = [...security.params];
+    if (projectParam) {
+        whereClauses.push(`(bugs.project_id = ? OR bugs.project_id = (SELECT id FROM projects WHERE UPPER(key) = UPPER(?)))`);
+        params.push(projectParam, projectParam);
+    }
     if (queryParam) {
         const parsed = parseSearchQuery(queryParam);
         if (parsed.statuses && parsed.statuses.length > 0) {
@@ -203,11 +208,14 @@ bugsRouter.get('/bugs', (req, res) => {
     SELECT
       bugs.*,
       c.name as component_name,
+      p.key as project_key,
+      p.name as project_name,
       u_reporter.id as rep_id, u_reporter.username as rep_username, u_reporter.name as rep_name, u_reporter.email as rep_email, u_reporter.role as rep_role, u_reporter.avatar_url as rep_avatar,
       u_assignee.id as ass_id, u_assignee.username as ass_username, u_assignee.name as ass_name, u_assignee.email as ass_email, u_assignee.role as ass_role, u_assignee.avatar_url as ass_avatar,
       (SELECT COUNT(*) FROM comments WHERE comments.bug_id = bugs.id) as comments_count
     FROM bugs
     LEFT JOIN components c ON bugs.component_id = c.id
+    LEFT JOIN projects p ON bugs.project_id = p.id
     LEFT JOIN users u_reporter ON bugs.reporter_id = u_reporter.id
     LEFT JOIN users u_assignee ON bugs.assignee_id = u_assignee.id
     WHERE ${whereClauses.join(' AND ')}
@@ -254,6 +262,8 @@ bugsRouter.get('/bugs', (req, res) => {
             priority: r.priority,
             component_id: r.component_id,
             component_name: r.component_name || r.component_id,
+            project_id: r.project_id || 'prj_core',
+            project_key: r.project_key || 'CORE',
             reporter_id: r.reporter_id,
             assignee_id: r.assignee_id,
             resolution: r.resolution,
@@ -296,19 +306,26 @@ bugsRouter.get('/bugs', (req, res) => {
 });
 // POST /api/bugs - Create a new bug
 bugsRouter.post('/bugs', (req, res) => {
-    const { title, description, severity = 'normal', priority = 'normal', component_id, assignee_id = null, security_group_id = null, version = null, target_milestone = null, estimated_time = 0, keyword_ids = [] } = req.body;
+    const { title, description, severity = 'normal', priority = 'normal', component_id, project_id, assignee_id = null, security_group_id = null, version = null, target_milestone = null, estimated_time = 0, keyword_ids = [] } = req.body;
     if (!title || !description || !component_id) {
         return res.status(400).json({ error: 'Title, description, and component_id are required' });
+    }
+    // Resolve project_id
+    let resolvedProjectId = 'prj_core';
+    if (project_id) {
+        const proj = db.prepare('SELECT id FROM projects WHERE id = ? OR UPPER(key) = UPPER(?)').get(project_id, project_id);
+        if (proj)
+            resolvedProjectId = proj.id;
     }
     const reporterId = req.user ? req.user.id : 'u_alex';
     const initialStatus = 'Unconfirmed';
     const nowIso = new Date().toISOString();
     const insertStmt = db.prepare(`
     INSERT INTO bugs (
-      title, description, status, severity, priority, component_id, reporter_id, assignee_id, security_group_id, version, target_milestone, estimated_time, remaining_time, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      title, description, status, severity, priority, component_id, project_id, reporter_id, assignee_id, security_group_id, version, target_milestone, estimated_time, remaining_time, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
-    const result = insertStmt.run(title.trim(), description.trim(), initialStatus, severity, priority, component_id, reporterId, assignee_id, security_group_id, version, target_milestone, Number(estimated_time) || 0, Number(estimated_time) || 0, nowIso, nowIso);
+    const result = insertStmt.run(title.trim(), description.trim(), initialStatus, severity, priority, component_id, resolvedProjectId, reporterId, assignee_id, security_group_id, version, target_milestone, Number(estimated_time) || 0, Number(estimated_time) || 0, nowIso, nowIso);
     const bugId = Number(result.lastInsertRowid);
     // Auto-add reporter as watcher
     try {
@@ -346,7 +363,9 @@ bugsRouter.post('/bugs', (req, res) => {
 });
 // GET /api/bugs/:id - Full details + relationships + flags + flow metrics + keywords + watchers
 bugsRouter.get('/bugs/:id', (req, res) => {
-    const bugId = parseInt(String(req.params.id), 10);
+    const rawId = String(req.params.id);
+    const idStr = rawId.includes('-') ? rawId.split('-').pop() : rawId;
+    const bugId = parseInt(idStr, 10);
     if (isNaN(bugId))
         return res.status(400).json({ error: 'Invalid bug ID' });
     if (!canUserViewBug(req.user, bugId)) {
@@ -356,10 +375,13 @@ bugsRouter.get('/bugs/:id', (req, res) => {
     SELECT
       bugs.*,
       c.name as component_name,
+      p.key as project_key,
+      p.name as project_name,
       u_reporter.id as rep_id, u_reporter.username as rep_username, u_reporter.name as rep_name, u_reporter.email as rep_email, u_reporter.role as rep_role, u_reporter.avatar_url as rep_avatar,
       u_assignee.id as ass_id, u_assignee.username as ass_username, u_assignee.name as ass_name, u_assignee.email as ass_email, u_assignee.role as ass_role, u_assignee.avatar_url as ass_avatar
     FROM bugs
     LEFT JOIN components c ON bugs.component_id = c.id
+    LEFT JOIN projects p ON bugs.project_id = p.id
     LEFT JOIN users u_reporter ON bugs.reporter_id = u_reporter.id
     LEFT JOIN users u_assignee ON bugs.assignee_id = u_assignee.id
     WHERE bugs.id = ?
@@ -390,6 +412,8 @@ bugsRouter.get('/bugs/:id', (req, res) => {
         priority: bugRow.priority,
         component_id: bugRow.component_id,
         component_name: bugRow.component_name || bugRow.component_id,
+        project_id: bugRow.project_id || 'prj_core',
+        project_key: bugRow.project_key || 'CORE',
         reporter_id: bugRow.reporter_id,
         assignee_id: bugRow.assignee_id,
         resolution: bugRow.resolution,

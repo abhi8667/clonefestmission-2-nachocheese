@@ -37,10 +37,32 @@ export function initializeDatabase() {
       FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
     );
 
+    -- Projects & Project Memberships
+    CREATE TABLE IF NOT EXISTS projects (
+      id TEXT PRIMARY KEY,
+      key TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      description TEXT,
+      department_id TEXT,
+      repo_url TEXT,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS project_members (
+      project_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      role TEXT NOT NULL, -- reporter | developer | triager | admin
+      PRIMARY KEY (project_id, user_id),
+      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
     CREATE TABLE IF NOT EXISTS components (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
-      description TEXT
+      description TEXT,
+      project_id TEXT,
+      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
     );
 
     -- Milestones & Versions (§3 Capability)
@@ -73,6 +95,7 @@ export function initializeDatabase() {
       severity TEXT NOT NULL,
       priority TEXT NOT NULL,
       component_id TEXT NOT NULL,
+      project_id TEXT,
       reporter_id TEXT NOT NULL,
       assignee_id TEXT,
       resolution TEXT,
@@ -86,6 +109,7 @@ export function initializeDatabase() {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       FOREIGN KEY (component_id) REFERENCES components(id),
+      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL,
       FOREIGN KEY (reporter_id) REFERENCES users(id),
       FOREIGN KEY (assignee_id) REFERENCES users(id),
       FOREIGN KEY (security_group_id) REFERENCES groups(id)
@@ -240,10 +264,12 @@ export function initializeDatabase() {
   `);
     // Safe ALTER TABLE migrations for existing databases (runs before indexes)
     const alterColumns = [
+        { table: 'bugs', col: 'project_id', def: 'TEXT' },
         { table: 'bugs', col: 'version', def: 'TEXT' },
         { table: 'bugs', col: 'target_milestone', def: 'TEXT' },
         { table: 'bugs', col: 'estimated_time', def: 'REAL DEFAULT 0' },
         { table: 'bugs', col: 'remaining_time', def: 'REAL DEFAULT 0' },
+        { table: 'components', col: 'project_id', def: 'TEXT' },
         { table: 'comments', col: 'work_time', def: 'REAL DEFAULT 0' },
         { table: 'users', col: 'password_hash', def: 'TEXT' },
         { table: 'users', col: 'is_external', def: 'INTEGER DEFAULT 0' }
@@ -260,7 +286,9 @@ export function initializeDatabase() {
     db.exec(`
     CREATE INDEX IF NOT EXISTS idx_activity_bug_created ON activity(bug_id, created_at);
     CREATE INDEX IF NOT EXISTS idx_bugs_status_comp ON bugs(status, component_id);
+    CREATE INDEX IF NOT EXISTS idx_bugs_project ON bugs(project_id);
     CREATE INDEX IF NOT EXISTS idx_bugs_milestone ON bugs(target_milestone);
+    CREATE INDEX IF NOT EXISTS idx_project_members_user ON project_members(user_id);
     CREATE INDEX IF NOT EXISTS idx_flags_req_status ON flags(requestee_id, status);
     CREATE INDEX IF NOT EXISTS idx_flags_setter_status ON flags(setter_id, status);
     CREATE INDEX IF NOT EXISTS idx_relationships_from ON relationships(from_bug_id);
@@ -273,6 +301,20 @@ export function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON notifications(user_id, read);
     CREATE INDEX IF NOT EXISTS idx_saved_searches_user ON saved_searches(user_id);
   `);
+    // Initialize standard projects if none exist
+    const existingProjects = db.prepare('SELECT COUNT(*) as count FROM projects').get();
+    if (existingProjects.count === 0) {
+        const insertProject = db.prepare(`
+      INSERT INTO projects (id, key, name, description, department_id, repo_url, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+    `);
+        insertProject.run('prj_core', 'CORE', 'Triarc Core Platform', 'Central system engine, telemetry, workflow engine, and real-time streaming services', 'dept_eng', 'https://github.com/triarc/core-engine');
+        insertProject.run('prj_pay', 'PAY', 'Payment Gateway & Settlement', 'High-throughput payment orchestration, ledger consistency, and multi-currency billing', 'dept_fintech', 'https://github.com/triarc/payment-gateway');
+        insertProject.run('prj_sec', 'SEC', 'Security & Zero Trust Auth', 'Identity provider, OAuth/JWT verification, confidential dossiers, and RBAC enforcement', 'dept_secops', 'https://github.com/triarc/zero-trust-auth');
+        // Backfill any existing components and bugs to prj_core
+        db.exec(`UPDATE components SET project_id = 'prj_core' WHERE project_id IS NULL`);
+        db.exec(`UPDATE bugs SET project_id = 'prj_core' WHERE project_id IS NULL`);
+    }
     // Initialize standard flag types if not exists
     const existingTypes = db.prepare('SELECT COUNT(*) as count FROM flag_types').get();
     if (existingTypes.count === 0) {
@@ -287,13 +329,13 @@ export function initializeDatabase() {
     // Initialize components
     const existingComps = db.prepare('SELECT COUNT(*) as count FROM components').get();
     if (existingComps.count === 0) {
-        const insertComp = db.prepare('INSERT INTO components (id, name, description) VALUES (?, ?, ?)');
-        insertComp.run('core', 'Core Engine', 'Central business logic and processing pipeline');
-        insertComp.run('auth', 'Authentication & Security', 'Auth, JWT, RBAC, and encryption services');
-        insertComp.run('ui', 'Web Client', 'React frontend interface, components, and styling');
-        insertComp.run('api', 'REST & SSE Gateway', 'Express HTTP API and real-time streaming');
-        insertComp.run('db', 'Storage & Persistence', 'SQLite database and migrations layer');
-        insertComp.run('git', 'GitHub Integration', 'Webhooks, commit scrapers, and branch linking');
+        const insertComp = db.prepare('INSERT INTO components (id, name, description, project_id) VALUES (?, ?, ?, ?)');
+        insertComp.run('core', 'Core Engine', 'Central business logic and processing pipeline', 'prj_core');
+        insertComp.run('auth', 'Authentication & Security', 'Auth, JWT, RBAC, and encryption services', 'prj_sec');
+        insertComp.run('ui', 'Web Client', 'React frontend interface, components, and styling', 'prj_core');
+        insertComp.run('api', 'REST & SSE Gateway', 'Express HTTP API and real-time streaming', 'prj_core');
+        insertComp.run('db', 'Storage & Persistence', 'SQLite database and migrations layer', 'prj_core');
+        insertComp.run('git', 'GitHub Integration', 'Webhooks, commit scrapers, and branch linking', 'prj_core');
     }
     // Initialize default keywords
     const existingKws = db.prepare('SELECT COUNT(*) as count FROM keywords').get();

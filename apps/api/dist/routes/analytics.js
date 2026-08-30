@@ -99,17 +99,33 @@ analyticsRouter.get('/analytics/activity-heatmap', (req, res) => {
 // GET /api/analytics/flow - Cumulative flow & stage metrics & sleeper branches & SLA compliance
 analyticsRouter.get('/analytics/flow', (req, res) => {
     const days = parseInt(req.query.days || '30', 10);
+    const projectParam = (req.query.project || req.query.project_id);
     const endDate = new Date();
     const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
-    const bugs = db.prepare('SELECT * FROM bugs').all();
-    const activities = db.prepare("SELECT * FROM activity WHERE field = 'status' ORDER BY created_at ASC").all();
-    const flags = db.prepare(`
-    SELECT f.*, ft.name as type_name, u.name as requestee_name
-    FROM flags f
-    JOIN flag_types ft ON f.type_id = ft.id
-    LEFT JOIN users u ON f.requestee_id = u.id
-  `).all();
-    const gitLinks = db.prepare('SELECT * FROM git_links').all();
+    let bugsQuery = 'SELECT * FROM bugs';
+    let params = [];
+    if (projectParam) {
+        bugsQuery += ' WHERE project_id = ? OR project_id = (SELECT id FROM projects WHERE UPPER(key) = UPPER(?))';
+        params.push(projectParam, projectParam);
+    }
+    const bugs = db.prepare(bugsQuery).all(...params);
+    const bugIds = bugs.map((b) => b.id);
+    const bugIdPlaceholders = bugIds.length > 0 ? bugIds.map(() => '?').join(',') : 'NULL';
+    const activities = (bugIds.length > 0
+        ? db.prepare(`SELECT * FROM activity WHERE field = 'status' AND bug_id IN (${bugIdPlaceholders}) ORDER BY created_at ASC`).all(...bugIds)
+        : []);
+    const flags = (bugIds.length > 0
+        ? db.prepare(`
+        SELECT f.*, ft.name as type_name, u.name as requestee_name
+        FROM flags f
+        JOIN flag_types ft ON f.type_id = ft.id
+        LEFT JOIN users u ON f.requestee_id = u.id
+        WHERE f.bug_id IN (${bugIdPlaceholders})
+      `).all(...bugIds)
+        : []);
+    const gitLinks = (bugIds.length > 0
+        ? db.prepare(`SELECT * FROM git_links WHERE bug_id IN (${bugIdPlaceholders})`).all(...bugIds)
+        : []);
     // 1. Cumulative flow diagram
     const cfd = computeCumulativeFlow(bugs, activities, defaultWorkflowConfig.states, startDate, endDate, 25);
     // 2. Metrics per bug & aggregations

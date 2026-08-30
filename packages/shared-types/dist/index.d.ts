@@ -14,10 +14,44 @@ export interface Group {
     name: string;
     description?: string;
 }
+export interface Project {
+    id: string;
+    key: string;
+    name: string;
+    description?: string;
+    department_id?: string;
+    repo_url?: string;
+    created_at: string;
+    open_bugs_count?: number;
+    assigned_to_me_count?: number;
+    stalled_bugs_count?: number;
+    user_role?: UserRole;
+    health_status?: 'HEALTHY' | 'STALLED' | 'AT_RISK';
+}
+export interface ProjectMember {
+    project_id: string;
+    user_id: string;
+    role: UserRole;
+    user?: User;
+}
+export interface ProjectAttentionSummary {
+    assigned_to_me: number;
+    incoming_requests: number;
+    watching_changed: number;
+}
+export interface CreateProjectInput {
+    id?: string;
+    key: string;
+    name: string;
+    description?: string;
+    department_id?: string;
+    repo_url?: string;
+}
 export interface Component {
     id: string;
     name: string;
     description?: string;
+    project_id?: string;
 }
 export interface Keyword {
     id: string;
@@ -73,6 +107,8 @@ export interface Bug {
     priority: BugPriority;
     component_id: string;
     component_name?: string;
+    project_id?: string;
+    project_key?: string;
     reporter_id: string;
     reporter?: User;
     assignee_id?: string | null;
@@ -332,6 +368,7 @@ export interface CreateBugInput {
     severity?: BugSeverity;
     priority?: BugPriority;
     component_id: string;
+    project_id?: string;
     assignee_id?: string | null;
     security_group_id?: string | null;
     version?: string | null;
