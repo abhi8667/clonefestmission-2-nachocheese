@@ -94,9 +94,10 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const isLandingPage = location.pathname === '/landing';
+  const isLandingPage = location.pathname === '/' || location.pathname === '/landing';
   const isLoginPage = location.pathname === '/login';
   const isPublicPage = isLandingPage || isLoginPage;
+
 
 
   return (

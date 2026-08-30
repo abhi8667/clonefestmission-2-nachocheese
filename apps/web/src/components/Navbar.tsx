@@ -133,10 +133,11 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Left: Brand + Navigation Tabs */}
         <div className="flex items-center gap-6">
           <Link
-            to="/projects"
-            aria-label="Triarc - Go to Projects"
+            to="/"
+            aria-label="Triarc - Home / Landing"
             className="flex items-center gap-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ea580c] p-1 group transition-all"
           >
+
             <div className="relative w-8 h-8 bg-foreground flex items-center justify-center border border-foreground group-hover:bg-[#ea580c] transition-colors rounded-sm">
               <Cpu className="w-4 h-4 text-background" />
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#ea580c] animate-blink" />

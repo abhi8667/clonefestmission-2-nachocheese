@@ -85,13 +85,13 @@ export const LandingView: React.FC = () => {
           </a>
 
           <Link
-            to="/login?from=/workspace&demo=alex"
-            className="px-3 py-1.5 bg-[#121212] hover:bg-[#1a1a1a] text-foreground border border-border hover:border-foreground text-xs font-bold uppercase transition-all rounded-xs focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
+            to="/workspace"
+            className="px-3 py-1.5 bg-[#121212] hover:bg-[#ea580c] text-foreground hover:text-black border border-border hover:border-[#ea580c] text-xs font-bold uppercase transition-all rounded-xs focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
           >
-            Demo Access
+            Workspace
           </Link>
           <Link
-            to="/login?from=/workspace"
+            to="/login"
             className="px-3.5 py-1.5 bg-foreground text-background hover:bg-white text-xs font-bold uppercase tracking-wider transition-all rounded-xs shadow-sm focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none flex items-center gap-1.5"
           >
             <span>Sign In</span>
@@ -144,22 +144,23 @@ export const LandingView: React.FC = () => {
             {/* Central Action Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 w-full max-w-md">
               <Link
-                to="/login?from=/workspace&demo=alex"
+                to="/workspace"
                 className="w-full sm:w-auto px-8 py-4 bg-foreground text-background hover:bg-white text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2.5 transition-all rounded-xs shadow-lg focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
               >
-                <span>EXPLORE DEMO</span>
+                <span>LAUNCH WORKSPACE</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
 
               <Link
-                to="/login?from=/workspace"
+                to="/login"
                 className="w-full sm:w-auto px-8 py-4 bg-[#121212] hover:bg-[#1a1a1a] text-foreground border-2 border-border hover:border-[#ea580c] text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all rounded-xs focus-visible:ring-2 focus-visible:ring-[#ea580c] outline-none"
               >
-                <span>SIGN IN</span>
+                <span>SIGN IN / OPERATORS</span>
                 <ChevronRight className="w-4 h-4 text-[#ea580c]" />
               </Link>
             </div>
           </div>
+
 
           {/* Subtle scroll down indicator */}
           <a
